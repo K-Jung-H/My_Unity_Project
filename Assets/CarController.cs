@@ -16,19 +16,24 @@ public class CarController : MonoBehaviour
     public Transform rearRightMesh;
 
     [Header("Car Settings")]
-    public float motorForce = 1500f;
+    public float motorForce = 5000f;
     public float brakeForce = 3000f;
     public float maxSteerAngle = 30f;
     public Vector3 centerOfMassOffset = new Vector3(0, -0.5f, 0);
 
-    [Header("Arcade Settings (�ٽ�)")]
-    [Range(0f, 1f)] public float steerHelper = 0.5f; // 0: ������, 1: ���� ������(��� ȸ��)
-    public float downForce = 100f; // ���ӿ��� ���� �ٴڿ� ���̴� ��
-    [Range(0.1f, 3f)] public float wheelStiffness = 2.0f; // Ÿ�̾� �׸���
+    [Header("Arcade Settings")]
+    [Range(0f, 1f)] public float steerHelper = 0.5f;
+    public float downForce = 100f;
+    [Range(0.1f, 3f)] public float wheelStiffness = 2.0f;
 
-    private float horizontalInput;
-    private float verticalInput;
-    private bool isBraking;
+    [Header("UI Input Sources")]
+    public SteeringWheelUI steeringWheelUI;
+    public CarPedalUI accelPedalUI;
+    public CarPedalUI brakePedalUI;
+
+    private float steerInput;
+    private float accelInput;
+    private float brakeInput;
     private Rigidbody carRigidbody;
 
     private void Start()
@@ -46,37 +51,51 @@ public class CarController : MonoBehaviour
     {
         HandleMotor();
         HandleSteering();
-        ApplyArcadePhysics(); // �����̵� ���� �Լ�
+        ApplyArcadePhysics();
         UpdateWheels();
         ApplyWheelFriction();
     }
 
     private void GetInput()
     {
+        steerInput = 0f;
+        accelInput = 0f;
+        brakeInput = 0f;
+
         var keyboard = Keyboard.current;
-        if (keyboard == null) return;
+        if (keyboard != null)
+        {
+            if (keyboard.aKey.isPressed || keyboard.leftArrowKey.isPressed) steerInput = -1f;
+            else if (keyboard.dKey.isPressed || keyboard.rightArrowKey.isPressed) steerInput = 1f;
 
-        // �ε巯�� �Ƴ��α� �Է� ��� �ﰢ���� ������ ���ϸ� ReadValue ��� ����
-        // ���⼭�� ���� ���� ����
-        if (keyboard.aKey.isPressed || keyboard.leftArrowKey.isPressed) horizontalInput = -1f;
-        else if (keyboard.dKey.isPressed || keyboard.rightArrowKey.isPressed) horizontalInput = 1f;
-        else horizontalInput = 0f;
+            if (keyboard.wKey.isPressed || keyboard.upArrowKey.isPressed) accelInput = 1f;
+            if (keyboard.sKey.isPressed || keyboard.downArrowKey.isPressed || keyboard.spaceKey.isPressed) brakeInput = 1f;
+        }
 
-        if (keyboard.sKey.isPressed || keyboard.downArrowKey.isPressed) verticalInput = -1f;
-        else if (keyboard.wKey.isPressed || keyboard.upArrowKey.isPressed) verticalInput = 1f;
-        else verticalInput = 0f;
+        if (steeringWheelUI != null && Mathf.Abs(steeringWheelUI.InputValue) > 0.01f)
+        {
+            steerInput = steeringWheelUI.InputValue;
+        }
 
-        isBraking = keyboard.spaceKey.isPressed;
+        if (accelPedalUI != null && accelPedalUI.InputValue > 0.01f)
+        {
+            accelInput = accelPedalUI.InputValue;
+        }
+
+        if (brakePedalUI != null && brakePedalUI.InputValue > 0.01f)
+        {
+            brakeInput = brakePedalUI.InputValue;
+        }
     }
 
     private void HandleMotor()
     {
-        float currentMotorForce = verticalInput * motorForce;
+        float currentMotorForce = accelInput * motorForce;
 
         rearLeftCollider.motorTorque = currentMotorForce;
         rearRightCollider.motorTorque = currentMotorForce;
 
-        float currentBrakeForce = isBraking ? brakeForce : 0f;
+        float currentBrakeForce = brakeInput * brakeForce;
 
         frontLeftCollider.brakeTorque = currentBrakeForce;
         frontRightCollider.brakeTorque = currentBrakeForce;
@@ -86,28 +105,23 @@ public class CarController : MonoBehaviour
 
     private void HandleSteering()
     {
-        float currentSteerAngle = horizontalInput * maxSteerAngle;
+        float currentSteerAngle = steerInput * maxSteerAngle;
 
         frontLeftCollider.steerAngle = currentSteerAngle;
         frontRightCollider.steerAngle = currentSteerAngle;
     }
 
-    // �ڡڡ� �����̵� ���� ���� �Լ� �ڡڡ�
     private void ApplyArcadePhysics()
     {
-        // 1. Steer Helper: ������ ���ϴ� �������� ������ ��ü�� ȸ����Ŵ
-        // WheelCollider�� ���������� �̲���������, �� �ڵ�� ������ ���� ��������
-        if (Mathf.Abs(horizontalInput) > 0.1f)
+        if (Mathf.Abs(steerInput) > 0.1f)
         {
             float rotationSpeed = carRigidbody.linearVelocity.magnitude * steerHelper;
-            // ���ڸ� ȸ�� ���� (�ӵ��� ���� ���� ȸ��)
             if (carRigidbody.linearVelocity.magnitude > 1f)
             {
-                carRigidbody.AddTorque(transform.up * horizontalInput * rotationSpeed * 10f);
+                carRigidbody.AddTorque(transform.up * steerInput * rotationSpeed * 10f);
             }
         }
 
-        // 2. Downforce: �ӵ��� �������� �ٴ����� �� ������ (������ ���)
         carRigidbody.AddForce(-transform.up * downForce * carRigidbody.linearVelocity.magnitude);
     }
 
@@ -134,7 +148,7 @@ public class CarController : MonoBehaviour
         WheelFrictionCurve sidewaysFriction = frontLeftCollider.sidewaysFriction;
 
         forwardFriction.stiffness = wheelStiffness;
-        sidewaysFriction.stiffness = wheelStiffness; // ���� �׸� ��ȭ
+        sidewaysFriction.stiffness = wheelStiffness;
 
         WheelCollider[] wheels = { frontLeftCollider, frontRightCollider, rearLeftCollider, rearRightCollider };
 
