@@ -30,10 +30,12 @@ public class CarController : MonoBehaviour
     public SteeringWheelUI steeringWheelUI;
     public CarPedalUI accelPedalUI;
     public CarPedalUI brakePedalUI;
+    public CarPedalUI reversePedalUI;
 
     private float steerInput;
     private float accelInput;
     private float brakeInput;
+    private float reverseInput;
     private Rigidbody carRigidbody;
 
     private void Start()
@@ -61,6 +63,7 @@ public class CarController : MonoBehaviour
         steerInput = 0f;
         accelInput = 0f;
         brakeInput = 0f;
+        reverseInput = 0f;
 
         var keyboard = Keyboard.current;
         if (keyboard != null)
@@ -69,7 +72,10 @@ public class CarController : MonoBehaviour
             else if (keyboard.dKey.isPressed || keyboard.rightArrowKey.isPressed) steerInput = 1f;
 
             if (keyboard.wKey.isPressed || keyboard.upArrowKey.isPressed) accelInput = 1f;
-            if (keyboard.sKey.isPressed || keyboard.downArrowKey.isPressed || keyboard.spaceKey.isPressed) brakeInput = 1f;
+
+            if (keyboard.spaceKey.isPressed) brakeInput = 1f;
+
+            if (keyboard.sKey.isPressed || keyboard.downArrowKey.isPressed) reverseInput = 1f;
         }
 
         if (steeringWheelUI != null && Mathf.Abs(steeringWheelUI.InputValue) > 0.01f)
@@ -86,11 +92,17 @@ public class CarController : MonoBehaviour
         {
             brakeInput = brakePedalUI.InputValue;
         }
+
+        if (reversePedalUI != null && reversePedalUI.InputValue > 0.01f)
+        {
+            reverseInput = reversePedalUI.InputValue;
+        }
     }
 
     private void HandleMotor()
     {
-        float currentMotorForce = accelInput * motorForce;
+        float moveInput = accelInput - reverseInput;
+        float currentMotorForce = moveInput * motorForce;
 
         rearLeftCollider.motorTorque = currentMotorForce;
         rearRightCollider.motorTorque = currentMotorForce;
@@ -115,10 +127,13 @@ public class CarController : MonoBehaviour
     {
         if (Mathf.Abs(steerInput) > 0.1f)
         {
-            float rotationSpeed = carRigidbody.linearVelocity.magnitude * steerHelper;
-            if (carRigidbody.linearVelocity.magnitude > 1f)
+            float velocity = carRigidbody.linearVelocity.magnitude;
+            float rotationSpeed = velocity * steerHelper;
+
+            if (velocity > 1f)
             {
-                carRigidbody.AddTorque(transform.up * steerInput * rotationSpeed * 10f);
+                float direction = carRigidbody.linearVelocity.z >= 0 ? 1f : -1f;
+                carRigidbody.AddTorque(transform.up * steerInput * rotationSpeed * direction * 10f);
             }
         }
 
