@@ -1,5 +1,6 @@
 using System.Collections;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public enum LobbyState
 {
@@ -17,107 +18,60 @@ public class LobbyManager : MonoBehaviour
 
     public LobbyState CurrentState => lobbyState;
 
-    [Header("Buttons")]
-    public Button_UI Press_Window;
-
-    public Button_UI Change_L_Car_Button;
-    public Button_UI Change_R_Car_Button;
-    public Button_UI Select_Car_Button;
-
-    public Button_UI Change_L_Stage_Button;
-    public Button_UI Change_R_Stage_Button;
-    public Button_UI Select_Stage_Button;
-
-    public Button_UI Change_L_Level_Button;
-    public Button_UI Change_R_Level_Button;
-    public Button_UI Select_Level_Button;
-
-    public Button_UI Game_Start_Button;
-
     private bool isGameStarting = false;
-    private bool isCarSelected = false;
-    private bool isLevelSelected = false;
 
     void Start()
     {
         Reset();
     }
 
-    private void Reset()
+    public void Reset()
     {
         lobbyState = LobbyState.Waiting;
-
         isGameStarting = false;
-        isCarSelected = false;
 
         GameData.Reset();
     }
 
-    void Update()
+    public void ChangeState(LobbyState newState)
     {
+        if (lobbyState == newState) return;
 
-        switch (lobbyState)
-        {
-            case LobbyState.Waiting:
-                HandleWaitingState();
-                break;
-
-            case LobbyState.Selection_Car:
-                HandleCarSelection();
-                break;
-
-            case LobbyState.Selection_Stage:
-                HandleStageSelection();
-                break;
-
-                case LobbyState.Selection_Level:
-                HandleLevelSelection();
-                break;
-
-            case LobbyState.ReadyToStart:
-                HandleReadyToStart();
-                break;
-        }
+        lobbyState = newState;
+        Debug.Log($"[LobbyManager] State Changed to: {lobbyState}");
     }
 
-    void HandleWaitingState()
+    public void OnClick_ToWaiting()
     {
-        if (Press_Window != null && Press_Window.GetButtonState())
-        {
-            lobbyState = LobbyState.Selection_Car;
-            Debug.Log("Transitioning to Car Selection");
-        }
+        ChangeState(LobbyState.Waiting);
     }
 
-    void HandleCarSelection()
+    public void OnClick_ToCarSelection()
     {
-        if (Game_Start_Button != null && Game_Start_Button.GetButtonState())
-        {
-            lobbyState = LobbyState.Selection_Stage;
-            Debug.Log("Transitioning to Stage Selection");
-        }
+        ChangeState(LobbyState.Selection_Car);
     }
 
-    void HandleStageSelection()
+    public void OnClick_ToStageSelection()
     {
-        if (Game_Start_Button != null && Game_Start_Button.GetButtonState())
-        {
-            lobbyState = LobbyState.Selection_Level;
-            Debug.Log("Transitioning to Level Selection");
-        }
-    }
-    
-    void HandleLevelSelection()
-    {
-        if (Game_Start_Button != null && Game_Start_Button.GetButtonState())
-        {
-            lobbyState = LobbyState.ReadyToStart;
-            Debug.Log("Transitioning to ReadyToStart");
-        }
+        ChangeState(LobbyState.Selection_Stage);
     }
 
-    void HandleReadyToStart()
+    public void OnClick_ToLevelSelection()
     {
+        ChangeState(LobbyState.Selection_Level);
+    }
 
+    public void OnClick_ToReady()
+    {
+        ChangeState(LobbyState.ReadyToStart);
+    }
+
+    public void OnClick_GameStart()
+    {
+        if (lobbyState == LobbyState.ReadyToStart)
+        {
+            isGameStarting = true;
+            SceneManager.LoadScene("Game_Stage");
+        }
     }
 }

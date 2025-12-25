@@ -13,7 +13,8 @@ public class Car_Animation : MonoBehaviour
     public Transform End_Pos;
 
     [Header("Settings")]
-    public float moveSpeed = 5.0f;
+    public float moveDuration = 1.0f;
+    public AnimationCurve moveCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
     public float rotateSpeed = 30.0f;
     public bool Rotate = true;
 
@@ -37,11 +38,25 @@ public class Car_Animation : MonoBehaviour
         HandleCenterRotation();
     }
 
-    public void Change_Car()
+    public void Change_Rotate()
+    {
+        Rotate = !Rotate;
+    }
+
+    public void Change_Car_Prev()
     {
         if (isAnimating || carPool.Count == 0) return;
 
-        StartCoroutine(ChangeCarSequence());
+        int prevIndex = (currentIndex - 1 + carPool.Count) % carPool.Count;
+        StartCoroutine(ChangeCarSequence(prevIndex));
+    }
+
+    public void Change_Car_Next()
+    {
+        if (isAnimating || carPool.Count == 0) return;
+
+        int nextIndex = (currentIndex + 1) % carPool.Count;
+        StartCoroutine(ChangeCarSequence(nextIndex));
     }
 
     private void InitializeCarPool()
@@ -67,10 +82,10 @@ public class Car_Animation : MonoBehaviour
         if (isAnimating || currentCar == null) return;
 
         float direction = Rotate ? 1.0f : -1.0f;
-        currentCar.transform.Rotate(Vector3.up * rotateSpeed * direction * Time.deltaTime);
+        currentCar.transform.Rotate(Vector3.up * rotateSpeed * direction * Time.deltaTime, Space.World);
     }
 
-    private IEnumerator ChangeCarSequence()
+    private IEnumerator ChangeCarSequence(int targetIndex)
     {
         isAnimating = true;
 
@@ -80,7 +95,7 @@ public class Car_Animation : MonoBehaviour
             currentCar.SetActive(false);
         }
 
-        currentIndex = (currentIndex + 1) % carPool.Count;
+        currentIndex = targetIndex;
         GameObject nextCar = carPool[currentIndex];
 
         yield return StartCoroutine(MoveCar(nextCar, Start_Pos.position, Center_Pos.position, true));
@@ -95,9 +110,16 @@ public class Car_Animation : MonoBehaviour
 
         obj.transform.LookAt(destination);
 
-        while (Vector3.Distance(obj.transform.position, destination) > 0.05f)
+        float elapsed = 0f;
+
+        while (elapsed < moveDuration)
         {
-            obj.transform.position = Vector3.MoveTowards(obj.transform.position, destination, moveSpeed * Time.deltaTime);
+            elapsed += Time.deltaTime;
+            float t = elapsed / moveDuration;
+            float curveValue = moveCurve.Evaluate(t);
+
+            obj.transform.position = Vector3.Lerp(start, destination, curveValue);
+
             yield return null;
         }
 
