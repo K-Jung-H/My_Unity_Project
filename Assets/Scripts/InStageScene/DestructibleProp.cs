@@ -1,58 +1,89 @@
 using UnityEngine;
 
+[RequireComponent(typeof(Rigidbody))]
 public class DestructibleProp : MonoBehaviour
 {
     private Rigidbody rb;
-    private bool isHit = false;
+    private Collider col;
 
+    private Vector2Int myChunkCoord;
+    private int myIndex;
+    private bool isInitialized = false;
+    private bool isDestroyed = false; 
+
+    [Header("Physics Settings")]
     public float pushPower = 2.0f;
     public float hitThreshold = 1.0f;
-    public float lifeTime = 10.0f;
 
-    void Start()
+    private Vector3 initialLocalPos;
+    private Quaternion initialLocalRot;
+
+    void Awake()
     {
         rb = GetComponent<Rigidbody>();
-        if (rb != null)
-        {
-            rb.isKinematic = true;
-        }
+        col = GetComponent<Collider>();
+
+        initialLocalPos = transform.localPosition;
+        initialLocalRot = transform.localRotation;
     }
 
-    void OnTriggerEnter(Collider other)
+    public void InitProp(Vector2Int chunkCoord, int index)
     {
-        if (rb == null || !rb.isKinematic) return;
+        myChunkCoord = chunkCoord;
+        myIndex = index;
+        isInitialized = true;
+    }
 
-        if (other.attachedRigidbody != null)
-        {
-            rb.isKinematic = false;
-        }
+    public void SetDestroyedState()
+    {
+        isDestroyed = true;
+        gameObject.SetActive(false);
+    }
+
+    public void ResetState()
+    {
+        isDestroyed = false;
+        gameObject.SetActive(true);
+
+        rb.isKinematic = true;
+        rb.linearVelocity = Vector3.zero;
+        rb.angularVelocity = Vector3.zero;
+
+        transform.localPosition = initialLocalPos;
+        transform.localRotation = initialLocalRot;
     }
 
     void OnCollisionEnter(Collision collision)
     {
-        if (isHit || rb == null) return;
-
+        if (!isInitialized || isDestroyed || !rb.isKinematic) return;
         if (collision.rigidbody == null) return;
 
         if (collision.relativeVelocity.magnitude > hitThreshold)
         {
-            WakeUpPhysics(collision);
+            BreakAndPush(collision);
         }
     }
 
-    void WakeUpPhysics(Collision collision)
+    void BreakAndPush(Collision collision)
     {
-        isHit = true;
-        rb.isKinematic = false;
+        isDestroyed = true;
+        rb.isKinematic = false; 
 
         Vector3 dir = -collision.contacts[0].normal + Vector3.up * 0.5f;
         dir.Normalize();
-
         float impactSpeed = Mathf.Max(collision.relativeVelocity.magnitude, 5.0f);
 
         rb.AddForce(dir * impactSpeed * pushPower, ForceMode.VelocityChange);
         rb.AddTorque(Random.insideUnitSphere * impactSpeed * pushPower * 2f, ForceMode.Impulse);
 
-        Destroy(gameObject, lifeTime);
+        WorldObjectDataManager.Instance.RegisterDestruction(myChunkCoord, myIndex);
+
+
+        Invoke(nameof(DisableSelf), 2.0f);
+    }
+
+    void DisableSelf()
+    {
+        gameObject.SetActive(false);
     }
 }
