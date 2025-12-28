@@ -15,6 +15,10 @@ public class DestructibleProp : MonoBehaviour
     public float pushPower = 2.0f;
     public float hitThreshold = 1.0f;
 
+    [Header("Destroy Settings")]
+    public float lifeTime = 2.0f;
+
+
     private Vector3 initialLocalPos;
     private Quaternion initialLocalRot;
 
@@ -55,11 +59,20 @@ public class DestructibleProp : MonoBehaviour
 
     void OnCollisionEnter(Collision collision)
     {
-        if (!isInitialized || isDestroyed || !rb.isKinematic) return;
-        if (collision.rigidbody == null) return;
+        if (!isInitialized || isDestroyed || !rb.isKinematic)
+        {
+            Debug.Log("Collision ignored: " + (isInitialized ? "" : "Not initialized; ") + (isDestroyed ? "Already destroyed; " : "") + (!rb.isKinematic ? "Not kinematic; " : ""));
+            return;
+        }
+        if (collision.rigidbody == null)
+        {
+            Debug.Log("Collision ignored: No rigidbody on colliding object.");
+            return;
+        }
 
         if (collision.relativeVelocity.magnitude > hitThreshold)
         {
+            Debug.Log("DestructibleProp hit with velocity: " + collision.relativeVelocity.magnitude);
             BreakAndPush(collision);
         }
     }
@@ -79,7 +92,7 @@ public class DestructibleProp : MonoBehaviour
         WorldObjectDataManager.Instance.RegisterDestruction(myChunkCoord, myIndex);
 
 
-        Invoke(nameof(DisableSelf), 2.0f);
+        Invoke(nameof(DisableSelf), lifeTime);
     }
 
     void DisableSelf()

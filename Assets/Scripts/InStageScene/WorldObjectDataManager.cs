@@ -26,9 +26,8 @@ public class WorldObjectDataManager : MonoBehaviour
         {
             destructionData[chunkCoord] = new HashSet<int>();
         }
-        destructionData[chunkCoord].Add(propIndex);
 
-        // Debug.Log($"单捞磐 历厘凳: 没农{chunkCoord}狼 家前[{propIndex}] 颇鲍");
+        destructionData[chunkCoord].Add(propIndex);
     }
 
     public bool IsPropDestroyed(Vector2Int chunkCoord, int propIndex)

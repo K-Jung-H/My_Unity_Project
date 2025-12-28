@@ -13,6 +13,14 @@ public class ChunkController : MonoBehaviour
 
     private Vector2Int currentCoord;
 
+    void Awake()
+    {
+        if ((props == null || props.Length == 0) && propsRoot != null)
+        {
+            props = propsRoot.GetComponentsInChildren<DestructibleProp>(true);
+        }
+    }
+
     void Reset()
     {
         if (propsRoot != null)
@@ -29,7 +37,6 @@ public class ChunkController : MonoBehaviour
         {
             for (int i = 0; i < props.Length; i++)
             {
-
                 props[i].InitProp(currentCoord, i);
 
                 if (WorldObjectDataManager.Instance.IsPropDestroyed(currentCoord, i))
