@@ -1242,6 +1242,7 @@ MonoBehaviour:
   environmentRoot: {fileID: 2010822095}
   chunkPrefabs:
   - {fileID: 3768041182012031290, guid: caf8570b6548c784ea002d440d998c75, type: 3}
+  - {fileID: 1151088984219134070, guid: 1fd1502e4ccad284f8154c7fe3407b5d, type: 3}
   chunkSize: 300
   renderDistance: 3
   physicsDistance: 1
