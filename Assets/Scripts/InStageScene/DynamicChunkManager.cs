@@ -36,6 +36,7 @@ public class DynamicChunkManager : MonoBehaviour
         }
     }
 
+
     void UpdateChunks()
     {
         List<Vector2Int> coordsToRemove = new List<Vector2Int>();
@@ -54,6 +55,8 @@ public class DynamicChunkManager : MonoBehaviour
             activeChunks.Remove(coord);
         }
 
+        bool isMapChanged = false;
+
         for (int x = -renderDistance; x <= renderDistance; x++)
         {
             for (int y = -renderDistance; y <= renderDistance; y++)
@@ -69,10 +72,36 @@ public class DynamicChunkManager : MonoBehaviour
                     newChunk.Setup(targetCoord);
 
                     activeChunks.Add(targetCoord, newChunk);
+
+                    isMapChanged = true;
                 }
 
                 bool enablePhysics = dist <= physicsDistance;
                 activeChunks[targetCoord].SetPhysicsState(enablePhysics);
+            }
+        }
+
+        if (isMapChanged)
+        {
+            RefreshAllLinks();
+        }
+    }
+
+    void RefreshAllLinks()
+    {
+        StopCoroutine("RefreshRoutine");
+        StartCoroutine("RefreshRoutine");
+    }
+
+    System.Collections.IEnumerator RefreshRoutine()
+    {
+        yield return null;
+
+        foreach (var kvp in activeChunks)
+        {
+            if (kvp.Value != null && kvp.Value.gameObject.activeInHierarchy)
+            {
+                kvp.Value.RefreshNavMeshLinks();
             }
         }
     }

@@ -1,3 +1,4 @@
+using Unity.AI.Navigation;
 using UnityEngine;
 
 public class ChunkController : MonoBehaviour
@@ -9,6 +10,9 @@ public class ChunkController : MonoBehaviour
     [Tooltip("동적 소품들의 부모 (멀어지면 끔)")]
     public GameObject propsRoot;
 
+    [Tooltip("청크의 NavLink")]
+    public NavMeshLink[] myLinks;
+
     [SerializeField] private DestructibleProp[] props;
 
     private Vector2Int currentCoord;
@@ -19,6 +23,11 @@ public class ChunkController : MonoBehaviour
         {
             props = propsRoot.GetComponentsInChildren<DestructibleProp>(true);
         }
+
+        if (myLinks == null || myLinks.Length == 0)
+        {
+            myLinks = GetComponentsInChildren<NavMeshLink>();
+        }
     }
 
     void Reset()
@@ -26,6 +35,17 @@ public class ChunkController : MonoBehaviour
         if (propsRoot != null)
         {
             props = propsRoot.GetComponentsInChildren<DestructibleProp>(true);
+        }
+    }
+    public void RefreshNavMeshLinks()
+    {
+        foreach (var link in myLinks)
+        {
+            if (link != null && link.gameObject.activeInHierarchy)
+            {
+                link.enabled = false;
+                link.enabled = true;
+            }
         }
     }
 
