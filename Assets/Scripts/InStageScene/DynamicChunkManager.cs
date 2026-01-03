@@ -1,5 +1,6 @@
-using UnityEngine;
+using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 public class DynamicChunkManager : MonoBehaviour
 {
@@ -7,6 +8,9 @@ public class DynamicChunkManager : MonoBehaviour
     public Transform player;
     public Transform environmentRoot;
     public ChunkController[] chunkPrefabs;
+
+    public event Action<ChunkController, Vector2Int> OnChunkLoaded;
+    public event Action<Vector2Int> OnChunkUnloaded;
 
     [Header("Settings")]
     public float chunkSize = 64f;
@@ -18,6 +22,7 @@ public class DynamicChunkManager : MonoBehaviour
     private Vector2Int currentCenterChunk;
     private Dictionary<Vector2Int, ChunkController> activeChunks = new Dictionary<Vector2Int, ChunkController>();
     private Queue<ChunkController> chunkPool = new Queue<ChunkController>();
+
 
     void Start()
     {
@@ -51,6 +56,7 @@ public class DynamicChunkManager : MonoBehaviour
 
         foreach (var coord in coordsToRemove)
         {
+            OnChunkUnloaded?.Invoke(coord);
             ReturnChunk(activeChunks[coord]);
             activeChunks.Remove(coord);
         }
@@ -72,6 +78,7 @@ public class DynamicChunkManager : MonoBehaviour
                     newChunk.Setup(targetCoord);
 
                     activeChunks.Add(targetCoord, newChunk);
+                    OnChunkLoaded?.Invoke(newChunk, targetCoord);
 
                     isMapChanged = true;
                 }
@@ -117,7 +124,7 @@ public class DynamicChunkManager : MonoBehaviour
         }
         else
         {
-            ChunkController prefab = chunkPrefabs[Random.Range(0, chunkPrefabs.Length)];
+            ChunkController prefab = chunkPrefabs[UnityEngine.Random.Range(0, chunkPrefabs.Length)];
             GameObject obj = Instantiate(prefab.gameObject, environmentRoot);
             chunk = obj.GetComponent<ChunkController>();
         }

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Unity.AI.Navigation;
 using UnityEngine;
 
@@ -7,11 +8,17 @@ public class ChunkController : MonoBehaviour
     [Tooltip("정적 물체의 콜라이더 그룹 (멀어지면 끔)")]
     public GameObject staticCollidersRoot;
 
+    [Tooltip("적 스폰 좌표 리스트")]
+    public GameObject spawnPosRoot;
+    private List<Transform> cachedSpawnPoints;
+
     [Tooltip("동적 소품들의 부모 (멀어지면 끔)")]
     public GameObject propsRoot;
 
     [Tooltip("청크의 NavLink")]
     public NavMeshLink[] myLinks;
+
+
 
     [SerializeField] private DestructibleProp[] props;
 
@@ -71,11 +78,39 @@ public class ChunkController : MonoBehaviour
         }
     }
 
+    public List<Transform> GetSpawnPoints()
+    {
+        if (cachedSpawnPoints == null)
+        {
+            cachedSpawnPoints = new List<Transform>();
+
+            if (spawnPosRoot != null)
+            {
+                foreach (Transform child in spawnPosRoot.transform)
+                {
+                    cachedSpawnPoints.Add(child);
+                }
+            }
+            else
+            {
+                Debug.LogWarning($"Chunk {gameObject.name} : spawnPosRoot가 연결되지 않았습니다!");
+            }
+        }
+
+        return cachedSpawnPoints;
+    }
+
     public void SetPhysicsState(bool enablePhysics)
     {
-        if (staticCollidersRoot != null && staticCollidersRoot.activeSelf != enablePhysics)
+        if (staticCollidersRoot != null)
         {
-            staticCollidersRoot.SetActive(enablePhysics);
+            foreach (Transform child in staticCollidersRoot.transform)
+            {
+                if (child.gameObject.activeSelf != enablePhysics)
+                {
+                    child.gameObject.SetActive(enablePhysics);
+                }
+            }
         }
 
         if (propsRoot != null && propsRoot.activeSelf != enablePhysics)
