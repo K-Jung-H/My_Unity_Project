@@ -49,9 +49,12 @@ public class DestructibleProp : MonoBehaviour
         isDestroyed = false;
         gameObject.SetActive(true);
 
-        rb.isKinematic = true;
+        rb.isKinematic = false;
+
         rb.linearVelocity = Vector3.zero;
         rb.angularVelocity = Vector3.zero;
+
+        rb.isKinematic = true;
 
         transform.localPosition = initialLocalPos;
         transform.localRotation = initialLocalRot;

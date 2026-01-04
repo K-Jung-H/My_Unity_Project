@@ -13,7 +13,7 @@ public class DynamicChunkManager : MonoBehaviour
     public event Action<Vector2Int> OnChunkUnloaded;
 
     [Header("Settings")]
-    public float chunkSize = 64f;
+    public float chunkSize = 300f;
     [Range(3, 16)]
     public int renderDistance = 3;
     [Range(1, 5)]
@@ -135,6 +135,11 @@ public class DynamicChunkManager : MonoBehaviour
     {
         chunk.gameObject.SetActive(false);
         chunkPool.Enqueue(chunk);
+    }
+
+    public IEnumerable<ChunkController> GetActiveChunks()
+    {
+        return activeChunks.Values;
     }
 
     Vector2Int GetChunkCoord(Vector3 pos)

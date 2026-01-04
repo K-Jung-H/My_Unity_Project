@@ -18,11 +18,10 @@ public class ChunkController : MonoBehaviour
     [Tooltip("Ã»Å©ÀÇ NavLink")]
     public NavMeshLink[] myLinks;
 
-
+    public Vector2Int Coord { get; private set; }
 
     [SerializeField] private DestructibleProp[] props;
 
-    private Vector2Int currentCoord;
 
     void Awake()
     {
@@ -58,15 +57,15 @@ public class ChunkController : MonoBehaviour
 
     public void Setup(Vector2Int coord)
     {
-        currentCoord = coord;
+        this.Coord = coord;
 
         if (props != null)
         {
             for (int i = 0; i < props.Length; i++)
             {
-                props[i].InitProp(currentCoord, i);
+                props[i].InitProp(this.Coord, i);
 
-                if (WorldObjectDataManager.Instance.IsPropDestroyed(currentCoord, i))
+                if (WorldObjectDataManager.Instance.IsPropDestroyed(this.Coord, i))
                 {
                     props[i].SetDestroyedState();
                 }
