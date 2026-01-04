@@ -16,11 +16,14 @@
 
  	- 레디 화면
 
-* 적 AI 추가  <- 진행하기
 
-&nbsp;	- NaviMesh 활용할 것
 
-&nbsp;	- Dynamic Chunk \& NaviMesh 연동 필요
+* 플레이어 스키딩 마크 추가하기
 
-* 적 생성 Factory 추가
+&nbsp;	- Trail Mesh 활용 필요
+
+&nbsp;	- Particle 시스템을 이용한 연기 궤적 효과 추가하기
+
+
+
 * 모바일 환경에 맞는 UI 비율 조정
