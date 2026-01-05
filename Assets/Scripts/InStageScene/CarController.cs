@@ -24,6 +24,7 @@ public class CarController : MonoBehaviour
     [Header("Car Specs")]
     public float motorForce = 5000f;
     public float brakeForce = 3000f;
+    public float decelerationForce = 200f;
     public float maxSteerAngle = 40f;
     public Vector3 centerOfMassOffset = new Vector3(0, -0.5f, 0);
 
@@ -40,11 +41,14 @@ public class CarController : MonoBehaviour
 
     [Header("Drift Configuration")]
     public float minDriftSpeed = 10f;
+    public float minDriftExitSpeed = 5f;
     public float driftRearStiffness = 0.1f;
     public float driftSmoothFactor = 5f;
     public float driftRotationalBoost = 3.0f;
     [Range(0f, 1f)] public float driftPathControl = 0.8f;
     [Range(0f, 5f)] public float driftDragFactor = 0.5f;
+    [Range(0.1f, 0.8f)] public float driftSteerThreshold = 0.3f;
+    [Range(0.5f, 1f)] public float autoDriftThreshold = 0.9f;
 
     private float currentSteerInput = 0f;
     private float accelInput;
@@ -52,7 +56,7 @@ public class CarController : MonoBehaviour
     private float reverseInput;
 
     private Rigidbody carRigidbody;
-    private bool isDrifting = false;
+    public bool IsDrifting = false;
     private float defaultAngularDamping;
     private float driveDirection = 1f;
 
@@ -152,15 +156,20 @@ public class CarController : MonoBehaviour
     private void CheckDriftState()
     {
         float speed = carRigidbody.linearVelocity.magnitude;
-        bool speedCondition = speed > minDriftSpeed;
-        bool turnCondition = Mathf.Abs(currentSteerInput) > 0.1f;
+
+        float currentSpeedThreshold = IsDrifting ? minDriftExitSpeed : minDriftSpeed;
+        bool speedCondition = speed > currentSpeedThreshold;
+
+        bool turnCondition = Mathf.Abs(currentSteerInput) > driftSteerThreshold;
 
         bool isSmartBraking = (Vector3.Dot(carRigidbody.linearVelocity, transform.forward) > 5.0f && reverseInput > 0.1f);
         bool brakeCondition = (brakeInput > 0.1f) || isSmartBraking;
 
-        isDrifting = speedCondition && turnCondition && brakeCondition;
+        bool autoDriftCondition = Mathf.Abs(currentSteerInput) > autoDriftThreshold;
 
-        if (isDrifting) carRigidbody.angularDamping = 0.05f;
+        IsDrifting = speedCondition && turnCondition && (brakeCondition || autoDriftCondition);
+
+        if (IsDrifting) carRigidbody.angularDamping = 0.05f;
         else carRigidbody.angularDamping = defaultAngularDamping;
     }
 
@@ -172,20 +181,32 @@ public class CarController : MonoBehaviour
         bool isBrakingReverse = (velocityDot < -1.0f && accelInput > 0.1f);
 
         float currentMotorForce = 0f;
-        float currentBrakeForce = brakeInput * brakeForce;
+        float currentBrakeForce = 0f;
 
-        if (isBrakingForward || isBrakingReverse)
+        bool isIdling = (accelInput < 0.1f && reverseInput < 0.1f && brakeInput < 0.1f);
+
+        if (isIdling)
         {
             currentMotorForce = 0f;
-            currentBrakeForce = brakeForce;
+            currentBrakeForce = decelerationForce;
         }
         else
         {
-            float moveInput = accelInput - reverseInput;
-            currentMotorForce = moveInput * motorForce;
+            currentBrakeForce = brakeInput * brakeForce;
+
+            if (isBrakingForward || isBrakingReverse)
+            {
+                currentMotorForce = 0f;
+                currentBrakeForce = brakeForce;
+            }
+            else
+            {
+                float moveInput = accelInput - reverseInput;
+                currentMotorForce = moveInput * motorForce;
+            }
         }
 
-        if (isDrifting)
+        if (IsDrifting)
         {
             frontLeftCollider.brakeTorque = 0f;
             frontRightCollider.brakeTorque = 0f;
@@ -229,13 +250,13 @@ public class CarController : MonoBehaviour
         if (canTurn && Mathf.Abs(currentSteerInput) > 0.05f)
         {
             float direction = driveDirection;
-            float driftMult = isDrifting ? driftRotationalBoost : 1.0f;
+            float driftMult = IsDrifting ? driftRotationalBoost : 1.0f;
             float targetTurnSpeed = currentSteerInput * driftMult * steerHelper * 3.0f * direction;
 
             float lowSpeedDamping = Mathf.InverseLerp(0.5f, 5.0f, speed);
             targetTurnSpeed *= lowSpeedDamping;
 
-            if (isDrifting)
+            if (IsDrifting)
             {
                 float lateralSpeed = Vector3.Dot(carRigidbody.linearVelocity, transform.right);
                 float driftControlFactor = Mathf.Clamp01(Mathf.Abs(lateralSpeed) / 2.0f);
@@ -255,7 +276,7 @@ public class CarController : MonoBehaviour
             carRigidbody.angularVelocity = currentAV;
         }
 
-        if (isDrifting && speed > 2.0f)
+        if (IsDrifting && speed > 2.0f)
         {
             float steerAngleRad = (currentSteerInput * maxSteerAngle) * Mathf.Deg2Rad;
             Vector3 steerDirection = Quaternion.Euler(0, currentSteerInput * maxSteerAngle, 0) * transform.forward;
@@ -263,7 +284,15 @@ public class CarController : MonoBehaviour
 
             Vector3 currentDir = carRigidbody.linearVelocity.normalized;
             Vector3 newDir = Vector3.Lerp(currentDir, targetVelocityDir, Time.fixedDeltaTime * driftPathControl);
-            carRigidbody.linearVelocity = newDir * speed;
+
+            float adjustedSpeed = speed;
+            if (brakeInput > 0.1f)
+            {
+                float brakeDecel = 1f - (brakeInput * 1.5f * Time.fixedDeltaTime);
+                adjustedSpeed *= brakeDecel;
+            }
+
+            carRigidbody.linearVelocity = newDir * adjustedSpeed;
 
             float slipAngle = Vector3.Angle(transform.forward, carRigidbody.linearVelocity);
             float slipFactor = Mathf.Clamp01(slipAngle / 90f);
@@ -274,7 +303,7 @@ public class CarController : MonoBehaviour
             carRigidbody.linearVelocity *= dragMultiplier;
         }
 
-        float currentDownForce = isDrifting ? downForce * 0.2f : downForce;
+        float currentDownForce = IsDrifting ? downForce * 0.2f : downForce;
         carRigidbody.AddForce(-transform.up * currentDownForce * speed);
     }
 
@@ -314,7 +343,7 @@ public class CarController : MonoBehaviour
         bool isBrakingWhileMoving = (brakeInput > 0.1f && speed > 0.5f) || isSmartBraking;
 
         float targetRearStiffness;
-        if (isDrifting || isBrakingWhileMoving)
+        if (IsDrifting || isBrakingWhileMoving)
         {
             targetRearStiffness = driftRearStiffness;
         }

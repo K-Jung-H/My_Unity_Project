@@ -303,6 +303,7 @@ GameObject:
   m_Component:
   - component: {fileID: 256743135}
   - component: {fileID: 256743136}
+  - component: {fileID: 256743137}
   m_Layer: 11
   m_Name: Wheel_FR_Collider
   m_TagString: Untagged
@@ -364,6 +365,22 @@ WheelCollider:
   m_LayerOverridePriority: 0
   m_Enabled: 1
   m_ProvidesContacts: 0
+--- !u!114 &256743137
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 256743134}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fa2bce742cd466a4b9db8e4c92412113, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WheelSkid
+  skidTrailPrefab: {fileID: 6662562089020853886, guid: 9c66d2b66f256e247924d2a72441a347, type: 3}
+  targetWheel: {fileID: 256743136}
+  carController: {fileID: 818928571}
+  groundOffset: 0.2
 --- !u!1 &541204608
 GameObject:
   m_ObjectHideFlags: 0
@@ -427,6 +444,7 @@ GameObject:
   m_Component:
   - component: {fileID: 583466524}
   - component: {fileID: 583466525}
+  - component: {fileID: 583466526}
   m_Layer: 11
   m_Name: Wheel_RR_Collider
   m_TagString: Untagged
@@ -488,6 +506,22 @@ WheelCollider:
   m_LayerOverridePriority: 0
   m_Enabled: 1
   m_ProvidesContacts: 0
+--- !u!114 &583466526
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 583466523}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fa2bce742cd466a4b9db8e4c92412113, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WheelSkid
+  skidTrailPrefab: {fileID: 6662562089020853886, guid: 9c66d2b66f256e247924d2a72441a347, type: 3}
+  targetWheel: {fileID: 583466525}
+  carController: {fileID: 818928571}
+  groundOffset: 0.2
 --- !u!1 &702927061
 GameObject:
   m_ObjectHideFlags: 0
@@ -1251,7 +1285,10 @@ MonoBehaviour:
   driftSmoothFactor: 5
   driftRotationalBoost: 2.5
   driftPathControl: 0.5
-  driftDragFactor: 0.5
+  driftDragFactor: 5
+  driftSteerThreshold: 0.1
+  autoDriftThreshold: 0.9
+  IsDrifting: 0
 --- !u!54 &818928572
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -1477,6 +1514,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1100058247}
   - component: {fileID: 1100058248}
+  - component: {fileID: 1100058249}
   m_Layer: 11
   m_Name: Wheel_FL_Collider
   m_TagString: Untagged
@@ -1538,6 +1576,22 @@ WheelCollider:
   m_LayerOverridePriority: 0
   m_Enabled: 1
   m_ProvidesContacts: 0
+--- !u!114 &1100058249
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1100058246}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fa2bce742cd466a4b9db8e4c92412113, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WheelSkid
+  skidTrailPrefab: {fileID: 6662562089020853886, guid: 9c66d2b66f256e247924d2a72441a347, type: 3}
+  targetWheel: {fileID: 1100058248}
+  carController: {fileID: 818928571}
+  groundOffset: 0.2
 --- !u!1 &1138406723
 GameObject:
   m_ObjectHideFlags: 0
@@ -1762,6 +1816,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1263244939}
   - component: {fileID: 1263244940}
+  - component: {fileID: 1263244941}
   m_Layer: 11
   m_Name: Wheel_RL_Collider
   m_TagString: Untagged
@@ -1823,6 +1878,22 @@ WheelCollider:
   m_LayerOverridePriority: 0
   m_Enabled: 1
   m_ProvidesContacts: 0
+--- !u!114 &1263244941
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1263244938}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fa2bce742cd466a4b9db8e4c92412113, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WheelSkid
+  skidTrailPrefab: {fileID: 6662562089020853886, guid: 9c66d2b66f256e247924d2a72441a347, type: 3}
+  targetWheel: {fileID: 1263244940}
+  carController: {fileID: 818928571}
+  groundOffset: 0.2
 --- !u!1 &1412597385
 GameObject:
   m_ObjectHideFlags: 0
