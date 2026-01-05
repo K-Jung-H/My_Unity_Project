@@ -1271,6 +1271,7 @@ MonoBehaviour:
   reversePedalUI: {fileID: 1912193841}
   motorForce: 5000
   brakeForce: 3000
+  decelerationForce: 200
   maxSteerAngle: 60
   centerOfMassOffset: {x: 0, y: -0.5, z: 0}
   steerSensitivity: 3
@@ -1280,7 +1281,8 @@ MonoBehaviour:
   downForce: 1000
   wheelStiffness: 2
   maxAngularVelocity: 5
-  minDriftSpeed: 10
+  minDriftSpeed: 50
+  minDriftExitSpeed: 10
   driftRearStiffness: 0.5
   driftSmoothFactor: 5
   driftRotationalBoost: 2.5
