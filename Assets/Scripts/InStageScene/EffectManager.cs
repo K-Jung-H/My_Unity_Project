@@ -2,19 +2,19 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ParticleManager : MonoBehaviour
+public class EffectManager : MonoBehaviour
 {
-    public static ParticleManager Instance;
+    public static EffectManager Instance;
 
     [System.Serializable]
-    public struct ParticleData
+    public struct EffectData
     {
         public string key;
         public GameObject prefab;
         public int poolSize;
     }
 
-    public List<ParticleData> particleList;
+    public List<EffectData> effectList;
     private Dictionary<string, Queue<GameObject>> poolDictionary;
     private Transform poolContainer;
 
@@ -34,17 +34,18 @@ public class ParticleManager : MonoBehaviour
     private void InitializePool()
     {
         poolDictionary = new Dictionary<string, Queue<GameObject>>();
-        poolContainer = new GameObject("ParticlePoolContainer").transform;
+
+        GameObject container = new GameObject("EffectPoolContainer");
+        poolContainer = container.transform;
         poolContainer.SetParent(this.transform);
 
-        foreach (var data in particleList)
+        foreach (var data in effectList)
         {
             Queue<GameObject> objectPool = new Queue<GameObject>();
 
             for (int i = 0; i < data.poolSize; i++)
             {
-                GameObject obj = Instantiate(data.prefab, poolContainer);
-                obj.SetActive(false);
+                GameObject obj = CreateNewObject(data);
                 objectPool.Enqueue(obj);
             }
 
@@ -52,21 +53,34 @@ public class ParticleManager : MonoBehaviour
         }
     }
 
-    public void PlayParticle(string key, Vector3 position, Quaternion rotation)
+    public void PlayRandomEffect(Vector3 position)
     {
-        if (!poolDictionary.ContainsKey(key)) return;
+        int randomIndex = Random.Range(0, effectList.Count);
+        EffectData randomData = effectList[randomIndex];
+        PlayEffect(randomData.key, position, Quaternion.identity);
+        Debug.Log("PlayRandomEffect: " + randomData.key);
+    }
+
+    public void PlayEffect(string key, Vector3 position, Quaternion rotation)
+    {
+        if (!poolDictionary.ContainsKey(key))
+        {
+            Debug.LogWarning($"Effect Key Not Found: {key}");
+            return;
+        }
 
         GameObject obj = GetObjectFromPool(key);
+        if (obj == null) return;
 
         obj.transform.position = position;
         obj.transform.rotation = rotation;
         obj.SetActive(true);
 
-        ParticleSystem ps = obj.GetComponent<ParticleSystem>();
-        if (ps != null)
+        EffectController controller = obj.GetComponent<EffectController>();
+        if (controller != null)
         {
-            ps.Play();
-            StartCoroutine(ReturnToPoolAfterDelay(key, obj, ps.main.duration));
+            controller.PlayEffect();
+            StartCoroutine(ReturnToPoolAfterDelay(key, obj, controller.totalDuration));
         }
         else
         {
@@ -77,33 +91,33 @@ public class ParticleManager : MonoBehaviour
     private GameObject GetObjectFromPool(string key)
     {
         Queue<GameObject> pool = poolDictionary[key];
+        GameObject obj = null;
 
         if (pool.Count > 0)
         {
-            GameObject obj = pool.Dequeue();
-            if (!obj.activeInHierarchy)
-            {
-                return obj;
-            }
-            else
-            {
-                pool.Enqueue(obj);
-                return CreateNewObject(key);
-            }
+            obj = pool.Dequeue();
+        }
+
+        if (obj != null && !obj.activeInHierarchy)
+        {
+            return obj;
         }
         else
         {
-            return CreateNewObject(key);
+            if (obj != null) pool.Enqueue(obj);
+
+            EffectData data = effectList.Find(x => x.key == key);
+            return CreateNewObject(data);
         }
     }
 
-    private GameObject CreateNewObject(string key)
+    private GameObject CreateNewObject(EffectData data)
     {
-        ParticleData data = particleList.Find(x => x.key == key);
         if (data.prefab == null) return null;
 
         GameObject newObj = Instantiate(data.prefab, poolContainer);
         newObj.SetActive(false);
+
         return newObj;
     }
 

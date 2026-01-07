@@ -1290,6 +1290,11 @@ MonoBehaviour:
   driftDragFactor: 5
   driftSteerThreshold: 0.1
   autoDriftThreshold: 0.9
+  collisionLayerMask:
+    serializedVersion: 2
+    m_Bits: 1152
+  collisionMinForce: 1000
+  explosionEffectCoolTime: 0.5
   IsDrifting: 0
 --- !u!54 &818928572
 Rigidbody:
@@ -1384,6 +1389,7 @@ GameObject:
   - component: {fileID: 1023815565}
   - component: {fileID: 1023815564}
   - component: {fileID: 1023815566}
+  - component: {fileID: 1023815567}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -1422,6 +1428,7 @@ MonoBehaviour:
   environmentRoot: {fileID: 2010822095}
   chunkPrefabs:
   - {fileID: 5126491875953388547, guid: 7b00223106a6de442a2a7d3eb36db76b, type: 3}
+  - {fileID: 1151088984219134070, guid: 1fd1502e4ccad284f8154c7fe3407b5d, type: 3}
   chunkSize: 300
   renderDistance: 3
   physicsDistance: 1
@@ -1459,6 +1466,22 @@ MonoBehaviour:
   activationDistance: 200
   deactivationDistance: 500
   enemyCullDistance: 600
+--- !u!114 &1023815567
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1023815562}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0a375c005b5f5e74d9425bd7b1dde7f0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EffectManager
+  effectList:
+  - key: Explosion
+    prefab: {fileID: 1990747841027859044, guid: 5500f1520d265b94ba716dd56111e324, type: 3}
+    poolSize: 20
 --- !u!1 &1030873013
 GameObject:
   m_ObjectHideFlags: 0
@@ -2223,7 +2246,7 @@ MonoBehaviour:
   rotationSpeed: 5
   collisionLayers:
     serializedVersion: 2
-    m_Bits: 1473
+    m_Bits: 449
   collisionBuffer: 0.5
 --- !u!1 &1808731192
 GameObject:

@@ -50,6 +50,13 @@ public class CarController : MonoBehaviour
     [Range(0.1f, 0.8f)] public float driftSteerThreshold = 0.3f;
     [Range(0.5f, 1f)] public float autoDriftThreshold = 0.9f;
 
+
+    [Header("Gameplay Settings")]
+    public LayerMask collisionLayerMask;
+    public float collisionMinForce = 1000f;
+    public float explosionEffectCoolTime = 0.5f;
+    private float lastExplosionTime = -999f;
+
     private float currentSteerInput = 0f;
     private float accelInput;
     private float brakeInput;
@@ -362,4 +369,19 @@ public class CarController : MonoBehaviour
         rearRightCollider.forwardFriction = forwardFriction;
         rearRightCollider.sidewaysFriction = sidewaysFriction;
     }
+
+    private void OnCollisionEnter(Collision collision)
+    {
+        if (Time.time - lastExplosionTime < explosionEffectCoolTime) return;
+
+        if (collisionLayerMask == (collisionLayerMask | (1 << collision.gameObject.layer)))
+        {
+            if (collision.impulse.magnitude >= collisionMinForce)
+            {
+                lastExplosionTime = Time.time;
+                EffectManager.Instance.PlayEffect("Explosion", transform.position, transform.rotation);
+            }
+        }
+    }
 }
+
