@@ -18,11 +18,23 @@
 
 
 
-* 플레이어 스키딩 마크 추가하기
+* 차량 폭발 이펙트 발생 조건 조정하기 ~ 01.08
 
-&nbsp;	- Trail Mesh 활용 필요
+ 	- 경사로 객체 위에서 일정 속도 이상이 되면 폭발 이펙트 발생 // 발생 조건: 충돌체 대상과의 속도 차이 비교
 
-&nbsp;	- Particle 시스템을 이용한 연기 궤적 효과 추가하기
+ 		->  Layer - Structure\_Static 을 사용하는 객체들 중 발판 역할을 하는 일부 객체들의 Layer 변경 필요 // Structure\_Static - > Track(Ground)
+
+
+
+* 플레이어의 가속 버튼(Shift) 추가하기 ~ 01.08
+
+&nbsp;	- 플레이어 차량의 급 가속
+
+&nbsp;		- Shift를 누를 경우
+
+&nbsp;		- Button을 누를 경우	
+
+
 
 
 
