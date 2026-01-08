@@ -14,6 +14,9 @@ public class CarController : MonoBehaviour
     public Transform rearLeftMesh;
     public Transform rearRightMesh;
 
+    [Header("Effects")]
+    public ParticleSystem[] exhaustParticles;
+
     [Header("Car Specs")]
     public float motorForce = 5000f;
     public float brakeForce = 3000f;
@@ -53,7 +56,7 @@ public class CarController : MonoBehaviour
     private float targetSteerInput = 0f;
     private float accelInput;
     private float brakeInput;
-    private GearState currentGear = GearState.D;
+    private GearState currentGear = GearState.P;
 
     private Rigidbody carRigidbody;
     public bool IsDrifting = false;
@@ -71,6 +74,7 @@ public class CarController : MonoBehaviour
     private void Update()
     {
         ProcessSteeringSmoothing();
+        UpdateExhaustParticles();
     }
 
     private void FixedUpdate()
@@ -101,6 +105,19 @@ public class CarController : MonoBehaviour
         else
         {
             currentSteerInput = Mathf.MoveTowards(currentSteerInput, 0f, steerGravity * Time.deltaTime);
+        }
+    }
+
+    private void UpdateExhaustParticles()
+    {
+        if (exhaustParticles == null || exhaustParticles.Length == 0) return;
+
+        bool isEngineActive = (currentGear != GearState.P);
+
+        foreach (var ps in exhaustParticles)
+        {
+            var emission = ps.emission;
+            emission.enabled = isEngineActive; 
         }
     }
 

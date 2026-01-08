@@ -24,6 +24,7 @@ public class GearBoxUI : MonoBehaviour
     {
         if (gearSlider != null)
         {
+            gearSlider.value = 0;
             gearSlider.minValue = 0;
             gearSlider.maxValue = 3; 
             gearSlider.wholeNumbers = true;

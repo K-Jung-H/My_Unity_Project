@@ -393,10 +393,6 @@ MonoBehaviour:
   frontRightMesh: {fileID: 207477146}
   rearLeftMesh: {fileID: 1670605292}
   rearRightMesh: {fileID: 355336338}
-  steeringWheelUI: {fileID: 0}
-  accelPedalUI: {fileID: 0}
-  brakePedalUI: {fileID: 0}
-  reversePedalUI: {fileID: 0}
   motorForce: 5000
   brakeForce: 3000
   decelerationForce: 200
@@ -418,6 +414,11 @@ MonoBehaviour:
   driftDragFactor: 5
   driftSteerThreshold: 0.1
   autoDriftThreshold: 0.9
+  collisionLayerMask:
+    serializedVersion: 2
+    m_Bits: 0
+  collisionMinForce: 1000
+  explosionEffectCoolTime: 0.5
   IsDrifting: 0
 --- !u!54 &164636921
 Rigidbody:
@@ -4345,6 +4346,63 @@ Transform:
   - {fileID: 2141844413498117016}
   m_Father: {fileID: 6157556897061634896}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1001 &3851859164323131152
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 6307419812148541864, guid: 90fcfbe0096b26d4199ed6063ae43555, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6307419812148541864, guid: 90fcfbe0096b26d4199ed6063ae43555, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6307419812148541864, guid: 90fcfbe0096b26d4199ed6063ae43555, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6307419812148541864, guid: 90fcfbe0096b26d4199ed6063ae43555, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6307419812148541864, guid: 90fcfbe0096b26d4199ed6063ae43555, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6307419812148541864, guid: 90fcfbe0096b26d4199ed6063ae43555, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6307419812148541864, guid: 90fcfbe0096b26d4199ed6063ae43555, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6307419812148541864, guid: 90fcfbe0096b26d4199ed6063ae43555, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6307419812148541864, guid: 90fcfbe0096b26d4199ed6063ae43555, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6307419812148541864, guid: 90fcfbe0096b26d4199ed6063ae43555, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7757469791899744555, guid: 90fcfbe0096b26d4199ed6063ae43555, type: 3}
+      propertyPath: m_Name
+      value: SmokeEffect
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 90fcfbe0096b26d4199ed6063ae43555, type: 3}
 --- !u!1001 &3954292975374366121
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -8221,3 +8279,4 @@ SceneRoots:
   - {fileID: 2335980418617723400}
   - {fileID: 408641518}
   - {fileID: 237330108}
+  - {fileID: 3851859164323131152}
