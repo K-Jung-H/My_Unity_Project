@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 public class CarController : MonoBehaviour
 {
@@ -14,12 +13,6 @@ public class CarController : MonoBehaviour
     public Transform frontRightMesh;
     public Transform rearLeftMesh;
     public Transform rearRightMesh;
-
-    [Header("UI Input Sources")]
-    public SteeringWheelUI steeringWheelUI;
-    public CarPedalUI accelPedalUI;
-    public CarPedalUI brakePedalUI;
-    public CarPedalUI reversePedalUI;
 
     [Header("Car Specs")]
     public float motorForce = 5000f;
@@ -50,7 +43,6 @@ public class CarController : MonoBehaviour
     [Range(0.1f, 0.8f)] public float driftSteerThreshold = 0.3f;
     [Range(0.5f, 1f)] public float autoDriftThreshold = 0.9f;
 
-
     [Header("Gameplay Settings")]
     public LayerMask collisionLayerMask;
     public float collisionMinForce = 1000f;
@@ -58,9 +50,10 @@ public class CarController : MonoBehaviour
     private float lastExplosionTime = -999f;
 
     private float currentSteerInput = 0f;
+    private float targetSteerInput = 0f;
     private float accelInput;
     private float brakeInput;
-    private float reverseInput;
+    private GearState currentGear = GearState.D;
 
     private Rigidbody carRigidbody;
     public bool IsDrifting = false;
@@ -77,7 +70,7 @@ public class CarController : MonoBehaviour
 
     private void Update()
     {
-        HandleInput();
+        ProcessSteeringSmoothing();
     }
 
     private void FixedUpdate()
@@ -91,48 +84,24 @@ public class CarController : MonoBehaviour
         ApplyWheelFriction();
     }
 
-    private void HandleInput()
+    public void SetInput(float steer, float accel, float brake, GearState gear)
     {
-        float targetKeyboardSteer = 0f;
-        var keyboard = Keyboard.current;
+        targetSteerInput = steer;
+        accelInput = accel;
+        brakeInput = brake;
+        currentGear = gear;
+    }
 
-        if (keyboard != null)
+    private void ProcessSteeringSmoothing()
+    {
+        if (Mathf.Abs(targetSteerInput) > 0.01f)
         {
-            if (keyboard.aKey.isPressed || keyboard.leftArrowKey.isPressed) targetKeyboardSteer = -1f;
-            else if (keyboard.dKey.isPressed || keyboard.rightArrowKey.isPressed) targetKeyboardSteer = 1f;
-        }
-
-        if (targetKeyboardSteer != 0)
-        {
-            currentSteerInput = Mathf.MoveTowards(currentSteerInput, targetKeyboardSteer, steerSensitivity * Time.deltaTime);
+            currentSteerInput = Mathf.MoveTowards(currentSteerInput, targetSteerInput, steerSensitivity * Time.deltaTime);
         }
         else
         {
-            if (steeringWheelUI == null || Mathf.Abs(steeringWheelUI.InputValue) < 0.01f)
-            {
-                currentSteerInput = Mathf.MoveTowards(currentSteerInput, 0f, steerGravity * Time.deltaTime);
-            }
+            currentSteerInput = Mathf.MoveTowards(currentSteerInput, 0f, steerGravity * Time.deltaTime);
         }
-
-        if (steeringWheelUI != null && Mathf.Abs(steeringWheelUI.InputValue) > 0.01f)
-        {
-            currentSteerInput = steeringWheelUI.InputValue;
-        }
-
-        accelInput = 0f;
-        brakeInput = 0f;
-        reverseInput = 0f;
-
-        if (keyboard != null)
-        {
-            if (keyboard.wKey.isPressed || keyboard.upArrowKey.isPressed) accelInput = 1f;
-            if (keyboard.spaceKey.isPressed) brakeInput = 1f;
-            if (keyboard.sKey.isPressed || keyboard.downArrowKey.isPressed) reverseInput = 1f;
-        }
-
-        if (accelPedalUI != null && accelPedalUI.InputValue > 0.01f) accelInput = accelPedalUI.InputValue;
-        if (brakePedalUI != null && brakePedalUI.InputValue > 0.01f) brakeInput = brakePedalUI.InputValue;
-        if (reversePedalUI != null && reversePedalUI.InputValue > 0.01f) reverseInput = reversePedalUI.InputValue;
     }
 
     private void UpdateDriveDirection()
@@ -150,8 +119,11 @@ public class CarController : MonoBehaviour
         }
         else
         {
-            if (accelInput > 0.1f) driveDirection = 1f;
-            else if (reverseInput > 0.1f) driveDirection = -1f;
+            if (accelInput > 0.1f)
+            {
+                if (currentGear == GearState.R) driveDirection = -1f;
+                else driveDirection = 1f;
+            }
             else
             {
                 if (velocityMag < 0.1f) driveDirection = 1f;
@@ -169,7 +141,7 @@ public class CarController : MonoBehaviour
 
         bool turnCondition = Mathf.Abs(currentSteerInput) > driftSteerThreshold;
 
-        bool isSmartBraking = (Vector3.Dot(carRigidbody.linearVelocity, transform.forward) > 5.0f && reverseInput > 0.1f);
+        bool isSmartBraking = (Vector3.Dot(carRigidbody.linearVelocity, transform.forward) > 5.0f && currentGear == GearState.R && accelInput > 0.1f);
         bool brakeCondition = (brakeInput > 0.1f) || isSmartBraking;
 
         bool autoDriftCondition = Mathf.Abs(currentSteerInput) > autoDriftThreshold;
@@ -182,34 +154,38 @@ public class CarController : MonoBehaviour
 
     private void ApplyMotorForce()
     {
-        float velocityDot = Vector3.Dot(carRigidbody.linearVelocity, transform.forward);
-
-        bool isBrakingForward = (velocityDot > 1.0f && reverseInput > 0.1f);
-        bool isBrakingReverse = (velocityDot < -1.0f && accelInput > 0.1f);
-
         float currentMotorForce = 0f;
         float currentBrakeForce = 0f;
 
-        bool isIdling = (accelInput < 0.1f && reverseInput < 0.1f && brakeInput < 0.1f);
-
-        if (isIdling)
+        if (currentGear == GearState.P)
         {
             currentMotorForce = 0f;
-            currentBrakeForce = decelerationForce;
+            currentBrakeForce = brakeForce * 100f;
+        }
+        else if (currentGear == GearState.N)
+        {
+            currentMotorForce = 0f;
+            currentBrakeForce = brakeInput * brakeForce;
         }
         else
         {
             currentBrakeForce = brakeInput * brakeForce;
 
-            if (isBrakingForward || isBrakingReverse)
+            if (accelInput > 0.1f)
             {
-                currentMotorForce = 0f;
-                currentBrakeForce = brakeForce;
+                if (currentGear == GearState.D)
+                {
+                    currentMotorForce = accelInput * motorForce;
+                }
+                else if (currentGear == GearState.R)
+                {
+                    currentMotorForce = accelInput * -motorForce;
+                }
             }
-            else
+
+            if (accelInput < 0.1f && brakeInput < 0.1f)
             {
-                float moveInput = accelInput - reverseInput;
-                currentMotorForce = moveInput * motorForce;
+                currentBrakeForce = decelerationForce;
             }
         }
 
@@ -244,13 +220,13 @@ public class CarController : MonoBehaviour
     {
         float speed = carRigidbody.linearVelocity.magnitude;
 
-        if (speed < 0.5f && (brakeInput > 0.1f || (accelInput < 0.1f && reverseInput < 0.1f)))
+        if (speed < 0.5f && (brakeInput > 0.1f || accelInput < 0.1f))
         {
             carRigidbody.linearVelocity = Vector3.Lerp(carRigidbody.linearVelocity, Vector3.zero, Time.fixedDeltaTime * 10f);
             carRigidbody.angularVelocity = Vector3.Lerp(carRigidbody.angularVelocity, Vector3.zero, Time.fixedDeltaTime * 10f);
         }
 
-        bool hasThrottleInput = accelInput > 0.1f || reverseInput > 0.1f;
+        bool hasThrottleInput = accelInput > 0.1f;
         bool isMoving = speed > 1.0f;
         bool canTurn = hasThrottleInput || isMoving;
 
@@ -285,7 +261,6 @@ public class CarController : MonoBehaviour
 
         if (IsDrifting && speed > 2.0f)
         {
-            float steerAngleRad = (currentSteerInput * maxSteerAngle) * Mathf.Deg2Rad;
             Vector3 steerDirection = Quaternion.Euler(0, currentSteerInput * maxSteerAngle, 0) * transform.forward;
             Vector3 targetVelocityDir = steerDirection.normalized;
 
@@ -346,8 +321,7 @@ public class CarController : MonoBehaviour
 
         float speed = carRigidbody.linearVelocity.magnitude;
 
-        bool isSmartBraking = (Vector3.Dot(carRigidbody.linearVelocity, transform.forward) > 1.0f && reverseInput > 0.1f);
-        bool isBrakingWhileMoving = (brakeInput > 0.1f && speed > 0.5f) || isSmartBraking;
+        bool isBrakingWhileMoving = (brakeInput > 0.1f && speed > 0.5f);
 
         float targetRearStiffness;
         if (IsDrifting || isBrakingWhileMoving)
@@ -379,9 +353,11 @@ public class CarController : MonoBehaviour
             if (collision.impulse.magnitude >= collisionMinForce)
             {
                 lastExplosionTime = Time.time;
-                EffectManager.Instance.PlayEffect("Explosion", transform.position, transform.rotation);
+                if (EffectManager.Instance != null)
+                {
+                    EffectManager.Instance.PlayEffect("Explosion", transform.position, transform.rotation);
+                }
             }
         }
     }
 }
-
