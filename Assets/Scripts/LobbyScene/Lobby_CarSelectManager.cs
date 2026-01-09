@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Car_Animation : MonoBehaviour
+public class Lobby_CarSelectManager : MonoBehaviour
 {
     [Header("Car Prefabs")]
     public GameObject[] Car_Objects;
@@ -22,20 +22,38 @@ public class Car_Animation : MonoBehaviour
     private GameObject currentCar;
     private int currentIndex = 0;
     private bool isAnimating = false;
+    private LobbyManager lobbyManager;
+    private LobbyState previousState;
 
     void Start()
     {
+        lobbyManager = FindObjectOfType<LobbyManager>();
         InitializeCarPool();
 
-        if (carPool.Count > 0)
+        if (lobbyManager != null)
         {
-            ShowFirstCar();
+            previousState = lobbyManager.CurrentState;
+            CheckStateAndUpdateCars();
         }
     }
 
     void Update()
     {
-        HandleCenterRotation();
+        if (lobbyManager != null)
+        {
+            LobbyState currentState = lobbyManager.CurrentState;
+            
+            if (currentState != previousState)
+            {
+                previousState = currentState;
+                CheckStateAndUpdateCars();
+            }
+
+            if (currentState == LobbyState.Selection_Car)
+            {
+                HandleCenterRotation();
+            }
+        }
     }
 
     public void Change_Rotate()
@@ -46,6 +64,7 @@ public class Car_Animation : MonoBehaviour
     public void Change_Car_Prev()
     {
         if (isAnimating || carPool.Count == 0) return;
+        if (lobbyManager != null && lobbyManager.CurrentState != LobbyState.Selection_Car) return;
 
         int prevIndex = (currentIndex - 1 + carPool.Count) % carPool.Count;
         StartCoroutine(ChangeCarSequence(prevIndex));
@@ -54,6 +73,7 @@ public class Car_Animation : MonoBehaviour
     public void Change_Car_Next()
     {
         if (isAnimating || carPool.Count == 0) return;
+        if (lobbyManager != null && lobbyManager.CurrentState != LobbyState.Selection_Car) return;
 
         int nextIndex = (currentIndex + 1) % carPool.Count;
         StartCoroutine(ChangeCarSequence(nextIndex));
@@ -71,10 +91,48 @@ public class Car_Animation : MonoBehaviour
 
     private void ShowFirstCar()
     {
+        if (lobbyManager != null && lobbyManager.CurrentState != LobbyState.Selection_Car) return;
+
         currentIndex = 0;
         GameObject firstCar = carPool[currentIndex];
 
         StartCoroutine(MoveCar(firstCar, Start_Pos.position, Center_Pos.position, true));
+    }
+
+    private void CheckStateAndUpdateCars()
+    {
+        if (lobbyManager == null) return;
+
+        bool isCarSelectionState = lobbyManager.CurrentState == LobbyState.Selection_Car;
+
+        if (isCarSelectionState)
+        {
+            if (currentCar == null && carPool.Count > 0)
+            {
+                ShowFirstCar();
+            }
+        }
+        else
+        {
+            HideAllCars();
+        }
+    }
+
+    private void HideAllCars()
+    {
+        if (currentCar != null)
+        {
+            currentCar.SetActive(false);
+            currentCar = null;
+        }
+
+        foreach (GameObject car in carPool)
+        {
+            if (car != null)
+            {
+                car.SetActive(false);
+            }
+        }
     }
 
     private void HandleCenterRotation()
@@ -92,17 +150,28 @@ public class Car_Animation : MonoBehaviour
         if (currentCar != null)
         {
             yield return StartCoroutine(MoveCar(currentCar, Center_Pos.position, End_Pos.position, false));
-            currentCar.SetActive(false);
+
+            if (currentCar != null)
+            {
+                currentCar.SetActive(false);
+            }
         }
 
         currentIndex = targetIndex;
-        GameObject nextCar = carPool[currentIndex];
+        
+        if (carPool != null && targetIndex >= 0 && targetIndex < carPool.Count)
+        {
+            GameObject nextCar = carPool[currentIndex];
 
-        yield return StartCoroutine(MoveCar(nextCar, Start_Pos.position, Center_Pos.position, true));
+            if (nextCar != null)
+            {
+                yield return StartCoroutine(MoveCar(nextCar, Start_Pos.position, Center_Pos.position, true));
+            }
+        }
 
         isAnimating = false;
     }
-
+    
     private IEnumerator MoveCar(GameObject obj, Vector3 start, Vector3 destination, bool isEntering)
     {
         obj.transform.position = start;

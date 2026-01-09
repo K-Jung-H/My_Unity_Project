@@ -7,7 +7,6 @@ public enum LobbyState
     Waiting,
     Selection_Car,
     Selection_Stage,
-    Selection_Level,
     ReadyToStart
 }
 
@@ -54,11 +53,6 @@ public class LobbyManager : MonoBehaviour
     public void OnClick_ToStageSelection()
     {
         ChangeState(LobbyState.Selection_Stage);
-    }
-
-    public void OnClick_ToLevelSelection()
-    {
-        ChangeState(LobbyState.Selection_Level);
     }
 
     public void OnClick_ToReady()

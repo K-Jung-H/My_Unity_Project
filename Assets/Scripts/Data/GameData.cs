@@ -1,10 +1,13 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 public static class GameData
 {
     public static string selectedMapName = "Map_01";
     public static int difficultyLevel = 1;
     public static int CarId = 0;
+
+    public static List<ChunkData> selectedChunks = new List<ChunkData>();
 
     public static int totalScore = 0;
 
@@ -14,5 +17,8 @@ public static class GameData
         difficultyLevel = 1;
         CarId = 0;
         totalScore = 0;
+
+        if (selectedChunks != null) selectedChunks.Clear();
+        else selectedChunks = new List<ChunkData>();
     }
 }

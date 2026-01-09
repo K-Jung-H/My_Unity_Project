@@ -64,18 +64,18 @@ public class DestructibleProp : MonoBehaviour
     {
         if (!isInitialized || isDestroyed || !rb.isKinematic)
         {
-            Debug.Log("Collision ignored: " + (isInitialized ? "" : "Not initialized; ") + (isDestroyed ? "Already destroyed; " : "") + (!rb.isKinematic ? "Not kinematic; " : ""));
+            //Debug.Log("Collision ignored: " + (isInitialized ? "" : "Not initialized; ") + (isDestroyed ? "Already destroyed; " : "") + (!rb.isKinematic ? "Not kinematic; " : ""));
             return;
         }
         if (collision.rigidbody == null)
         {
-            Debug.Log("Collision ignored: No rigidbody on colliding object.");
+            //Debug.Log("Collision ignored: No rigidbody on colliding object.");
             return;
         }
 
         if (collision.relativeVelocity.magnitude > hitThreshold)
         {
-            Debug.Log("DestructibleProp hit with velocity: " + collision.relativeVelocity.magnitude);
+            //Debug.Log("DestructibleProp hit with velocity: " + collision.relativeVelocity.magnitude);
             BreakAndPush(collision);
         }
     }
