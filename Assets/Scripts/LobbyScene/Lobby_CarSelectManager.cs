@@ -4,8 +4,8 @@ using UnityEngine;
 
 public class Lobby_CarSelectManager : MonoBehaviour
 {
-    [Header("Car Prefabs")]
-    public GameObject[] Car_Objects;
+    [Header("Car Database")]
+    public List<CarData> carDatabase;
 
     [Header("Position Transforms")]
     public Transform Start_Pos;
@@ -81,20 +81,69 @@ public class Lobby_CarSelectManager : MonoBehaviour
 
     private void InitializeCarPool()
     {
-        for (int i = 0; i < Car_Objects.Length; i++)
+        if (carDatabase == null)
+            carDatabase = new List<CarData>();
+
+        GameObject container = new GameObject("SelectCarList");
+        container.transform.position = Vector3.zero;
+
+        for (int i = 0; i < carDatabase.Count; i++)
         {
-            GameObject obj = Instantiate(Car_Objects[i], Start_Pos.position, Quaternion.identity);
-            obj.SetActive(false);
-            carPool.Add(obj);
+            if (carDatabase[i].carPrefab != null)
+            {
+                GameObject obj = Instantiate(carDatabase[i].carPrefab, Start_Pos.position, Quaternion.identity);
+                
+                obj.transform.SetParent(container.transform);
+
+
+                Rigidbody rb = obj.GetComponent<Rigidbody>();
+                if (rb != null)
+                {
+                    rb.isKinematic = true;
+                    rb.useGravity = false;
+
+                    rb.linearVelocity = Vector3.zero;
+                    rb.angularVelocity = Vector3.zero;
+                }
+
+                Camera[] childCameras = obj.GetComponentsInChildren<Camera>();
+                foreach (var cam in childCameras)
+                {
+                    cam.enabled = false; 
+                }
+
+                AudioListener[] childListeners = obj.GetComponentsInChildren<AudioListener>();
+                foreach (var listener in childListeners)
+                {
+                    listener.enabled = false;
+                }
+
+                obj.SetActive(false);
+                carPool.Add(obj);
+            }
+            else
+            {
+                Debug.LogWarning($"Index {i}의 CarPrefab이 비어있습니다.");
+                GameObject emptyObj = new GameObject($"Empty_Car_{i}");
+                
+                emptyObj.transform.SetParent(container.transform);
+                emptyObj.transform.position = Start_Pos.position;
+                
+                emptyObj.SetActive(false);
+                carPool.Add(emptyObj);
+            }
         }
     }
 
     private void ShowFirstCar()
     {
         if (lobbyManager != null && lobbyManager.CurrentState != LobbyState.Selection_Car) return;
+        if (carPool.Count == 0) return;
 
         currentIndex = 0;
         GameObject firstCar = carPool[currentIndex];
+
+        SaveCurrentCarId();
 
         StartCoroutine(MoveCar(firstCar, Start_Pos.position, Center_Pos.position, true));
     }
@@ -159,6 +208,8 @@ public class Lobby_CarSelectManager : MonoBehaviour
 
         currentIndex = targetIndex;
         
+        SaveCurrentCarId();
+
         if (carPool != null && targetIndex >= 0 && targetIndex < carPool.Count)
         {
             GameObject nextCar = carPool[currentIndex];
@@ -197,6 +248,14 @@ public class Lobby_CarSelectManager : MonoBehaviour
         if (isEntering)
         {
             currentCar = obj;
+        }
+    }
+
+    private void SaveCurrentCarId()
+    {
+        if (carDatabase != null && currentIndex >= 0 && currentIndex < carDatabase.Count)
+        {
+            GameData.CarId = carDatabase[currentIndex].carID;
         }
     }
 }

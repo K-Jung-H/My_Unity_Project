@@ -27,14 +27,56 @@ public class DynamicChunkManager : MonoBehaviour
     private GameObject[] cachedPlayers;
     private float playerSearchTimer = 0f;
     private Transform mainPlayerTransform;
+    private bool isInitialized = false;
 
     void Start()
     {
+        ApplySelectedChunksFromData();
         InitializeGameSequence();
+    }
+
+    private void ApplySelectedChunksFromData()
+    {
+        if (GameData.selectedChunks != null && GameData.selectedChunks.Count > 0)
+        {
+            List<ChunkController> selectedControllers = new List<ChunkController>();
+
+            foreach (var data in GameData.selectedChunks)
+            {
+                if (data.chunkPrefab != null)
+                {
+                    ChunkController controller = data.chunkPrefab.GetComponent<ChunkController>();
+                    if (controller != null)
+                    {
+                        selectedControllers.Add(controller);
+                    }
+                    else
+                    {
+                        Debug.LogWarning($"ChunkData '{data.chunkName}'의 프리팹에 ChunkController 스크립트가 없습니다!");
+                    }
+                }
+            }
+
+            if (selectedControllers.Count > 0)
+            {
+                chunkPrefabs = selectedControllers.ToArray();
+                Debug.Log($"[DynamicChunkManager] GameData에서 {chunkPrefabs.Length}개의 맵 타입을 로드했습니다.");
+            }
+        }
+        else
+        {
+            Debug.Log("[DynamicChunkManager] GameData에 선택된 맵이 없습니다. 인스펙터 기본값을 사용합니다.");
+        }
     }
 
     private void InitializeGameSequence()
     {
+        if (chunkPrefabs == null || chunkPrefabs.Length == 0)
+        {
+            Debug.LogError("[Critical] 생성할 청크 프리팹이 없습니다! 로비 설정을 확인하세요.");
+            return;
+        }
+
         Vector2Int startCoord = Vector2Int.zero;
         ChunkController startChunk = LoadChunkAt(startCoord);
 
@@ -50,6 +92,8 @@ public class DynamicChunkManager : MonoBehaviour
         }
 
         RefreshPlayerList();
+
+        isInitialized = true;
         UpdateChunks();
     }
 
