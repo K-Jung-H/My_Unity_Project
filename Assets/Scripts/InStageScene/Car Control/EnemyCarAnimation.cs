@@ -13,7 +13,10 @@ public class EnemyCarAnimation : MonoBehaviour
 
     private NavMeshAgent agent;
     private float targetSpeed;
+    
     private float updateTimer = 0f;
+    private float searchTimer = 0f;
+    private const float searchInterval = 0.5f;
 
     void Awake()
     {
@@ -23,7 +26,6 @@ public class EnemyCarAnimation : MonoBehaviour
         {
             agent.updateRotation = false;
             agent.updateUpAxis = true;
-
             targetSpeed = agent.speed;
         }
     }
@@ -35,11 +37,19 @@ public class EnemyCarAnimation : MonoBehaviour
             agent.speed = 0f;
             agent.velocity = Vector3.zero;
         }
+        FindNearestPlayer();
     }
 
     void Update()
     {
         if (agent == null || !agent.enabled || !agent.isOnNavMesh) return;
+
+        searchTimer += Time.deltaTime;
+        if (searchTimer >= searchInterval)
+        {
+            FindNearestPlayer();
+            searchTimer = 0f;
+        }
 
         if (agent.speed < targetSpeed)
         {
@@ -70,5 +80,26 @@ public class EnemyCarAnimation : MonoBehaviour
                 transform.rotation = Quaternion.RotateTowards(transform.rotation, targetRotation, turnSpeed * Time.deltaTime);
             }
         }
+    }
+
+    private void FindNearestPlayer()
+    {
+        GameObject[] players = GameObject.FindGameObjectsWithTag("Player");
+        float minDistance = float.MaxValue;
+        Transform nearest = null;
+
+        foreach (var p in players)
+        {
+            if (p == null || !p.activeInHierarchy) continue;
+            
+            float d = Vector3.Distance(transform.position, p.transform.position);
+            if (d < minDistance)
+            {
+                minDistance = d;
+                nearest = p.transform;
+            }
+        }
+
+        targetTransform = nearest;
     }
 }

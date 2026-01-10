@@ -312,8 +312,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f61f276861ce8c446957b3259a105ef9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ChunkController
+  playerSpawnPoints:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  enemySpawnPoints:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
   staticCollidersRoot: {fileID: 1132475592725544479}
-  spawnPosRoot: {fileID: 3954890468923693524}
   propsRoot: {fileID: 4598744651848139689}
   myLinks: []
   props: []

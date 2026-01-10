@@ -4,8 +4,10 @@ using UnityEngine;
 
 public class DynamicChunkManager : MonoBehaviour
 {
+    [Header("Managers")]
+    public PlayerManager playerManager;
+
     [Header("References")]
-    public Transform player;
     public Transform environmentRoot;
     public ChunkController[] chunkPrefabs;
 
@@ -19,73 +21,136 @@ public class DynamicChunkManager : MonoBehaviour
     [Range(1, 5)]
     public int physicsDistance = 1;
 
-    private Vector2Int currentCenterChunk;
     private Dictionary<Vector2Int, ChunkController> activeChunks = new Dictionary<Vector2Int, ChunkController>();
     private Queue<ChunkController> chunkPool = new Queue<ChunkController>();
 
+    private GameObject[] cachedPlayers;
+    private float playerSearchTimer = 0f;
+    private Transform mainPlayerTransform;
 
     void Start()
     {
-        currentCenterChunk = GetChunkCoord(player.position);
+        InitializeGameSequence();
+    }
+
+    private void InitializeGameSequence()
+    {
+        Vector2Int startCoord = Vector2Int.zero;
+        ChunkController startChunk = LoadChunkAt(startCoord);
+
+        Transform spawnPoint = startChunk.GetRandomPlayerSpawnPoint();
+
+        if (playerManager != null)
+        {
+            GameObject playerObj = playerManager.CreatePlayer(spawnPoint);
+            if (playerObj != null)
+            {
+                mainPlayerTransform = playerObj.transform;
+            }
+        }
+
+        RefreshPlayerList();
         UpdateChunks();
     }
 
     void Update()
     {
-        Vector2Int playerChunk = GetChunkCoord(player.position);
+        if (mainPlayerTransform == null) return;
 
-        if (playerChunk != currentCenterChunk)
+        playerSearchTimer += Time.deltaTime;
+        if (playerSearchTimer > 1.0f)
         {
-            currentCenterChunk = playerChunk;
-            UpdateChunks();
+            RefreshPlayerList();
+            playerSearchTimer = 0f;
         }
+
+        UpdateChunks();
     }
 
+    ChunkController LoadChunkAt(Vector2Int coord)
+    {
+        ChunkController newChunk = GetChunkFromPool(coord);
+        newChunk.transform.position = new Vector3(coord.x * chunkSize, 0, coord.y * chunkSize);
+        newChunk.Setup(coord);
+
+        if (!activeChunks.ContainsKey(coord))
+        {
+            activeChunks.Add(coord, newChunk);
+        }
+
+        OnChunkLoaded?.Invoke(newChunk, coord);
+        newChunk.SetPhysicsState(true);
+
+        return newChunk;
+    }
+
+    void RefreshPlayerList()
+    {
+        cachedPlayers = GameObject.FindGameObjectsWithTag("Player");
+    }
 
     void UpdateChunks()
     {
-        List<Vector2Int> coordsToRemove = new List<Vector2Int>();
+        if (cachedPlayers == null || cachedPlayers.Length == 0) return;
 
-        foreach (var kvp in activeChunks)
+        HashSet<Vector2Int> requiredChunks = new HashSet<Vector2Int>();
+
+        foreach (var playerObj in cachedPlayers)
         {
-            if (GetChebyshevDistance(kvp.Key, currentCenterChunk) > renderDistance)
+            if (playerObj == null || !playerObj.activeInHierarchy) continue;
+
+            Vector2Int center = GetChunkCoord(playerObj.transform.position);
+
+            for (int x = -renderDistance; x <= renderDistance; x++)
             {
-                coordsToRemove.Add(kvp.Key);
+                for (int y = -renderDistance; y <= renderDistance; y++)
+                {
+                    requiredChunks.Add(new Vector2Int(center.x + x, center.y + y));
+                }
             }
         }
 
-        foreach (var coord in coordsToRemove)
+        List<Vector2Int> currentActiveCoords = new List<Vector2Int>(activeChunks.Keys);
+        
+        foreach (var coord in currentActiveCoords)
         {
-            OnChunkUnloaded?.Invoke(coord);
-            ReturnChunk(activeChunks[coord]);
-            activeChunks.Remove(coord);
+            if (!requiredChunks.Contains(coord))
+            {
+                OnChunkUnloaded?.Invoke(coord);
+                ReturnChunk(activeChunks[coord]);
+                activeChunks.Remove(coord);
+            }
         }
 
         bool isMapChanged = false;
 
-        for (int x = -renderDistance; x <= renderDistance; x++)
+        foreach (var coord in requiredChunks)
         {
-            for (int y = -renderDistance; y <= renderDistance; y++)
+            if (!activeChunks.ContainsKey(coord))
             {
-                Vector2Int targetCoord = new Vector2Int(currentCenterChunk.x + x, currentCenterChunk.y + y);
-                int dist = GetChebyshevDistance(targetCoord, currentCenterChunk);
+                ChunkController newChunk = GetChunkFromPool(coord);
+                newChunk.transform.position = new Vector3(coord.x * chunkSize, 0, coord.y * chunkSize);
+                newChunk.Setup(coord);
 
-                if (!activeChunks.ContainsKey(targetCoord))
-                {
-                    ChunkController newChunk = GetChunkFromPool(targetCoord);
-
-                    newChunk.transform.position = new Vector3(targetCoord.x * chunkSize, 0, targetCoord.y * chunkSize);
-                    newChunk.Setup(targetCoord);
-
-                    activeChunks.Add(targetCoord, newChunk);
-                    OnChunkLoaded?.Invoke(newChunk, targetCoord);
-
-                    isMapChanged = true;
-                }
-
-                bool enablePhysics = dist <= physicsDistance;
-                activeChunks[targetCoord].SetPhysicsState(enablePhysics);
+                activeChunks.Add(coord, newChunk);
+                OnChunkLoaded?.Invoke(newChunk, coord);
+                isMapChanged = true;
             }
+
+            bool enablePhysics = false;
+            foreach (var playerObj in cachedPlayers)
+            {
+                if (playerObj == null) continue;
+                Vector2Int playerChunk = GetChunkCoord(playerObj.transform.position);
+                int dist = GetChebyshevDistance(coord, playerChunk);
+                
+                if (dist <= physicsDistance)
+                {
+                    enablePhysics = true;
+                    break;
+                }
+            }
+            activeChunks[coord].SetPhysicsState(enablePhysics);
         }
 
         if (isMapChanged)
@@ -103,7 +168,6 @@ public class DynamicChunkManager : MonoBehaviour
     System.Collections.IEnumerator RefreshRoutine()
     {
         yield return null;
-
         foreach (var kvp in activeChunks)
         {
             if (kvp.Value != null && kvp.Value.gameObject.activeInHierarchy)
@@ -116,7 +180,6 @@ public class DynamicChunkManager : MonoBehaviour
     ChunkController GetChunkFromPool(Vector2Int coord)
     {
         ChunkController chunk;
-
         if (chunkPool.Count > 0)
         {
             chunk = chunkPool.Dequeue();
@@ -144,11 +207,7 @@ public class DynamicChunkManager : MonoBehaviour
 
     Vector2Int GetChunkCoord(Vector3 pos)
     {
-        // Corner-based chunk calculation
         return new Vector2Int(Mathf.FloorToInt(pos.x / chunkSize), Mathf.FloorToInt(pos.z / chunkSize));
-
-        // Center-based chunk calculation
-        //return new Vector2Int(Mathf.RoundToInt(pos.x / chunkSize), Mathf.RoundToInt(pos.z / chunkSize));
     }
 
     int GetChebyshevDistance(Vector2Int a, Vector2Int b)

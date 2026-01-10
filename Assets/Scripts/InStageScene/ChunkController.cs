@@ -4,24 +4,26 @@ using UnityEngine;
 
 public class ChunkController : MonoBehaviour
 {
+    [Header("Spawn Settings")]
+    [Tooltip("í”Œë ˆì´ì–´ ìŠ¤í° ìœ„ì¹˜ ë¦¬ìŠ¤íŠ¸ (PlayerManagerìš©)")]
+    public List<Transform> playerSpawnPoints = new List<Transform>();
+
+    [Tooltip("ì  ìŠ¤í° ìœ„ì¹˜ ë¦¬ìŠ¤íŠ¸ (EnemySpawnManagerìš©)")]
+    public List<Transform> enemySpawnPoints = new List<Transform>();
+
     [Header("Optimization Targets")]
-    [Tooltip("Á¤Àû ¹°Ã¼ÀÇ Äİ¶óÀÌ´õ ±×·ì (¸Ö¾îÁö¸é ²û)")]
+    [Tooltip("ì •ì  ë¬¼ì²´ì˜ ì½œë¼ì´ë” ê·¸ë£¹ (ë©€ì–´ì§€ë©´ ë”)")]
     public GameObject staticCollidersRoot;
 
-    [Tooltip("Àû ½ºÆù ÁÂÇ¥ ¸®½ºÆ®")]
-    public GameObject spawnPosRoot;
-    private List<Transform> cachedSpawnPoints;
-
-    [Tooltip("µ¿Àû ¼ÒÇ°µéÀÇ ºÎ¸ğ (¸Ö¾îÁö¸é ²û)")]
+    [Tooltip("ë™ì  ì†Œí’ˆë“¤ì˜ ë¶€ëª¨ (ë©€ì–´ì§€ë©´ ë”)")]
     public GameObject propsRoot;
 
-    [Tooltip("Ã»Å©ÀÇ NavLink")]
+    [Tooltip("ì²­í¬ì˜ NavLink")]
     public NavMeshLink[] myLinks;
 
     public Vector2Int Coord { get; private set; }
 
     [SerializeField] private DestructibleProp[] props;
-
 
     void Awake()
     {
@@ -43,6 +45,33 @@ public class ChunkController : MonoBehaviour
             props = propsRoot.GetComponentsInChildren<DestructibleProp>(true);
         }
     }
+
+    public void Setup(Vector2Int coord)
+    {
+        this.Coord = coord;
+        this.name = $"Chunk_{coord.x}_{coord.y}";
+
+        if (props != null)
+        {
+            for (int i = 0; i < props.Length; i++)
+            {
+                props[i].InitProp(this.Coord, i);
+
+                if (WorldObjectDataManager.Instance != null)
+                {
+                    if (WorldObjectDataManager.Instance.IsPropDestroyed(this.Coord, i))
+                    {
+                        props[i].SetDestroyedState();
+                    }
+                    else
+                    {
+                        props[i].ResetState();
+                    }
+                }
+            }
+        }
+    }
+
     public void RefreshNavMeshLinks()
     {
         foreach (var link in myLinks)
@@ -55,49 +84,26 @@ public class ChunkController : MonoBehaviour
         }
     }
 
-    public void Setup(Vector2Int coord)
+
+    public Transform GetRandomPlayerSpawnPoint()
     {
-        this.Coord = coord;
-
-        if (props != null)
+        if (playerSpawnPoints != null && playerSpawnPoints.Count > 0)
         {
-            for (int i = 0; i < props.Length; i++)
-            {
-                props[i].InitProp(this.Coord, i);
-
-                if (WorldObjectDataManager.Instance.IsPropDestroyed(this.Coord, i))
-                {
-                    props[i].SetDestroyedState();
-                }
-                else
-                {
-                    props[i].ResetState();
-                }
-            }
+            return playerSpawnPoints[Random.Range(0, playerSpawnPoints.Count)];
         }
+        
+        return this.transform;
     }
 
-    public List<Transform> GetSpawnPoints()
+    public List<Transform> GetEnemySpawnPoints()
     {
-        if (cachedSpawnPoints == null)
+        if (enemySpawnPoints == null)
         {
-            cachedSpawnPoints = new List<Transform>();
-
-            if (spawnPosRoot != null)
-            {
-                foreach (Transform child in spawnPosRoot.transform)
-                {
-                    cachedSpawnPoints.Add(child);
-                }
-            }
-            else
-            {
-                Debug.LogWarning($"Chunk {gameObject.name} : spawnPosRoot°¡ ¿¬°áµÇÁö ¾Ê¾Ò½À´Ï´Ù!");
-            }
+            enemySpawnPoints = new List<Transform>();
         }
-
-        return cachedSpawnPoints;
+        return enemySpawnPoints;
     }
+    
 
     public void SetPhysicsState(bool enablePhysics)
     {
