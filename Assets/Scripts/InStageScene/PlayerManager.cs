@@ -1,8 +1,11 @@
 using UnityEngine;
 using System.Collections.Generic;
+using System;
 
 public class PlayerManager : MonoBehaviour
 {
+    public static event Action<CarController> OnLocalPlayerCreated;
+
     [Header("Car Database")]
     public List<CarData> carDatabase;
 
@@ -34,7 +37,6 @@ public class PlayerManager : MonoBehaviour
 
         if (prefabToSpawn == null)
         {
-            Debug.LogError("PlayerManager: Prefab not found.");
             return null;
         }
 
@@ -58,6 +60,12 @@ public class PlayerManager : MonoBehaviour
             carInput.gearBoxUI = sceneGearBox;
             carInput.accelPedalUI = sceneAccelPedal;
             carInput.brakePedalUI = sceneBrakePedal;
+        }
+
+        CarController carController = newCarObj.GetComponent<CarController>();
+        if (carController != null)
+        {
+            OnLocalPlayerCreated?.Invoke(carController);
         }
 
         SetupCamera(newCarObj.transform);

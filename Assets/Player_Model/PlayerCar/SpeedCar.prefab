@@ -766,6 +766,11 @@ MonoBehaviour:
   exhaustParticles:
   - {fileID: 3157263563404785414}
   - {fileID: 7234587515772662245}
+  maxFuel: 100
+  currentFuel: 100
+  idleConsumptionRate: 1
+  driveConsumptionBase: 0.5
+  speedConsumptionFactor: 0.8
   motorForce: 8000
   brakeForce: 5000
   decelerationForce: 200

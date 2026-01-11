@@ -18,6 +18,9 @@ public class DestructibleProp : MonoBehaviour
     [Header("Destroy Settings")]
     public float lifeTime = 2.0f;
 
+    [Header("Score Settings")]
+    public int scoreValue = 50;
+
 
     private Vector3 initialLocalPos;
     private Quaternion initialLocalRot;
@@ -49,12 +52,12 @@ public class DestructibleProp : MonoBehaviour
         isDestroyed = false;
         gameObject.SetActive(true);
 
-        rb.isKinematic = false;
 
+        rb.isKinematic = false;
         rb.linearVelocity = Vector3.zero;
         rb.angularVelocity = Vector3.zero;
-
         rb.isKinematic = true;
+
 
         transform.localPosition = initialLocalPos;
         transform.localRotation = initialLocalRot;
@@ -64,26 +67,25 @@ public class DestructibleProp : MonoBehaviour
     {
         if (!isInitialized || isDestroyed || !rb.isKinematic)
         {
-            //Debug.Log("Collision ignored: " + (isInitialized ? "" : "Not initialized; ") + (isDestroyed ? "Already destroyed; " : "") + (!rb.isKinematic ? "Not kinematic; " : ""));
             return;
         }
+        
         if (collision.rigidbody == null)
         {
-            //Debug.Log("Collision ignored: No rigidbody on colliding object.");
             return;
         }
 
         if (collision.relativeVelocity.magnitude > hitThreshold)
         {
-            //Debug.Log("DestructibleProp hit with velocity: " + collision.relativeVelocity.magnitude);
-            BreakAndPush(collision);
+            bool isPlayerAction = collision.gameObject.CompareTag("Player");
+            BreakAndPush(collision, isPlayerAction);
         }
     }
 
-    void BreakAndPush(Collision collision)
+    void BreakAndPush(Collision collision, bool causedByPlayer)    
     {
         isDestroyed = true;
-        rb.isKinematic = false; 
+        rb.isKinematic = false;
 
         Vector3 dir = -collision.contacts[0].normal + Vector3.up * 0.5f;
         dir.Normalize();
@@ -94,6 +96,11 @@ public class DestructibleProp : MonoBehaviour
 
         WorldObjectDataManager.Instance.RegisterDestruction(myChunkCoord, myIndex);
 
+
+        if (causedByPlayer && ScoreManager.Instance != null)
+        {
+            ScoreManager.Instance.AddScore(scoreValue);
+        }
 
         Invoke(nameof(DisableSelf), lifeTime);
     }

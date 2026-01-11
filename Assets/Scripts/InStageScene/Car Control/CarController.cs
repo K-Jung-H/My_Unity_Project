@@ -1,5 +1,6 @@
 using UnityEngine;
 
+
 public class CarController : MonoBehaviour
 {
     [Header("Wheel Colliders")]
@@ -16,6 +17,14 @@ public class CarController : MonoBehaviour
 
     [Header("Effects")]
     public ParticleSystem[] exhaustParticles;
+
+    [Header("Fuel Settings")]
+    public float maxFuel = 100f;
+    public float currentFuel = 100f;
+
+    public float idleConsumptionRate = 1.0f; 
+    public float driveConsumptionBase = 2.0f;
+    public float speedConsumptionFactor = 0.05f;
 
     [Header("Car Specs")]
     public float motorForce = 5000f;
@@ -74,6 +83,7 @@ public class CarController : MonoBehaviour
     private void Update()
     {
         ProcessSteeringSmoothing();
+        CalculateFuelConsumption();
         UpdateExhaustParticles();
     }
 
@@ -96,6 +106,18 @@ public class CarController : MonoBehaviour
         currentGear = gear;
     }
 
+    public float ValidateAccelInput(float input)
+    {
+        if (currentFuel <= 0)
+        {
+            if (currentGear == GearState.D || currentGear == GearState.R)
+            {
+                return 0f;
+            }
+        }
+        return input;
+    }
+
     private void ProcessSteeringSmoothing()
     {
         if (Mathf.Abs(targetSteerInput) > 0.01f)
@@ -108,11 +130,42 @@ public class CarController : MonoBehaviour
         }
     }
 
+    private void CalculateFuelConsumption()
+    {
+        if (currentFuel <= 0) return;
+
+        float consumption = 0f;
+        
+        float currentSpeed = carRigidbody.linearVelocity.magnitude; 
+
+        switch (currentGear)
+        {
+            case GearState.P:
+            case GearState.N:
+                consumption = idleConsumptionRate;
+                break;
+
+            case GearState.D:
+            case GearState.R:
+                consumption = driveConsumptionBase + (currentSpeed * speedConsumptionFactor);
+                break;
+        }
+
+        currentFuel -= consumption * Time.deltaTime;
+        currentFuel = Mathf.Clamp(currentFuel, 0, maxFuel);
+    }
+
+    public void AddFuel(float amount)
+    {
+        currentFuel += amount;
+        currentFuel = Mathf.Clamp(currentFuel, 0, maxFuel);
+    }
+
     private void UpdateExhaustParticles()
     {
         if (exhaustParticles == null || exhaustParticles.Length == 0) return;
 
-        bool isEngineActive = (currentGear != GearState.P);
+        bool isEngineActive = (currentGear != GearState.P) && (currentFuel > 0);
 
         foreach (var ps in exhaustParticles)
         {
@@ -125,6 +178,8 @@ public class CarController : MonoBehaviour
     {
         float velocityDot = Vector3.Dot(carRigidbody.linearVelocity, transform.forward);
         float velocityMag = carRigidbody.linearVelocity.magnitude;
+        
+        float effectiveAccel = ValidateAccelInput(accelInput);
 
         if (velocityDot > 1.0f)
         {
@@ -136,7 +191,7 @@ public class CarController : MonoBehaviour
         }
         else
         {
-            if (accelInput > 0.1f)
+            if (effectiveAccel > 0.1f)
             {
                 if (currentGear == GearState.R) driveDirection = -1f;
                 else driveDirection = 1f;
@@ -152,13 +207,14 @@ public class CarController : MonoBehaviour
     private void CheckDriftState()
     {
         float speed = carRigidbody.linearVelocity.magnitude;
+        float effectiveAccel = ValidateAccelInput(accelInput);
 
         float currentSpeedThreshold = IsDrifting ? minDriftExitSpeed : minDriftSpeed;
         bool speedCondition = speed > currentSpeedThreshold;
 
         bool turnCondition = Mathf.Abs(currentSteerInput) > driftSteerThreshold;
 
-        bool isSmartBraking = (Vector3.Dot(carRigidbody.linearVelocity, transform.forward) > 5.0f && currentGear == GearState.R && accelInput > 0.1f);
+        bool isSmartBraking = (Vector3.Dot(carRigidbody.linearVelocity, transform.forward) > 5.0f && currentGear == GearState.R && effectiveAccel > 0.1f);
         bool brakeCondition = (brakeInput > 0.1f) || isSmartBraking;
 
         bool autoDriftCondition = Mathf.Abs(currentSteerInput) > autoDriftThreshold;
@@ -173,6 +229,7 @@ public class CarController : MonoBehaviour
     {
         float currentMotorForce = 0f;
         float currentBrakeForce = 0f;
+        float effectiveAccel = ValidateAccelInput(accelInput);
 
         if (currentGear == GearState.P)
         {
@@ -188,19 +245,19 @@ public class CarController : MonoBehaviour
         {
             currentBrakeForce = brakeInput * brakeForce;
 
-            if (accelInput > 0.1f)
+            if (effectiveAccel > 0.1f)
             {
                 if (currentGear == GearState.D)
                 {
-                    currentMotorForce = accelInput * motorForce;
+                    currentMotorForce = effectiveAccel * motorForce;
                 }
                 else if (currentGear == GearState.R)
                 {
-                    currentMotorForce = accelInput * -motorForce;
+                    currentMotorForce = effectiveAccel * -motorForce;
                 }
             }
 
-            if (accelInput < 0.1f && brakeInput < 0.1f)
+            if (effectiveAccel < 0.1f && brakeInput < 0.1f)
             {
                 currentBrakeForce = decelerationForce;
             }
@@ -236,14 +293,15 @@ public class CarController : MonoBehaviour
     private void ApplyArcadePhysics()
     {
         float speed = carRigidbody.linearVelocity.magnitude;
+        float effectiveAccel = ValidateAccelInput(accelInput);
 
-        if (speed < 0.5f && (brakeInput > 0.1f || accelInput < 0.1f))
+        if (speed < 0.5f && (brakeInput > 0.1f || effectiveAccel < 0.1f))
         {
             carRigidbody.linearVelocity = Vector3.Lerp(carRigidbody.linearVelocity, Vector3.zero, Time.fixedDeltaTime * 10f);
             carRigidbody.angularVelocity = Vector3.Lerp(carRigidbody.angularVelocity, Vector3.zero, Time.fixedDeltaTime * 10f);
         }
 
-        bool hasThrottleInput = accelInput > 0.1f;
+        bool hasThrottleInput = effectiveAccel > 0.1f;
         bool isMoving = speed > 1.0f;
         bool canTurn = hasThrottleInput || isMoving;
 
