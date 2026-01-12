@@ -13,6 +13,16 @@ public class FuelGauge : MonoBehaviour
     [Header("Settings")]
     public Gradient colorGradient;
 
+    void Awake()
+    {
+        PlayerManager.OnLocalPlayerCreated += HandlePlayerCreated;
+    }
+
+    void OnDestroy()
+    {
+        PlayerManager.OnLocalPlayerCreated -= HandlePlayerCreated;
+    }
+
     void Start()
     {
         if (fuelSlider != null)
@@ -23,12 +33,14 @@ public class FuelGauge : MonoBehaviour
             fuelSlider.value = 0f;
         }
 
-        PlayerManager.OnLocalPlayerCreated += HandlePlayerCreated;
-    }
-
-    void OnDestroy()
-    {
-        PlayerManager.OnLocalPlayerCreated -= HandlePlayerCreated;
+        if (targetCar == null)
+        {
+            CarController existingCar = FindObjectOfType<CarController>();
+            if (existingCar != null && existingCar.CompareTag("Player"))
+            {
+                HandlePlayerCreated(existingCar);
+            }
+        }
     }
 
     private void HandlePlayerCreated(CarController createdCar)

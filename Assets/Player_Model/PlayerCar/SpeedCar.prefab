@@ -768,9 +768,9 @@ MonoBehaviour:
   - {fileID: 7234587515772662245}
   maxFuel: 100
   currentFuel: 100
-  idleConsumptionRate: 1
-  driveConsumptionBase: 0.5
-  speedConsumptionFactor: 0.8
+  idleConsumptionRate: 0.05
+  driveConsumptionBase: 0.2
+  speedConsumptionFactor: 0.01
   motorForce: 8000
   brakeForce: 5000
   decelerationForce: 200
