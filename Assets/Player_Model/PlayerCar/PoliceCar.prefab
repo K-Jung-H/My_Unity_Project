@@ -945,7 +945,7 @@ Rigidbody:
   m_GameObject: {fileID: 5494273275932272791}
   serializedVersion: 5
   m_Mass: 1500
-  m_LinearDamping: 0
+  m_LinearDamping: 0.05
   m_AngularDamping: 2
   m_CenterOfMass: {x: 0, y: 0, z: 0}
   m_InertiaTensor: {x: 1, y: 1, z: 1}
@@ -1008,7 +1008,7 @@ MonoBehaviour:
   idleConsumptionRate: 0.05
   driveConsumptionBase: 0.1
   speedConsumptionFactor: 0.01
-  motorForce: 5000
+  motorForce: 8000
   brakeForce: 3000
   decelerationForce: 200
   maxSteerAngle: 60
@@ -1032,7 +1032,7 @@ MonoBehaviour:
   collisionLayerMask:
     serializedVersion: 2
     m_Bits: 1152
-  collisionMinForce: 50000
+  collisionMinForce: 8000
   explosionEffectCoolTime: 0.5
   IsDrifting: 0
 --- !u!1 &6260781826423030719

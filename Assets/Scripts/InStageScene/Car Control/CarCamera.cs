@@ -26,7 +26,8 @@ public class CarCamera : MonoBehaviour
 
     private void HandleMovement()
     {
-        Vector3 desiredPosition = target.TransformPoint(offset);
+        Quaternion flatRotation = Quaternion.Euler(0, target.eulerAngles.y, 0);
+        Vector3 desiredPosition = target.position + flatRotation * offset;
 
         Vector3 correctedPosition = CheckCameraCollision(target.position, desiredPosition);
 

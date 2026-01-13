@@ -797,7 +797,7 @@ MonoBehaviour:
   collisionLayerMask:
     serializedVersion: 2
     m_Bits: 1152
-  collisionMinForce: 50000
+  collisionMinForce: 8000
   explosionEffectCoolTime: 0.5
   IsDrifting: 0
 --- !u!1 &4485040266954453754

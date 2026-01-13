@@ -1,6 +1,5 @@
 using UnityEngine;
 
-
 public class CarController : MonoBehaviour
 {
     [Header("Wheel Colliders")]
@@ -21,7 +20,6 @@ public class CarController : MonoBehaviour
     [Header("FuelEffects")]
     public ParticleSystem FuelChargingParticle;
 
-
     [Header("Fuel Settings")]
     public float maxFuel = 100f;
     public float currentFuel = 100f;
@@ -31,9 +29,9 @@ public class CarController : MonoBehaviour
     public float speedConsumptionFactor = 0.05f;
 
     [Header("Car Specs")]
-    public float motorForce = 5000f;
+    public float motorForce = 8000f;
     public float brakeForce = 3000f;
-    public float decelerationForce = 200f;
+    public float decelerationForce = 1000f;
     public float maxSteerAngle = 40f;
     public Vector3 centerOfMassOffset = new Vector3(0, -0.5f, 0);
 
@@ -61,7 +59,7 @@ public class CarController : MonoBehaviour
 
     [Header("Gameplay Settings")]
     public LayerMask collisionLayerMask;
-    public float collisionMinForce = 1000f;
+    public float collisionMinForce = 8000f;
     public float explosionEffectCoolTime = 0.5f;
     private float lastExplosionTime = -999f;
 
@@ -75,6 +73,15 @@ public class CarController : MonoBehaviour
     private Rigidbody carRigidbody;
     private float defaultAngularDamping;
     private float driveDirection = 1f;
+
+    public bool IsGrounded
+    {
+        get
+        {
+            return frontLeftCollider.isGrounded || frontRightCollider.isGrounded || 
+                   rearLeftCollider.isGrounded || rearRightCollider.isGrounded;
+        }
+    }
 
     private void Start()
     {
@@ -98,9 +105,24 @@ public class CarController : MonoBehaviour
     {
         UpdateDriveDirection();
         CheckDriftState();
+
         ApplyMotorForce();
         ApplySteering();
-        ApplyArcadePhysics();
+
+        if (IsGrounded)
+        {
+            ApplyArcadePhysics();
+            
+            if (!IsDrifting)
+            {
+                carRigidbody.linearDamping = 0.05f;
+            }
+        }
+        else
+        {
+            ApplyAirPhysics();
+        }
+
         UpdateWheelVisuals();
         ApplyWheelFriction();
     }
@@ -229,6 +251,13 @@ public class CarController : MonoBehaviour
 
     private void CheckDriftState()
     {
+        if (!IsGrounded)
+        {
+            IsDrifting = false;
+            carRigidbody.angularDamping = defaultAngularDamping;
+            return;
+        }
+
         float speed = carRigidbody.linearVelocity.magnitude;
         float effectiveAccel = ValidateAccelInput(accelInput);
 
@@ -383,8 +412,30 @@ public class CarController : MonoBehaviour
             carRigidbody.linearVelocity *= dragMultiplier;
         }
 
+        float uprightDot = Vector3.Dot(transform.up, Vector3.up);
+        Vector3 downForceDir;
+
+        if (uprightDot > 0.0f) 
+        {
+            downForceDir = -transform.up; 
+        }
+        else 
+        {
+            downForceDir = Vector3.down; 
+        }
+
         float currentDownForce = IsDrifting ? downForce * 0.2f : downForce;
-        carRigidbody.AddForce(-transform.up * currentDownForce * speed);
+        carRigidbody.AddForce(downForceDir * currentDownForce * speed);
+    }
+
+    private void ApplyAirPhysics()
+    {
+        carRigidbody.linearDamping = 0.05f; 
+        
+        frontLeftCollider.motorTorque = 0f;
+        frontRightCollider.motorTorque = 0f;
+        rearLeftCollider.motorTorque = 0f;
+        rearRightCollider.motorTorque = 0f;
     }
 
     private void UpdateWheelVisuals()

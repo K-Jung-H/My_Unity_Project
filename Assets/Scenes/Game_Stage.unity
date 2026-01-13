@@ -1662,8 +1662,8 @@ MonoBehaviour:
   globalEnemyRoot: {fileID: 117796851}
   enemyPrefabs:
   - {fileID: 6744876025607187535, guid: 2970e7a05a4147d4381df0233615dede, type: 3}
-  maxGlobalEnemies: 20
-  maxSpawnPerFrame: 2
+  maxGlobalEnemies: 50
+  maxSpawnPerFrame: 5
   activationDistance: 200
   deactivationDistance: 500
   enemyCullDistance: 600
