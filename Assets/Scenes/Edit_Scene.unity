@@ -1426,8 +1426,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f61f276861ce8c446957b3259a105ef9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ChunkController
+  playerSpawnPoints: []
+  enemySpawnPoints: []
   staticCollidersRoot: {fileID: 3397388893874678608}
-  spawnPosRoot: {fileID: 0}
   propsRoot: {fileID: 0}
   myLinks: []
   props: []
@@ -3554,9 +3555,17 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
-    m_AddedGameObjects: []
+    m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: 1982426240204520729, guid: 0a9a8af6614e5c54881977ed57a84850, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 6343822783787535718}
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 0a9a8af6614e5c54881977ed57a84850, type: 3}
+--- !u!4 &4270707056799736513 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 1982426240204520729, guid: 0a9a8af6614e5c54881977ed57a84850, type: 3}
+  m_PrefabInstance: {fileID: 4270707056799736512}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &4432921865677724853
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -4973,6 +4982,68 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 2147483647
   m_IsActive: 1
+--- !u!1001 &6343822783787535717
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 4270707056799736513}
+    m_Modifications:
+    - target: {fileID: 976549987004192635, guid: 1567199b91adb484d8c610a41fc893fb, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 976549987004192635, guid: 1567199b91adb484d8c610a41fc893fb, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 976549987004192635, guid: 1567199b91adb484d8c610a41fc893fb, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 976549987004192635, guid: 1567199b91adb484d8c610a41fc893fb, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 976549987004192635, guid: 1567199b91adb484d8c610a41fc893fb, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 976549987004192635, guid: 1567199b91adb484d8c610a41fc893fb, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 976549987004192635, guid: 1567199b91adb484d8c610a41fc893fb, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 976549987004192635, guid: 1567199b91adb484d8c610a41fc893fb, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 976549987004192635, guid: 1567199b91adb484d8c610a41fc893fb, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 976549987004192635, guid: 1567199b91adb484d8c610a41fc893fb, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4697128487660242229, guid: 1567199b91adb484d8c610a41fc893fb, type: 3}
+      propertyPath: m_Name
+      value: FuelChargeEffect
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 1567199b91adb484d8c610a41fc893fb, type: 3}
+--- !u!4 &6343822783787535718 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 976549987004192635, guid: 1567199b91adb484d8c610a41fc893fb, type: 3}
+  m_PrefabInstance: {fileID: 6343822783787535717}
+  m_PrefabAsset: {fileID: 0}
 --- !u!64 &6370114182110244909
 MeshCollider:
   m_ObjectHideFlags: 0

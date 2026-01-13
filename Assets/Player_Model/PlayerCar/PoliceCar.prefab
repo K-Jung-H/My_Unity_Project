@@ -1000,8 +1000,9 @@ MonoBehaviour:
   frontRightMesh: {fileID: 4768148968361495399}
   rearLeftMesh: {fileID: 2899279091818437706}
   rearRightMesh: {fileID: 4454701871929915980}
-  exhaustParticles:
+  SmokeParticles:
   - {fileID: 6359477461093214412}
+  FuelChargingParticle: {fileID: 3361679254635188531}
   maxFuel: 100
   currentFuel: 100
   idleConsumptionRate: 0.05
@@ -1399,6 +1400,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
+  - {fileID: 7662074910715624765}
   - {fileID: 647193718070027396}
   m_Father: {fileID: 563761429301865724}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -1570,4 +1572,71 @@ Transform:
 ParticleSystem:
   m_CorrespondingSourceObject: {fileID: 518574393390151136, guid: 90fcfbe0096b26d4199ed6063ae43555, type: 3}
   m_PrefabInstance: {fileID: 6877911043930217772}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1001 &7482818205596985926
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 8213248145235530454}
+    m_Modifications:
+    - target: {fileID: 976549987004192635, guid: 1567199b91adb484d8c610a41fc893fb, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 976549987004192635, guid: 1567199b91adb484d8c610a41fc893fb, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 976549987004192635, guid: 1567199b91adb484d8c610a41fc893fb, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 976549987004192635, guid: 1567199b91adb484d8c610a41fc893fb, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 976549987004192635, guid: 1567199b91adb484d8c610a41fc893fb, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 976549987004192635, guid: 1567199b91adb484d8c610a41fc893fb, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 976549987004192635, guid: 1567199b91adb484d8c610a41fc893fb, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 976549987004192635, guid: 1567199b91adb484d8c610a41fc893fb, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 976549987004192635, guid: 1567199b91adb484d8c610a41fc893fb, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 976549987004192635, guid: 1567199b91adb484d8c610a41fc893fb, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4697128487660242229, guid: 1567199b91adb484d8c610a41fc893fb, type: 3}
+      propertyPath: m_Name
+      value: FuelChargeEffect
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 1567199b91adb484d8c610a41fc893fb, type: 3}
+--- !u!198 &3361679254635188531 stripped
+ParticleSystem:
+  m_CorrespondingSourceObject: {fileID: 5296051724018760565, guid: 1567199b91adb484d8c610a41fc893fb, type: 3}
+  m_PrefabInstance: {fileID: 7482818205596985926}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &7662074910715624765 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 976549987004192635, guid: 1567199b91adb484d8c610a41fc893fb, type: 3}
+  m_PrefabInstance: {fileID: 7482818205596985926}
   m_PrefabAsset: {fileID: 0}

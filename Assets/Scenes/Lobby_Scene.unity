@@ -296,7 +296,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Lobby_StageSelectManager
   allChunkDataList:
   - {fileID: 11400000, guid: 75f90a76cddbf914a90ce45d2704cd1c, type: 2}
-  - {fileID: 11400000, guid: 8bd8f6339bab52c43ad3a9806d2d7819, type: 2}
+  - {fileID: 11400000, guid: f731c57cf39e6ee429624b764aca3b86, type: 2}
   - {fileID: 11400000, guid: b1b2f5a87c2f2584f96a0d07f8bc15fc, type: 2}
   chunkNameText: {fileID: 1425927842}
   chunkPreviewImage: {fileID: 1423928791}

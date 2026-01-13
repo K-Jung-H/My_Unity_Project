@@ -15,14 +15,18 @@ public class CarController : MonoBehaviour
     public Transform rearLeftMesh;
     public Transform rearRightMesh;
 
-    [Header("Effects")]
-    public ParticleSystem[] exhaustParticles;
+    [Header("SmokeEffects")]
+    public ParticleSystem[] SmokeParticles;
+
+    [Header("FuelEffects")]
+    public ParticleSystem FuelChargingParticle;
+
 
     [Header("Fuel Settings")]
     public float maxFuel = 100f;
     public float currentFuel = 100f;
 
-    public float idleConsumptionRate = 1.0f; 
+    public float idleConsumptionRate = 1.0f;
     public float driveConsumptionBase = 2.0f;
     public float speedConsumptionFactor = 0.05f;
 
@@ -61,14 +65,14 @@ public class CarController : MonoBehaviour
     public float explosionEffectCoolTime = 0.5f;
     private float lastExplosionTime = -999f;
 
+    public GearState currentGear { get; private set; } = GearState.P;
+    public bool IsDrifting = false;
+    
     private float currentSteerInput = 0f;
     private float targetSteerInput = 0f;
     private float accelInput;
     private float brakeInput;
-    private GearState currentGear = GearState.P;
-
     private Rigidbody carRigidbody;
-    public bool IsDrifting = false;
     private float defaultAngularDamping;
     private float driveDirection = 1f;
 
@@ -78,6 +82,9 @@ public class CarController : MonoBehaviour
         carRigidbody.centerOfMass = centerOfMassOffset;
         defaultAngularDamping = carRigidbody.angularDamping;
         carRigidbody.maxAngularVelocity = 20f;
+
+        if(FuelChargingParticle != null)
+            FuelChargingParticle.Stop();
     }
 
     private void Update()
@@ -135,8 +142,8 @@ public class CarController : MonoBehaviour
         if (currentFuel <= 0) return;
 
         float consumption = 0f;
-        
-        float currentSpeed = carRigidbody.linearVelocity.magnitude; 
+
+        float currentSpeed = carRigidbody.linearVelocity.magnitude;
 
         switch (currentGear)
         {
@@ -161,16 +168,32 @@ public class CarController : MonoBehaviour
         currentFuel = Mathf.Clamp(currentFuel, 0, maxFuel);
     }
 
+    public void SetFuelCharging(bool isCharging)
+    {
+        if (FuelChargingParticle == null) return;
+
+        if (isCharging)
+        {
+            if (!FuelChargingParticle.isPlaying)
+                FuelChargingParticle.Play();
+        }
+        else
+        {
+            if (FuelChargingParticle.isPlaying)
+                FuelChargingParticle.Stop(true, ParticleSystemStopBehavior.StopEmitting);
+        }
+    }
+
     private void UpdateExhaustParticles()
     {
-        if (exhaustParticles == null || exhaustParticles.Length == 0) return;
+        if (SmokeParticles == null || SmokeParticles.Length == 0) return;
 
         bool isEngineActive = (currentGear != GearState.P) && (currentFuel > 0);
 
-        foreach (var ps in exhaustParticles)
+        foreach (var ps in SmokeParticles)
         {
             var emission = ps.emission;
-            emission.enabled = isEngineActive; 
+            emission.enabled = isEngineActive;
         }
     }
 
@@ -178,7 +201,7 @@ public class CarController : MonoBehaviour
     {
         float velocityDot = Vector3.Dot(carRigidbody.linearVelocity, transform.forward);
         float velocityMag = carRigidbody.linearVelocity.magnitude;
-        
+
         float effectiveAccel = ValidateAccelInput(accelInput);
 
         if (velocityDot > 1.0f)
