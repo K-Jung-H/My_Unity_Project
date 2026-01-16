@@ -71,10 +71,11 @@ MonoBehaviour:
   settings:
     targetLayer:
       serializedVersion: 2
-      m_Bits: 4096
+      m_Bits: 3968
     maskMaterial: {fileID: 2100000, guid: b6d414ccc10cacd418ed0d2538de1aa5, type: 2}
     blurHorizontalMaterial: {fileID: 2100000, guid: c1f8f39ecb6dd1248b35b16d5c18b808, type: 2}
     blurVerticalMaterial: {fileID: 2100000, guid: 972dfa112f9ad984a818d929e861be77, type: 2}
+    edgeMaterial: {fileID: 2100000, guid: e3343ba6180ca0f48abc9de8fd6d0d3b, type: 2}
     compositeMaterial: {fileID: 2100000, guid: 6b2726f91081a8f45a73cc1e94397a64, type: 2}
 --- !u!114 &7833122117494664109
 MonoBehaviour:

@@ -1,4 +1,18 @@
 using UnityEngine;
+using System.Collections.Generic;
+using System.Linq;
+
+[System.Serializable]
+public struct OutlineFuelState
+{
+    [Range(0f, 1f)]
+    [Tooltip("이 설정이 적용될 연료 비율 (1.0 = 100%, 0.5 = 50%)")]
+    public float fuelRatio;
+
+    public Color color;
+    [Range(0f, 5f)] public float blurIntensity;
+    [Range(1, 10)] public int thickness;
+}
 
 public class CarController : MonoBehaviour
 {
@@ -63,6 +77,10 @@ public class CarController : MonoBehaviour
     public float explosionEffectCoolTime = 0.5f;
     private float lastExplosionTime = -999f;
 
+    [Header("Outline Visual States")]
+    [Tooltip("연료 비율에 따른 아웃라인 상태 정의 (높은 비율 -> 낮은 비율 순으로 자동 정렬됨)")]
+    public List<OutlineFuelState> outlineStates;
+
     public GearState currentGear { get; private set; } = GearState.P;
     public bool IsDrifting = false;
     
@@ -92,6 +110,11 @@ public class CarController : MonoBehaviour
 
         if(FuelChargingParticle != null)
             FuelChargingParticle.Stop();
+
+        if (outlineStates != null && outlineStates.Count > 0)
+        {
+            outlineStates.Sort((a, b) => b.fuelRatio.CompareTo(a.fuelRatio));
+        }
     }
 
     private void Update()
@@ -99,6 +122,7 @@ public class CarController : MonoBehaviour
         ProcessSteeringSmoothing();
         CalculateFuelConsumption();
         UpdateExhaustParticles();
+        UpdateOutlineEffect();
     }
 
     private void FixedUpdate()
@@ -125,6 +149,68 @@ public class CarController : MonoBehaviour
 
         UpdateWheelVisuals();
         ApplyWheelFriction();
+    }
+
+    private void UpdateOutlineEffect()
+    {
+        // 1. 매니저가 없거나 설정 리스트가 비어있으면 리턴
+        if (OutlineBlurManager.Instance == null) return;
+        if (outlineStates == null || outlineStates.Count == 0) return;
+
+        // 2. 현재 연료 비율 계산
+        float currentRatio = currentFuel / maxFuel;
+        float maxThreshold = outlineStates[0].fuelRatio; // 정렬했으므로 0번이 가장 큰 비율
+
+        // 3. 가장 높은 설정값보다 연료가 많으면 -> 효과 끄기
+        if (currentRatio > maxThreshold)
+        {
+            if (OutlineBlurManager.Instance.isOutlineActive)
+            {
+                OutlineBlurManager.Instance.isOutlineActive = false;
+            }
+            return;
+        }
+
+        // 4. 효과 활성화
+        OutlineBlurManager.Instance.isOutlineActive = true;
+
+        // 5. 현재 연료가 속한 구간(Segment) 찾기 및 보간
+        // 정렬 상태: [0]:0.5(Yellow) -> [1]:0.2(Orange) -> [2]:0.0(Red)
+        for (int i = 0; i < outlineStates.Count - 1; i++)
+        {
+            OutlineFuelState upper = outlineStates[i];     // 위쪽 구간 (예: 0.5)
+            OutlineFuelState lower = outlineStates[i + 1]; // 아래쪽 구간 (예: 0.2)
+
+            // 현재 비율이 두 구간 사이에 있다면 보간 수행
+            if (currentRatio <= upper.fuelRatio && currentRatio >= lower.fuelRatio)
+            {
+                // 구간 내 진행도(t) 계산 (Upper에 가까우면 0, Lower에 가까우면 1)
+                float range = upper.fuelRatio - lower.fuelRatio;
+                float t = (range == 0) ? 0 : (upper.fuelRatio - currentRatio) / range;
+
+                ApplyInterpolatedOutline(upper, lower, t);
+                return;
+            }
+        }
+
+        // 6. 만약 가장 낮은 단계보다 더 낮다면 (예: 연료가 마이너스는 아니지만 0.0 미만 등 방어 코드)
+        // 가장 마지막(최악) 상태로 고정
+        OutlineFuelState lastState = outlineStates[outlineStates.Count - 1];
+        ApplyInterpolatedOutline(lastState, lastState, 0); // t=0이든 1이든 같음
+    }
+
+    private void ApplyInterpolatedOutline(OutlineFuelState from, OutlineFuelState to, float t)
+    {
+        var manager = OutlineBlurManager.Instance;
+
+        // Color Lerp
+        manager.outlineColor = Color.Lerp(from.color, to.color, t);
+        
+        // Blur Intensity Lerp
+        manager.blurIntensity = Mathf.Lerp(from.blurIntensity, to.blurIntensity, t);
+        
+        // Thickness Lerp (Int지만 부드러운 변화를 위해 float로 계산 후 형변환)
+        manager.outlineThickness = (int)Mathf.Lerp((float)from.thickness, (float)to.thickness, t);
     }
 
     public void SetInput(float steer, float accel, float brake, GearState gear)

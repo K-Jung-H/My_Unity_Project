@@ -7,8 +7,8 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: OutlineCompositeMat
-  m_Shader: {fileID: 4800000, guid: 1e6ccaae7e8106040bc636ef7f1d3066, type: 3}
+  m_Name: OutlineEdgeMat
+  m_Shader: {fileID: 4800000, guid: aadc7b7e308654f4c9478f0111a3057d, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
@@ -23,28 +23,13 @@ Material:
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
-    - _BlurredTex:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - _EdgeTex:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - _MainTex:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
     - _ObjectMaskTex:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _BlurIntensity: 0
-    - _OutlineIntensity: 0
-    - _OutlineThickness: 10
-    m_Colors:
-    - _OutlineColor: {r: 0.552763, g: 1, b: 0.015686274, a: 1}
+    - _OutlineThickness: 1
+    m_Colors: []
   m_BuildTextureStacks: []
   m_AllowLocking: 1
