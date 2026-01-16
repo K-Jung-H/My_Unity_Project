@@ -71,9 +71,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyCarAnimation
   targetTransform: {fileID: 0}
-  accelerationTime: 3
-  turnSpeed: 120
-  stopDistance: 2
+  roadAreaName: Road
+  groundLayer:
+    serializedVersion: 2
+    m_Bits: 192
+  normalSpeed: 15
+  roadSpeed: 30
+  acceleration: 50
+  turnSpeed: 90
+  stopDistance: 1
+  pathUpdateInterval: 0.2
+  targetMoveThreshold: 0.5
 --- !u!54 &4387275589082080657
 Rigidbody:
   m_ObjectHideFlags: 0
