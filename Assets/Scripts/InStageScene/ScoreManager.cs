@@ -29,6 +29,16 @@ public class ScoreManager : MonoBehaviour
         }
     }
 
+    public void Initialize()
+    {
+        currentScore = 0;
+        timer = 0f;
+        isScoringActive = true;
+        GameData.totalScore = 0; 
+        
+        Debug.Log("ScoreManager Initialized");
+    }
+
     private void Update()
     {
         if (!isScoringActive) return;

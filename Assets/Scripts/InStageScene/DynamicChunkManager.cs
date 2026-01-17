@@ -29,10 +29,11 @@ public class DynamicChunkManager : MonoBehaviour
     private Transform mainPlayerTransform;
     private bool isInitialized = false;
 
-    void Start()
+    public void Initialize()
     {
         ApplySelectedChunksFromData();
-        InitializeGameSequence();
+        InitializeGameSequence(); 
+        Debug.Log("DynamicChunkManager Initialized");
     }
 
     private void ApplySelectedChunksFromData()

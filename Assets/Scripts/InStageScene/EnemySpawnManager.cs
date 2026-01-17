@@ -28,6 +28,13 @@ public class EnemySpawnManager : MonoBehaviour
         StartCoroutine(ManageEnemyLifecycleRoutine());
     }
 
+    public void Initialize()
+    {
+        StopAllCoroutines();
+        StartCoroutine(ManageEnemyLifecycleRoutine());
+        Debug.Log("EnemySpawnManager Initialized");
+    }
+
     IEnumerator ManageEnemyLifecycleRoutine()
     {
         WaitForSeconds wait = new WaitForSeconds(0.5f);

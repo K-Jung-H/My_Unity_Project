@@ -23,13 +23,16 @@ public class DifficultyManager : MonoBehaviour
         Instance = this;
     }
 
-    void Start()
+    public void Initialize()
     {
         if (ScoreManager.Instance != null)
         {
+            ScoreManager.Instance.OnScoreChanged -= HandleScoreChange;
             ScoreManager.Instance.OnScoreChanged += HandleScoreChange;
+            
             HandleScoreChange(ScoreManager.Instance.Score);
         }
+        Debug.Log("DifficultyManager Initialized");
     }
 
     void OnDestroy()

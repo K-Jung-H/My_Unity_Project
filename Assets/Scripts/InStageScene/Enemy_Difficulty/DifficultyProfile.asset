@@ -66,3 +66,115 @@ MonoBehaviour:
       m_PostInfinity: 2
       m_RotationOrder: 4
     maxInstanceCount: 5
+  - enemyName: Buldozer
+    prefab: {fileID: 6223454433300995993, guid: 3dcaab3b235b4724aa73be3d05d08bca, type: 3}
+    unlockThreshold: 30
+    spawnWeightCurve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 2
+        outSlope: 2
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    maxInstanceCount: 10
+  - enemyName: PoliceCar
+    prefab: {fileID: 5938582000182487134, guid: 66c9a2346cb342b4dbacdb1d51e4349c, type: 3}
+    unlockThreshold: 1
+    spawnWeightCurve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 2
+        outSlope: 2
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    maxInstanceCount: 10
+  - enemyName: RedTruck
+    prefab: {fileID: 562171976151151253, guid: d5e1649eaa672564d89d3794b14362ce, type: 3}
+    unlockThreshold: 20
+    spawnWeightCurve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 2
+        outSlope: 2
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    maxInstanceCount: 10
+  - enemyName: Bus
+    prefab: {fileID: 3818892491585895199, guid: 3f27a1f311a711e43a15e892af8ad67c, type: 3}
+    unlockThreshold: 60
+    spawnWeightCurve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 2
+        outSlope: 2
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    maxInstanceCount: 2

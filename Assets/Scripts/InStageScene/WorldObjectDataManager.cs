@@ -20,6 +20,12 @@ public class WorldObjectDataManager : MonoBehaviour
         }
     }
 
+    public void Initialize()
+    {
+        destructionData.Clear(); 
+        Debug.Log("WorldObjectDataManager Initialized");
+    }
+
     public void RegisterDestruction(Vector2Int chunkCoord, int propIndex)
     {
         if (!destructionData.ContainsKey(chunkCoord))

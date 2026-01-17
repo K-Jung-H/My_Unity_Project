@@ -18,6 +18,12 @@ public class PlayerManager : MonoBehaviour
     public HoldPressInput sceneAccelPedal;
     public HoldPressInput sceneBrakePedal;
 
+
+    public void Initialize()
+    {
+        Debug.Log("PlayerManager Initialized");
+    }
+
     public GameObject CreatePlayer(Transform spawnPoint)
     {
         int targetId = GameData.CarId;

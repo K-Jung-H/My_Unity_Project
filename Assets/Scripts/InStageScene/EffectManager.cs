@@ -23,7 +23,6 @@ public class EffectManager : MonoBehaviour
         if (Instance == null)
         {
             Instance = this;
-            InitializePool();
         }
         else
         {
@@ -31,6 +30,12 @@ public class EffectManager : MonoBehaviour
         }
     }
 
+    public void Initialize()
+    {
+        InitializePool();
+        Debug.Log("EffectManager Initialized");
+    }
+    
     private void InitializePool()
     {
         poolDictionary = new Dictionary<string, Queue<GameObject>>();
