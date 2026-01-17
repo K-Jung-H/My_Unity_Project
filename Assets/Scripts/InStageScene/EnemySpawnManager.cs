@@ -11,8 +11,6 @@ public class EnemySpawnManager : MonoBehaviour
     public Transform globalEnemyRoot;
 
     [Header("Global Settings")]
-    public GameObject[] enemyPrefabs;
-    public int maxGlobalEnemies = 20;
     public int maxSpawnPerFrame = 2;
 
     [Header("Distance Settings")]
@@ -21,18 +19,9 @@ public class EnemySpawnManager : MonoBehaviour
     public float enemyCullDistance = 500f;
 
     private List<GameObject> activeEnemies = new List<GameObject>();
-    private int carAgentTypeID;
+    private Dictionary<string, int> enemyTypeCounts = new Dictionary<string, int>();
 
     private GameObject[] cachedPlayers;
-
-    void Awake()
-    {
-        if (enemyPrefabs != null && enemyPrefabs.Length > 0)
-        {
-            var agent = enemyPrefabs[0].GetComponent<NavMeshAgent>();
-            if (agent != null) carAgentTypeID = agent.agentTypeID;
-        }
-    }
 
     void Start()
     {
@@ -73,8 +62,7 @@ public class EnemySpawnManager : MonoBehaviour
 
             if (minDist > enemyCullDistance)
             {
-                Destroy(enemy);
-                activeEnemies.RemoveAt(i);
+                RemoveEnemy(enemy, i);
                 continue;
             }
 
@@ -93,19 +81,36 @@ public class EnemySpawnManager : MonoBehaviour
         }
     }
 
+    private void RemoveEnemy(GameObject enemy, int index)
+    {
+        string typeName = enemy.name;
+        
+        if (enemyTypeCounts.ContainsKey(typeName))
+        {
+            enemyTypeCounts[typeName]--;
+            if (enemyTypeCounts[typeName] < 0) enemyTypeCounts[typeName] = 0;
+        }
+
+        Destroy(enemy);
+        activeEnemies.RemoveAt(index);
+    }
+
     private void SpawnMissingEnemies()
     {
-        int currentCount = activeEnemies.Count;
-        if (currentCount >= maxGlobalEnemies) return;
+        if (DifficultyManager.Instance == null) return;
 
-        int needed = maxGlobalEnemies - currentCount;
+        int currentMaxGlobalEnemies = DifficultyManager.Instance.GetCurrentMaxEnemies();
+        int currentCount = activeEnemies.Count;
+
+        if (currentCount >= currentMaxGlobalEnemies) return;
+
+        int needed = currentMaxGlobalEnemies - currentCount;
         int spawnLoopCount = Mathf.Min(needed, maxSpawnPerFrame);
 
         List<ChunkController> activeChunks = chunkManager.GetActiveChunks().ToList();
         if (activeChunks.Count == 0) return;
 
         NavMeshQueryFilter filter = new NavMeshQueryFilter();
-        filter.agentTypeID = carAgentTypeID;
         filter.areaMask = NavMesh.AllAreas;
 
         for (int i = 0; i < spawnLoopCount; i++)
@@ -117,28 +122,35 @@ public class EnemySpawnManager : MonoBehaviour
             if (spawnPoints == null || spawnPoints.Count == 0) continue;
 
             Transform targetPoint = spawnPoints[Random.Range(0, spawnPoints.Count)];
-            CreateEnemyAt(targetPoint, filter);
+            
+            EnemySpawnConfig configToSpawn = DifficultyManager.Instance.PickEnemyToSpawn(enemyTypeCounts);
+            
+            if (configToSpawn != null && configToSpawn.prefab != null)
+            {
+                CreateEnemyAt(configToSpawn, targetPoint, filter);
+            }
         }
     }
 
-    private void CreateEnemyAt(Transform targetPoint, NavMeshQueryFilter filter)
+    private void CreateEnemyAt(EnemySpawnConfig config, Transform targetPoint, NavMeshQueryFilter filter)
     {
-        GameObject prefab = enemyPrefabs[Random.Range(0, enemyPrefabs.Length)];
-        GameObject enemy = Instantiate(prefab, targetPoint.position, targetPoint.rotation, globalEnemyRoot);
+        GameObject enemy = Instantiate(config.prefab, targetPoint.position, targetPoint.rotation, globalEnemyRoot);
         NavMeshAgent agent = enemy.GetComponent<NavMeshAgent>();
+
+        enemy.name = config.enemyName;
 
         if (agent != null)
         {
             agent.enabled = false;
+            filter.agentTypeID = agent.agentTypeID;
 
             NavMeshHit hit;
             if (NavMesh.SamplePosition(targetPoint.position, out hit, 10.0f, filter))
             {
                 enemy.transform.position = hit.position;
                 agent.Warp(hit.position);
-                agent.agentTypeID = carAgentTypeID;
 
-                activeEnemies.Add(enemy);
+                RegisterEnemy(enemy, config.enemyName);
             }
             else
             {
@@ -147,8 +159,19 @@ public class EnemySpawnManager : MonoBehaviour
         }
         else
         {
-            activeEnemies.Add(enemy);
+            RegisterEnemy(enemy, config.enemyName);
         }
+    }
+
+    private void RegisterEnemy(GameObject enemy, string typeName)
+    {
+        activeEnemies.Add(enemy);
+        
+        if (!enemyTypeCounts.ContainsKey(typeName))
+        {
+            enemyTypeCounts[typeName] = 0;
+        }
+        enemyTypeCounts[typeName]++;
     }
 
     private float GetDistanceToNearestPlayer(Vector3 position)

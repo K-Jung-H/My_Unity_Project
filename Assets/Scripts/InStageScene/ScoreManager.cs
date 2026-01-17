@@ -9,7 +9,11 @@ public class ScoreManager : MonoBehaviour
     public float scoreUpdateTime = 3f;
     public float scorePerUpdate = 10f;
 
+    public int Score => currentScore;
+
     public event Action<int> OnScoreChanged;
+    private int currentScore;
+
     private float timer;
     private bool isScoringActive = true;
 
@@ -35,6 +39,8 @@ public class ScoreManager : MonoBehaviour
             AddScore(Mathf.FloorToInt(scorePerUpdate));
             timer = 0f;
         }
+
+        currentScore = GameData.totalScore;
     }
 
     public void AddScore(int amount)
