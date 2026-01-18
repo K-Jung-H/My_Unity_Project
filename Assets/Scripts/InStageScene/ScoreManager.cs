@@ -1,5 +1,7 @@
 using UnityEngine;
 using System;
+using System.IO;
+using System.Collections.Generic; 
 
 public class ScoreManager : MonoBehaviour
 {
@@ -9,13 +11,14 @@ public class ScoreManager : MonoBehaviour
     public float scoreUpdateTime = 3f;
     public float scorePerUpdate = 10f;
 
-    public int Score => currentScore;
+    public int Score => GameData.TotalScore;
 
     public event Action<int> OnScoreChanged;
-    private int currentScore;
 
     private float timer;
-    private bool isScoringActive = true;
+    private bool isScoringActive = false;
+
+    private List<HealthSystem> connectedHealthSystems = new List<HealthSystem>();
 
     private void Awake()
     {
@@ -29,14 +32,46 @@ public class ScoreManager : MonoBehaviour
         }
     }
 
+    private void Start()
+    {
+        Initialize();
+    }
+
     public void Initialize()
     {
-        currentScore = 0;
+        GameData.TotalScore = 0;
         timer = 0f;
         isScoringActive = true;
-        GameData.totalScore = 0; 
         
-        Debug.Log("ScoreManager Initialized");
+        connectedHealthSystems.Clear();
+
+        HealthSystem[] allHealthSystems = FindObjectsByType<HealthSystem>(FindObjectsSortMode.None);
+            
+        int playerLayerIndex = LayerMask.NameToLayer("Player");
+
+        foreach (var health in allHealthSystems)
+        {
+           
+            if (health.gameObject.layer == playerLayerIndex)
+            {
+                health.OnDeath += SaveGameResult;
+                connectedHealthSystems.Add(health); 
+            }
+        }
+        
+        Debug.Log($"ScoreManager Initialized. Connected to {connectedHealthSystems.Count} Player object(s).");
+    }
+
+    private void OnDestroy()
+    {
+        foreach (var health in connectedHealthSystems)
+        {
+            if (health != null)
+            {
+                health.OnDeath -= SaveGameResult;
+            }
+        }
+        connectedHealthSystems.Clear();
     }
 
     private void Update()
@@ -49,13 +84,38 @@ public class ScoreManager : MonoBehaviour
             AddScore(Mathf.FloorToInt(scorePerUpdate));
             timer = 0f;
         }
-
-        currentScore = GameData.totalScore;
     }
 
     public void AddScore(int amount)
     {
-        GameData.totalScore += amount;
-        OnScoreChanged?.Invoke(GameData.totalScore);
+        if (!isScoringActive) return;
+
+        GameData.TotalScore += amount;
+        OnScoreChanged?.Invoke(GameData.TotalScore);
+    }
+
+    private void SaveGameResult()
+    {
+        if (!isScoringActive) return;
+        
+        isScoringActive = false;
+
+        GameResult result = new GameResult();
+
+        string json = JsonUtility.ToJson(result, true);
+
+        string fileName = $"GameLog_{DateTime.Now:yyyyMMdd_HHmmss}.json";
+        string path = Path.Combine(Application.persistentDataPath, "GameLogs");
+
+        if (!Directory.Exists(path))
+        {
+            Directory.CreateDirectory(path);
+        }
+
+        string fullPath = Path.Combine(path, fileName);
+        File.WriteAllText(fullPath, json);
+
+        Debug.Log($"[ScoreManager] Game Saved: {fullPath}");
+        Debug.Log($"[ScoreManager] Final Score: {result.finalScore}");
     }
 }

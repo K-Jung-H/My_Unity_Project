@@ -672,6 +672,7 @@ GameObject:
   - component: {fileID: 1188003241084521789}
   - component: {fileID: 826210211768349801}
   - component: {fileID: 1395073120171073071}
+  - component: {fileID: 5432310946891741356}
   m_Layer: 11
   m_Name: SpeedCar
   m_TagString: Player
@@ -794,11 +795,6 @@ MonoBehaviour:
   driftDragFactor: 5
   driftSteerThreshold: 0.1
   autoDriftThreshold: 0.9
-  collisionLayerMask:
-    serializedVersion: 2
-    m_Bits: 1152
-  collisionMinForce: 8000
-  explosionEffectCoolTime: 0.5
   outlineStates:
   - fuelRatio: 0.5
     color: {r: 0.9333334, g: 0.8666667, b: 0.509804, a: 1}
@@ -813,6 +809,32 @@ MonoBehaviour:
     blurIntensity: 3
     thickness: 4
   IsDrifting: 0
+--- !u!114 &5432310946891741356
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4112145874257017431}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fec6cb9d7ab42434c953d8fdd955ce0f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HealthSystem
+  maxHealth: 100
+  currentHealth: 100
+  enemyContactDamagePerSec: 10
+  collisionImpactDamage: 30
+  enemyLayerMask:
+    serializedVersion: 2
+    m_Bits: 1024
+  collisionLayerMask:
+    serializedVersion: 2
+    m_Bits: 1152
+  collisionMinForce: 15000
+  explosionEffectCoolTime: 1
+  impactEffectKey: Explosion
+  deathEffectKey: Explosion
 --- !u!1 &4485040266954453754
 GameObject:
   m_ObjectHideFlags: 0

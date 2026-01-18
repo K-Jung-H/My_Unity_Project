@@ -35,7 +35,7 @@ public class FuelGauge : MonoBehaviour
 
         if (targetCar == null)
         {
-            CarController existingCar = FindObjectOfType<CarController>();
+            CarController existingCar = FindFirstObjectByType<CarController>();
             if (existingCar != null && existingCar.CompareTag("Player"))
             {
                 HandlePlayerCreated(existingCar);

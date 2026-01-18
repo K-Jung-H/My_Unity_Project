@@ -18,34 +18,32 @@ public class LobbyCameraController : MonoBehaviour
     public float moveDuration = 1.0f;
     public AnimationCurve moveCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
 
-    private LobbyState lastState;
     private Coroutine currentMoveCoroutine;
 
     void Start()
     {
         if (lobbyManager != null)
         {
-            lastState = lobbyManager.CurrentState;
-            SnapToState(lastState);
+            lobbyManager.OnStateChanged += OnStateChanged;
+            SnapToState(lobbyManager.CurrentState);
         }
     }
 
-    void Update()
+    void OnDestroy()
     {
-        if (lobbyManager == null) return;
-
-        if (lobbyManager.CurrentState != lastState)
+        if (lobbyManager != null)
         {
-            MoveToState(lobbyManager.CurrentState);
+            lobbyManager.OnStateChanged -= OnStateChanged;
         }
+    }
+
+    private void OnStateChanged(LobbyState newState)
+    {
+        MoveToState(newState);
     }
 
     public void MoveToState(LobbyState targetState)
     {
-        if (lastState == targetState && currentMoveCoroutine == null) return;
-
-        lastState = targetState;
-
         if (currentMoveCoroutine != null)
         {
             StopCoroutine(currentMoveCoroutine);

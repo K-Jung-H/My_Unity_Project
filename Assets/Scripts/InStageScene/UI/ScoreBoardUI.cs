@@ -11,7 +11,7 @@ public class ScoreBoardManager : MonoBehaviour
         if (ScoreManager.Instance != null)
         {
             ScoreManager.Instance.OnScoreChanged += UpdateUI;
-            UpdateUI(GameData.totalScore);
+            UpdateUI(GameData.TotalScore);
         }
     }
 

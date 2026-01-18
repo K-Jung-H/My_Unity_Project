@@ -24,49 +24,70 @@ public class DynamicChunkManager : MonoBehaviour
     private Dictionary<Vector2Int, ChunkController> activeChunks = new Dictionary<Vector2Int, ChunkController>();
     private Queue<ChunkController> chunkPool = new Queue<ChunkController>();
 
+    private ChunkController[] defaultChunkPrefabs;
     private GameObject[] cachedPlayers;
     private float playerSearchTimer = 0f;
     private Transform mainPlayerTransform;
     private bool isInitialized = false;
 
-    public void Initialize()
+    void Awake()
     {
-        ApplySelectedChunksFromData();
-        InitializeGameSequence(); 
-        Debug.Log("DynamicChunkManager Initialized");
+        if (chunkPrefabs != null)
+        {
+            defaultChunkPrefabs = (ChunkController[])chunkPrefabs.Clone();
+        }
     }
 
-    private void ApplySelectedChunksFromData()
+    public void Initialize()
     {
-        if (GameData.selectedChunks != null && GameData.selectedChunks.Count > 0)
+        ApplyMapSettings();
+        InitializeGameSequence();
+    }
+
+    private void ApplyMapSettings()
+    {
+        if (GameData.gameMode == GameMode.Default)
         {
-            List<ChunkController> selectedControllers = new List<ChunkController>();
-
-            foreach (var data in GameData.selectedChunks)
+            if (defaultChunkPrefabs != null && defaultChunkPrefabs.Length > 0)
             {
-                if (data.chunkPrefab != null)
-                {
-                    ChunkController controller = data.chunkPrefab.GetComponent<ChunkController>();
-                    if (controller != null)
-                    {
-                        selectedControllers.Add(controller);
-                    }
-                    else
-                    {
-                        Debug.LogWarning($"ChunkData '{data.chunkName}'의 프리팹에 ChunkController 스크립트가 없습니다!");
-                    }
-                }
+                chunkPrefabs = defaultChunkPrefabs;
             }
-
-            if (selectedControllers.Count > 0)
+            else
             {
-                chunkPrefabs = selectedControllers.ToArray();
-                Debug.Log($"[DynamicChunkManager] GameData에서 {chunkPrefabs.Length}개의 맵 타입을 로드했습니다.");
+                Debug.LogError("[DynamicChunkManager] Default Mode chunks missing.");
             }
         }
         else
         {
-            Debug.Log("[DynamicChunkManager] GameData에 선택된 맵이 없습니다. 인스펙터 기본값을 사용합니다.");
+            if (GameData.selectedChunks != null && GameData.selectedChunks.Count > 0)
+            {
+                List<ChunkController> selectedControllers = new List<ChunkController>();
+
+                foreach (ChunkData data in GameData.selectedChunks)
+                {
+                    if (data != null && data.chunkPrefab != null)
+                    {
+                        ChunkController controller = data.chunkPrefab.GetComponent<ChunkController>();
+                        if (controller != null)
+                        {
+                            selectedControllers.Add(controller);
+                        }
+                    }
+                }
+
+                if (selectedControllers.Count > 0)
+                {
+                    chunkPrefabs = selectedControllers.ToArray();
+                }
+                else
+                {
+                    chunkPrefabs = defaultChunkPrefabs;
+                }
+            }
+            else
+            {
+                chunkPrefabs = defaultChunkPrefabs;
+            }
         }
     }
 
@@ -74,7 +95,7 @@ public class DynamicChunkManager : MonoBehaviour
     {
         if (chunkPrefabs == null || chunkPrefabs.Length == 0)
         {
-            Debug.LogError("[Critical] 생성할 청크 프리팹이 없습니다! 로비 설정을 확인하세요.");
+            Debug.LogError("[Critical] No chunk prefabs available.");
             return;
         }
 
@@ -100,7 +121,7 @@ public class DynamicChunkManager : MonoBehaviour
 
     void Update()
     {
-        if (mainPlayerTransform == null) return;
+        if (!isInitialized || mainPlayerTransform == null) return;
 
         playerSearchTimer += Time.deltaTime;
         if (playerSearchTimer > 1.0f)

@@ -5,6 +5,10 @@ public class CanvasManager : MonoBehaviour
     [Header("Dependencies")]
     public LobbyManager lobbyManager;
 
+    [Header("UI Elements")]
+    public GameObject returnButtonObject;
+
+
     [System.Serializable]
     public struct StateCanvas
     {
@@ -15,25 +19,20 @@ public class CanvasManager : MonoBehaviour
     [Header("Settings")]
     public StateCanvas[] stateCanvases;
 
-    private LobbyState lastState;
-
     void Start()
     {
         if (lobbyManager != null)
         {
-            lastState = lobbyManager.CurrentState;
-            UpdateCanvasState(lastState);
+            lobbyManager.OnStateChanged += UpdateCanvasState;
+            UpdateCanvasState(lobbyManager.CurrentState);
         }
     }
 
-    void Update()
+    void OnDestroy()
     {
-        if (lobbyManager == null) return;
-
-        if (lobbyManager.CurrentState != lastState)
+        if (lobbyManager != null)
         {
-            lastState = lobbyManager.CurrentState;
-            UpdateCanvasState(lastState);
+            lobbyManager.OnStateChanged -= UpdateCanvasState;
         }
     }
 
@@ -45,9 +44,27 @@ public class CanvasManager : MonoBehaviour
 
             bool isActive = item.state == targetState;
 
-            item.canvasGroup.alpha = isActive ? 1f : 0f;
-            item.canvasGroup.interactable = isActive;
-            item.canvasGroup.blocksRaycasts = isActive;
+            if (item.canvasGroup.gameObject.activeSelf != isActive)
+            {
+                item.canvasGroup.gameObject.SetActive(isActive);
+            }
+
+            if (isActive)
+            {
+                item.canvasGroup.alpha = 1f;
+                item.canvasGroup.interactable = true;
+                item.canvasGroup.blocksRaycasts = true;
+            }
+        }
+
+        if (returnButtonObject != null)
+        {
+            bool isReturnActive = targetState != LobbyState.Waiting;
+
+            if (returnButtonObject.activeSelf != isReturnActive)
+            {
+                returnButtonObject.SetActive(isReturnActive);
+            }
         }
     }
 }

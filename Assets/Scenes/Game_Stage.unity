@@ -166,7 +166,7 @@ MonoBehaviour:
   chunkManager: {fileID: 120063262}
   globalEnemyRoot: {fileID: 117796851}
   maxSpawnPerFrame: 5
-  activationDistance: 200
+  activationDistance: 400
   deactivationDistance: 500
   enemyCullDistance: 600
 --- !u!1 &38880378

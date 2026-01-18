@@ -1,10 +1,12 @@
-using System.Collections;
+using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
 public enum LobbyState
 {
     Waiting,
+    Selection_GameMode,
     Selection_Car,
     Selection_Stage,
     ReadyToStart
@@ -12,11 +14,13 @@ public enum LobbyState
 
 public class LobbyManager : MonoBehaviour
 {
+    public event Action<LobbyState> OnStateChanged;
+
     [SerializeField]
     private LobbyState lobbyState;
-
     public LobbyState CurrentState => lobbyState;
 
+    private Stack<LobbyState> stateHistory = new Stack<LobbyState>();
     private bool isGameStarting = false;
 
     void Start()
@@ -26,46 +30,81 @@ public class LobbyManager : MonoBehaviour
 
     public void Reset()
     {
+        stateHistory.Clear();
         lobbyState = LobbyState.Waiting;
         isGameStarting = false;
-
+        
+        OnStateChanged?.Invoke(lobbyState);
         GameData.Reset();
     }
 
-    public void ChangeState(LobbyState newState)
+    private void MoveToState(LobbyState nextState)
     {
-        if (lobbyState == newState) return;
+        if (lobbyState == nextState) return;
 
-        lobbyState = newState;
-        Debug.Log($"[LobbyManager] State Changed to: {lobbyState}");
+        stateHistory.Push(lobbyState);
+        lobbyState = nextState;
+        
+        OnStateChanged?.Invoke(lobbyState);
     }
 
-    public void OnClick_ToWaiting()
+    public void ForceChangeState(LobbyState targetState)
     {
-        ChangeState(LobbyState.Waiting);
+        if (lobbyState == targetState) return;
+
+        stateHistory.Push(lobbyState);
+        lobbyState = targetState;
+
+        OnStateChanged?.Invoke(lobbyState);
     }
 
-    public void OnClick_ToCarSelection()
+    public void OnClick_NextStep()
     {
-        ChangeState(LobbyState.Selection_Car);
-    }
+        if (isGameStarting) return;
 
-    public void OnClick_ToStageSelection()
-    {
-        ChangeState(LobbyState.Selection_Stage);
-    }
-
-    public void OnClick_ToReady()
-    {
-        ChangeState(LobbyState.ReadyToStart);
-    }
-
-    public void OnClick_GameStart()
-    {
-        if (lobbyState == LobbyState.ReadyToStart)
+        switch (lobbyState)
         {
-            isGameStarting = true;
-            SceneManager.LoadScene("Game_Stage");
+            case LobbyState.Waiting:
+                MoveToState(LobbyState.Selection_GameMode);
+                break;
+
+            case LobbyState.Selection_GameMode:
+                MoveToState(LobbyState.Selection_Car);
+                break;
+
+            case LobbyState.Selection_Car:
+                if (GameData.gameMode == GameMode.Default)
+                {
+                    MoveToState(LobbyState.ReadyToStart);
+                }
+                else
+                {
+                    MoveToState(LobbyState.Selection_Stage);
+                }
+                break;
+
+            case LobbyState.Selection_Stage:
+                MoveToState(LobbyState.ReadyToStart);
+                break;
+
+            case LobbyState.ReadyToStart:
+                TryStartGame();
+                break;
         }
+    }
+
+    public void OnClick_BackStep()
+    {
+        if (isGameStarting) return;
+        if (stateHistory.Count <= 0) return;
+
+        lobbyState = stateHistory.Pop();
+        OnStateChanged?.Invoke(lobbyState);
+    }
+
+    private void TryStartGame()
+    {
+        isGameStarting = true;
+        SceneManager.LoadScene("Game_Stage");
     }
 }

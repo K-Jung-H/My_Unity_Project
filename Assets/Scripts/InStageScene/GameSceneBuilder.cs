@@ -27,13 +27,14 @@ public class GameSceneBuilder : MonoBehaviour
 
         if (worldObjectDataManager != null) worldObjectDataManager.Initialize();
         if (effectManager != null) effectManager.Initialize();
-        if (scoreManager != null) scoreManager.Initialize();
 
    
-        if (difficultyManager != null) difficultyManager.Initialize();
         if (playerManager != null) playerManager.Initialize();
         if (dynamicChunkManager != null) dynamicChunkManager.Initialize();
         if (enemySpawnManager != null) enemySpawnManager.Initialize();
+        if (difficultyManager != null) difficultyManager.Initialize();
+        
+        if (scoreManager != null) scoreManager.Initialize();
 
         Debug.Log("--- [GameSceneBuilder] 게임 초기화 완료 ---");
     }
