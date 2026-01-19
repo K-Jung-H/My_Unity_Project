@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections.Generic;
+using System;
 using System.Linq;
 
 [System.Serializable]
@@ -14,6 +15,7 @@ public struct OutlineFuelState
 
 public class CarController : MonoBehaviour
 {
+    public event Action OnDeath;
     private HealthSystem healthSystem;
 
     [Header("Wheel Colliders")]
@@ -60,6 +62,10 @@ public class CarController : MonoBehaviour
     [Range(0.1f, 3f)] public float wheelStiffness = 2.0f;
     public float maxAngularVelocity = 8.0f;
 
+    [Header("Slope Settings")]
+    public float slopeForce = 5000f;
+    public float slopeThreshold = 0.1f;
+
     [Header("Drift Configuration")]
     public float minDriftSpeed = 10f;
     public float minDriftExitSpeed = 5f;
@@ -75,7 +81,10 @@ public class CarController : MonoBehaviour
     public List<OutlineFuelState> outlineStates;
 
     public GearState currentGear { get; private set; } = GearState.P;
-    public bool IsDrifting = false;
+    
+    public bool IsDrifting { get; private set; } = false;
+
+    public bool IsSkidding { get; private set; } = false;
     
     private float currentSteerInput = 0f;
     private float targetSteerInput = 0f;
@@ -85,6 +94,7 @@ public class CarController : MonoBehaviour
     private float defaultAngularDamping;
     private float driveDirection = 1f;
     
+    private bool isReverseBraking = false;
     private bool isDead = false;
 
     public bool IsGrounded
@@ -132,12 +142,14 @@ public class CarController : MonoBehaviour
 
     private void HandlePlayerDeath()
     {
-        isDead = true;
+        if (isDead) return;
         
         targetSteerInput = 0f;
         accelInput = 0f;
         brakeInput = 1f;
         currentGear = GearState.N;
+
+        OnDeath?.Invoke();
     }
 
     private void Update()
@@ -157,6 +169,9 @@ public class CarController : MonoBehaviour
 
         ApplyMotorForce();
         ApplySteering();
+        ApplySlopeAssist();
+
+        IsSkidding = IsDrifting || isReverseBraking;
 
         if (IsGrounded)
         {
@@ -320,6 +335,9 @@ public class CarController : MonoBehaviour
         float currentMotorForce = 0f;
         float currentBrakeForce = 0f;
         float effectiveAccel = ValidateAccelInput(accelInput);
+        float forwardSpeed = Vector3.Dot(transform.forward, carRigidbody.linearVelocity);
+
+        isReverseBraking = false;
 
         if (currentGear == GearState.P)
         {
@@ -335,10 +353,24 @@ public class CarController : MonoBehaviour
         {
             currentBrakeForce = brakeInput * brakeForce;
 
+            float gearDirection = 0f;
+            if (currentGear == GearState.D) gearDirection = 1f;
+            else if (currentGear == GearState.R) gearDirection = -1f;
+
             if (effectiveAccel > 0.1f)
             {
-                if (currentGear == GearState.D) currentMotorForce = effectiveAccel * motorForce;
-                else if (currentGear == GearState.R) currentMotorForce = effectiveAccel * -motorForce;
+
+                if (forwardSpeed * gearDirection < -1.0f)
+                {
+                    isReverseBraking = true; 
+                    currentMotorForce = 0f;
+                    currentBrakeForce = brakeForce * 5.0f; 
+                }
+                else
+                {
+                    currentMotorForce = effectiveAccel * motorForce * gearDirection;
+                    if (brakeInput < 0.1f) currentBrakeForce = 0f;
+                }
             }
 
             if (effectiveAccel < 0.1f && brakeInput < 0.1f)
@@ -347,7 +379,7 @@ public class CarController : MonoBehaviour
             }
         }
 
-        if (IsDrifting)
+        if (IsDrifting && !isReverseBraking)
         {
             frontLeftCollider.brakeTorque = 0f;
             frontRightCollider.brakeTorque = 0f;
@@ -371,6 +403,20 @@ public class CarController : MonoBehaviour
         float angle = currentSteerInput * maxSteerAngle;
         frontLeftCollider.steerAngle = angle;
         frontRightCollider.steerAngle = angle;
+    }
+
+    private void ApplySlopeAssist()
+    {
+        if (!IsGrounded) return;
+
+        float slopeDot = Vector3.Dot(transform.forward, Vector3.up);
+        float effectiveAccel = ValidateAccelInput(accelInput);
+        
+        if (slopeDot > slopeThreshold && effectiveAccel > 0.1f && currentGear != GearState.R)
+        {
+            Vector3 assistForce = transform.forward * slopeForce * slopeDot * effectiveAccel;
+            carRigidbody.AddForce(assistForce, ForceMode.Acceleration);
+        }
     }
 
     private void ApplyArcadePhysics()
@@ -486,6 +532,11 @@ public class CarController : MonoBehaviour
 
         forwardFriction.stiffness = wheelStiffness;
         sidewaysFriction.stiffness = wheelStiffness;
+
+        if (isReverseBraking)
+        {
+            forwardFriction.stiffness = wheelStiffness * 2.0f; 
+        }
 
         frontLeftCollider.forwardFriction = forwardFriction;
         frontLeftCollider.sidewaysFriction = sidewaysFriction;

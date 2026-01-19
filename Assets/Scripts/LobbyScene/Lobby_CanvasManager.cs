@@ -19,13 +19,14 @@ public class CanvasManager : MonoBehaviour
     [Header("Settings")]
     public StateCanvas[] stateCanvases;
 
-    void Start()
+    public void Initialize()    
     {
         if (lobbyManager != null)
         {
+            lobbyManager.OnStateChanged -= UpdateCanvasState;
             lobbyManager.OnStateChanged += UpdateCanvasState;
-            UpdateCanvasState(lobbyManager.CurrentState);
         }
+        Debug.Log("CanvasManager Initialized");
     }
 
     void OnDestroy()

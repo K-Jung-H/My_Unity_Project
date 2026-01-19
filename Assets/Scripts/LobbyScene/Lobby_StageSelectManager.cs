@@ -19,11 +19,13 @@ public class Lobby_StageSelectManager : MonoBehaviour
     public Button rightArrowButton;
     public Button SelectCompleteButton;
 
-    void Start()
+    public void Initialize()
     {
         InitializeData();
         BindUIEvents();
         RefreshView();
+
+        Debug.Log("Lobby_StageSelectManager Initialized");
     }
 
     private void InitializeData()

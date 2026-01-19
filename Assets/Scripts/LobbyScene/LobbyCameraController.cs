@@ -20,13 +20,15 @@ public class LobbyCameraController : MonoBehaviour
 
     private Coroutine currentMoveCoroutine;
 
-    void Start()
+    public void Initialize()    
     {
         if (lobbyManager != null)
         {
             lobbyManager.OnStateChanged += OnStateChanged;
             SnapToState(lobbyManager.CurrentState);
         }
+
+        Debug.Log("LobbyCameraController Initialized");
     }
 
     void OnDestroy()

@@ -19,17 +19,9 @@ public class WheelSkid : MonoBehaviour
         WheelHit hit;
         bool isGrounded = targetWheel.GetGroundHit(out hit);
 
-        bool isDrifting = false;
-        if (carController != null)
-        {
-            isDrifting = carController.IsDrifting;
-        }
-        else
-        {
-            isDrifting = Mathf.Abs(hit.sidewaysSlip) > 0.2f;
-        }
+        bool shouldEmit = carController != null && carController.IsSkidding;
 
-        if (isGrounded && isDrifting)
+        if (isGrounded && shouldEmit)
         {
             if (currentTrail == null)
             {

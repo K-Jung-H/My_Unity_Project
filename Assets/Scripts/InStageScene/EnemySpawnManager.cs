@@ -23,10 +23,6 @@ public class EnemySpawnManager : MonoBehaviour
 
     private GameObject[] cachedPlayers;
 
-    void Start()
-    {
-        StartCoroutine(ManageEnemyLifecycleRoutine());
-    }
 
     public void Initialize()
     {
@@ -49,6 +45,10 @@ public class EnemySpawnManager : MonoBehaviour
             {
                 ManageActiveEnemies();
                 SpawnMissingEnemies();
+            }
+            else
+            {
+                Debug.LogWarning("[EnemySpawnManager] 플레이어를 찾을 수 없습니다. 태그를 확인하세요.");
             }
         }
     }
@@ -95,7 +95,9 @@ public class EnemySpawnManager : MonoBehaviour
         if (enemyTypeCounts.ContainsKey(typeName))
         {
             enemyTypeCounts[typeName]--;
-            if (enemyTypeCounts[typeName] < 0) enemyTypeCounts[typeName] = 0;
+
+            if (enemyTypeCounts[typeName] < 0) 
+                enemyTypeCounts[typeName] = 0;
         }
 
         Destroy(enemy);
@@ -105,37 +107,38 @@ public class EnemySpawnManager : MonoBehaviour
     private void SpawnMissingEnemies()
     {
         if (DifficultyManager.Instance == null) return;
+        
 
         int currentMaxGlobalEnemies = DifficultyManager.Instance.GetCurrentMaxEnemies();
         int currentCount = activeEnemies.Count;
 
         if (currentCount >= currentMaxGlobalEnemies) return;
-
+        
         int needed = currentMaxGlobalEnemies - currentCount;
         int spawnLoopCount = Mathf.Min(needed, maxSpawnPerFrame);
 
         List<ChunkController> activeChunks = chunkManager.GetActiveChunks().ToList();
         if (activeChunks.Count == 0) return;
-
+        
         NavMeshQueryFilter filter = new NavMeshQueryFilter();
         filter.areaMask = NavMesh.AllAreas;
 
         for (int i = 0; i < spawnLoopCount; i++)
         {
             ChunkController randomChunk = activeChunks[Random.Range(0, activeChunks.Count)];
-            if (randomChunk == null || !randomChunk.gameObject.activeInHierarchy) continue;
 
+            if (randomChunk == null || !randomChunk.gameObject.activeInHierarchy) continue;
+            
             List<Transform> spawnPoints = randomChunk.GetEnemySpawnPoints();
             if (spawnPoints == null || spawnPoints.Count == 0) continue;
-
+            
             Transform targetPoint = spawnPoints[Random.Range(0, spawnPoints.Count)];
             
             EnemySpawnConfig configToSpawn = DifficultyManager.Instance.PickEnemyToSpawn(enemyTypeCounts);
             
             if (configToSpawn != null && configToSpawn.prefab != null)
-            {
                 CreateEnemyAt(configToSpawn, targetPoint, filter);
-            }
+
         }
     }
 

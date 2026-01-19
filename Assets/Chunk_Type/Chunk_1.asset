@@ -9,10 +9,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 0}
-  m_Name: Chunk_Type_2
+  m_Script: {fileID: 11500000, guid: f0b6cb93cb80d1744b9df9c510e6dad6, type: 3}
+  m_Name: Chunk_1
   m_EditorClassIdentifier: Assembly-CSharp::ChunkData
-  chunkName: Chunk_Type_2
-  chunkPrefab: {fileID: 291280986102999547, guid: dd940403524c89d47bc19734be1f8d47, type: 3}
-  icon: {fileID: 21300000, guid: ce6c1be8d87b3c54c8392a21e6d82873, type: 3}
+  chunkName: Chunk_1
+  chunkPrefab: {fileID: 578888045295363231, guid: 1fd1502e4ccad284f8154c7fe3407b5d, type: 3}
+  icon: {fileID: 21300000, guid: f0342a43bb1b5d04c96f2fb4e33a43bf, type: 3}
   isMandatory: 0

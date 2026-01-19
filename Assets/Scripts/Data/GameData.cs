@@ -2,20 +2,6 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-public enum GameMode
-{
-    Default,
-    Custom
-}
-
-[CreateAssetMenu(fileName = "NewChunk", menuName = "Game/ChunkData")]
-public class ChunkData : ScriptableObject
-{
-    public string chunkName;
-    public GameObject chunkPrefab;
-    public Sprite icon;
-    public bool isMandatory;
-}
 
 [System.Serializable]
 public class GameResult
@@ -55,6 +41,9 @@ public static class GameData
 
     public static void Reset()
     {
+        CarId = 0;
+        gameMode = GameMode.Default;
+        selectedChunks.Clear();
         TotalScore = 0;
     }
 }

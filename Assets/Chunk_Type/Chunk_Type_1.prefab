@@ -982,7 +982,8 @@ MonoBehaviour:
   - {fileID: 273520440113531129}
   - {fileID: 4872870285037351038}
   - {fileID: 3796495414377102429}
-  staticCollidersRoot: {fileID: 2698991358219444770}
+  physicsRoot: {fileID: 2698991358219444770}
+  visualRoot: {fileID: 150523388907928046}
   propsRoot: {fileID: 5026291115556895196}
   myLinks: []
   props: []

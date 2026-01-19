@@ -9,11 +9,12 @@ public class DifficultyManager : MonoBehaviour
     public DifficultyProfile profile;
     
 
-    [SerializeField] private float currentDifficultyValue = 0f;
+    [SerializeField] public float currentDifficultyValue = 0f;
 
     public float CurrentDifficulty => currentDifficultyValue;
 
-    void Awake()
+
+    public void Initialize(ScoreManager targetScoreManager)
     {
         if (Instance != null && Instance != this)
         {
@@ -21,18 +22,20 @@ public class DifficultyManager : MonoBehaviour
             return;
         }
         Instance = this;
-    }
-
-    public void Initialize()
-    {
-        if (ScoreManager.Instance != null)
+        
+        if (targetScoreManager != null)
         {
-            ScoreManager.Instance.OnScoreChanged -= HandleScoreChange;
-            ScoreManager.Instance.OnScoreChanged += HandleScoreChange;
+            targetScoreManager.OnScoreChanged -= HandleScoreChange;         
+            targetScoreManager.OnScoreChanged += HandleScoreChange;
             
-            HandleScoreChange(ScoreManager.Instance.Score);
+            HandleScoreChange(targetScoreManager.Score);
+
+            Debug.Log("DifficultyManager Initialized (ScoreManager Connected)");
         }
-        Debug.Log("DifficultyManager Initialized");
+        else
+        {
+            Debug.LogError("[DifficultyManager] 초기화 실패: 주입된 ScoreManager가 Null입니다.");
+        }
     }
 
     void OnDestroy()

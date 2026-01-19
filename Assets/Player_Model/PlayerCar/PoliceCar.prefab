@@ -1010,7 +1010,7 @@ MonoBehaviour:
   driveConsumptionBase: 0.1
   speedConsumptionFactor: 0.01
   motorForce: 8000
-  brakeForce: 3000
+  brakeForce: 30000
   decelerationForce: 200
   maxSteerAngle: 60
   centerOfMassOffset: {x: 0, y: -0.5, z: 0}
@@ -1021,6 +1021,8 @@ MonoBehaviour:
   downForce: 1000
   wheelStiffness: 2
   maxAngularVelocity: 5
+  slopeForce: 20
+  slopeThreshold: 0.1
   minDriftSpeed: 50
   minDriftExitSpeed: 10
   driftRearStiffness: 0.5

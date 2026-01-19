@@ -21,21 +21,16 @@ public class LobbyManager : MonoBehaviour
     public LobbyState CurrentState => lobbyState;
 
     private Stack<LobbyState> stateHistory = new Stack<LobbyState>();
-    private bool isGameStarting = false;
 
-    void Start()
+    public void Initialize()
     {
-        Reset();
-    }
-
-    public void Reset()
-    {
-        stateHistory.Clear();
-        lobbyState = LobbyState.Waiting;
-        isGameStarting = false;
-        
-        OnStateChanged?.Invoke(lobbyState);
         GameData.Reset();
+        stateHistory.Clear();
+        
+        lobbyState = LobbyState.Waiting;
+        OnStateChanged?.Invoke(lobbyState);
+        
+        Debug.Log("LobbyManager Initialized");
     }
 
     private void MoveToState(LobbyState nextState)
@@ -60,8 +55,6 @@ public class LobbyManager : MonoBehaviour
 
     public void OnClick_NextStep()
     {
-        if (isGameStarting) return;
-
         switch (lobbyState)
         {
             case LobbyState.Waiting:
@@ -95,7 +88,6 @@ public class LobbyManager : MonoBehaviour
 
     public void OnClick_BackStep()
     {
-        if (isGameStarting) return;
         if (stateHistory.Count <= 0) return;
 
         lobbyState = stateHistory.Pop();
@@ -104,7 +96,7 @@ public class LobbyManager : MonoBehaviour
 
     private void TryStartGame()
     {
-        isGameStarting = true;
+        Debug.Log(GameData.CarId);
         SceneManager.LoadScene("Game_Stage");
     }
 }

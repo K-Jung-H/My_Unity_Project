@@ -5,20 +5,13 @@ using UnityEngine;
 public class ChunkController : MonoBehaviour
 {
     [Header("Spawn Settings")]
-    [Tooltip("플레이어 스폰 위치 리스트 (PlayerManager용)")]
     public List<Transform> playerSpawnPoints = new List<Transform>();
-
-    [Tooltip("적 스폰 위치 리스트 (EnemySpawnManager용)")]
     public List<Transform> enemySpawnPoints = new List<Transform>();
 
     [Header("Optimization Targets")]
-    [Tooltip("정적 물체의 콜라이더 그룹 (멀어지면 끔)")]
-    public GameObject staticCollidersRoot;
-
-    [Tooltip("동적 소품들의 부모 (멀어지면 끔)")]
+    public GameObject physicsRoot;
+    public GameObject visualRoot;
     public GameObject propsRoot;
-
-    [Tooltip("청크의 NavLink")]
     public NavMeshLink[] myLinks;
 
     public Vector2Int Coord { get; private set; }
@@ -38,18 +31,15 @@ public class ChunkController : MonoBehaviour
         }
     }
 
-    void Reset()
-    {
-        if (propsRoot != null)
-        {
-            props = propsRoot.GetComponentsInChildren<DestructibleProp>(true);
-        }
-    }
-
     public void Setup(Vector2Int coord)
     {
         this.Coord = coord;
         this.name = $"Chunk_{coord.x}_{coord.y}";
+
+        if (visualRoot != null)
+        {
+            visualRoot.SetActive(true);
+        }
 
         if (props != null)
         {
@@ -84,14 +74,12 @@ public class ChunkController : MonoBehaviour
         }
     }
 
-
     public Transform GetRandomPlayerSpawnPoint()
     {
         if (playerSpawnPoints != null && playerSpawnPoints.Count > 0)
         {
             return playerSpawnPoints[Random.Range(0, playerSpawnPoints.Count)];
         }
-        
         return this.transform;
     }
 
@@ -103,19 +91,12 @@ public class ChunkController : MonoBehaviour
         }
         return enemySpawnPoints;
     }
-    
 
     public void SetPhysicsState(bool enablePhysics)
     {
-        if (staticCollidersRoot != null)
+        if (physicsRoot != null && physicsRoot.activeSelf != enablePhysics)
         {
-            foreach (Transform child in staticCollidersRoot.transform)
-            {
-                if (child.gameObject.activeSelf != enablePhysics)
-                {
-                    child.gameObject.SetActive(enablePhysics);
-                }
-            }
+            physicsRoot.SetActive(enablePhysics);
         }
 
         if (propsRoot != null && propsRoot.activeSelf != enablePhysics)

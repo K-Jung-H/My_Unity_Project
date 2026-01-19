@@ -26,7 +26,7 @@ public class Lobby_CarSelectManager : MonoBehaviour
     private int currentIndex = 0;
     private bool isAnimating = false;
 
-    void Start()
+    public void Initialize()
     {
         InitializeCarPool();
 
@@ -35,6 +35,8 @@ public class Lobby_CarSelectManager : MonoBehaviour
             lobbyManager.OnStateChanged += HandleStateChange;
             HandleStateChange(lobbyManager.CurrentState);
         }
+
+        Debug.Log("Lobby_CarSelectManager Initialized");
     }
 
     void OnDestroy()
@@ -77,7 +79,7 @@ public class Lobby_CarSelectManager : MonoBehaviour
 
     public void Change_Rotate()
     {
-        canRotate = !canRotate;
+        rotateSpeed *= -1;
     }
 
     public void Change_Car_Prev()
@@ -170,22 +172,24 @@ public class Lobby_CarSelectManager : MonoBehaviour
         currentCar.transform.Rotate(Vector3.up * rotateSpeed * Time.deltaTime, Space.World);
     }
 
-    private IEnumerator ChangeCarSequence(int targetIndex, int direction)
+private IEnumerator ChangeCarSequence(int targetIndex, int direction)
     {
         isAnimating = true;
 
         Transform exitPos = (direction > 0) ? Start_Pos : End_Pos;
+        
         GameObject outgoingCar = currentCar;
-
-        Transform enterPos = (direction > 0) ? End_Pos : Start_Pos;
         GameObject incomingCar = carPool[targetIndex];
 
-        StartCoroutine(MoveCar(outgoingCar, Center_Pos.position, exitPos.position, false));
-        yield return StartCoroutine(MoveCar(incomingCar, enterPos.position, Center_Pos.position, true));
+        Transform enterPos = (direction > 0) ? End_Pos : Start_Pos;
 
         currentIndex = targetIndex;
         currentCar = incomingCar;
-        SaveCurrentCarId();
+        SaveCurrentCarId(); 
+
+        StartCoroutine(MoveCar(outgoingCar, Center_Pos.position, exitPos.position, false));
+        
+        yield return StartCoroutine(MoveCar(incomingCar, enterPos.position, Center_Pos.position, true));
 
         isAnimating = false;
     }

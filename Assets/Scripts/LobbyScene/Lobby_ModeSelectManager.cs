@@ -3,6 +3,12 @@ using UnityEngine;
 
 public class Lobby_ModeSelectManager : MonoBehaviour
 {
+
+    public void Initialize()    
+    {
+        
+    }
+
     public void OnClick_DefaultMode()
     {
         SaveModeToData(GameMode.Default);
