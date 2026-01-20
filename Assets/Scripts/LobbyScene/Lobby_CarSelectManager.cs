@@ -7,8 +7,8 @@ public class Lobby_CarSelectManager : MonoBehaviour
     [Header("Dependencies")]
     public LobbyManager lobbyManager;
 
-    [Header("Car Database")]
-    public List<CarData> carDatabase;
+    [Header("Data Management")]
+    public CarDataTable carDataTable;
 
     [Header("Position Transforms")]
     public Transform Start_Pos;
@@ -102,17 +102,18 @@ public class Lobby_CarSelectManager : MonoBehaviour
 
     private void InitializeCarPool()
     {
-        if (carDatabase == null) carDatabase = new List<CarData>();
+        if (carDataTable == null || carDataTable.Count == 0) return;
 
         GameObject container = new GameObject("SelectCarList");
         container.transform.position = Vector3.zero;
 
-        for (int i = 0; i < carDatabase.Count; i++)
+        for (int i = 0; i < carDataTable.Count; i++)
         {
-            GameObject prefab = carDatabase[i].carPrefab;
+            GameObject prefab = carDataTable.GetCarPrefab(i);
             if (prefab == null) continue;
 
             GameObject obj = Instantiate(prefab, container.transform);
+            obj.name = prefab.name;
             
             CleanupCarComponents(obj);
 
@@ -172,7 +173,7 @@ public class Lobby_CarSelectManager : MonoBehaviour
         currentCar.transform.Rotate(Vector3.up * rotateSpeed * Time.deltaTime, Space.World);
     }
 
-private IEnumerator ChangeCarSequence(int targetIndex, int direction)
+    private IEnumerator ChangeCarSequence(int targetIndex, int direction)
     {
         isAnimating = true;
 
@@ -225,9 +226,9 @@ private IEnumerator ChangeCarSequence(int targetIndex, int direction)
 
     private void SaveCurrentCarId()
     {
-        if (carDatabase != null && currentIndex >= 0 && currentIndex < carDatabase.Count)
+        if (carDataTable != null && currentIndex >= 0 && currentIndex < carDataTable.Count)
         {
-            GameData.CarId = carDatabase[currentIndex].carID;
+            GameData.CarId = currentIndex;
         }
     }
 }

@@ -9,6 +9,7 @@ public enum LobbyState
     Selection_GameMode,
     Selection_Car,
     Selection_Stage,
+    Select_Level,
     ReadyToStart
 }
 
@@ -77,6 +78,10 @@ public class LobbyManager : MonoBehaviour
                 break;
 
             case LobbyState.Selection_Stage:
+                MoveToState(LobbyState.Select_Level);
+                break;
+
+            case LobbyState.Select_Level:
                 MoveToState(LobbyState.ReadyToStart);
                 break;
 

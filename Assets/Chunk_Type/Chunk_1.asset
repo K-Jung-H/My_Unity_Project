@@ -14,5 +14,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ChunkData
   chunkName: Chunk_1
   chunkPrefab: {fileID: 578888045295363231, guid: 1fd1502e4ccad284f8154c7fe3407b5d, type: 3}
-  icon: {fileID: 21300000, guid: f0342a43bb1b5d04c96f2fb4e33a43bf, type: 3}
+  icon: {fileID: 21300000, guid: 4b3cb5892482dea4faa9b389b1486eec, type: 3}
   isMandatory: 0

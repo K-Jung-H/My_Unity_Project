@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6d696665140bbb0458f8c11a3768e908, type: 3}
+  m_Name: EnemyProfile_Heavy
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyStatProfile
+  mass: 1500
+  drag: 0.5
+  normalSpeed: 15
+  roadSpeed: 25
+  turnSpeed: 10
+  acceleration: 60
+  slopeDamping: 20
+  attackTriggerRange: 8
+  disengageDistance: 10
+  chargeForce: 60
+  pressForce: 20
+  chargeDuration: 1
+  chargeCooldown: 3
+  airborneCheckDist: 2
+  uprightSpeed: 5

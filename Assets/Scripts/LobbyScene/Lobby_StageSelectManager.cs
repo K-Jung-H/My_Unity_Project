@@ -6,8 +6,9 @@ using TMPro;
 public class Lobby_StageSelectManager : MonoBehaviour
 {
     [Header("Model: Data Management")]
-    public List<ChunkData> allChunkDataList;
+    public ChunkDataTable chunkDataTable;
 
+    private List<ChunkData> allChunkDataList;
     private HashSet<int> selectedChunkIndices = new HashSet<int>();
     private int currentViewingIndex = 0;
 
@@ -22,6 +23,13 @@ public class Lobby_StageSelectManager : MonoBehaviour
     public void Initialize()
     {
         InitializeData();
+        
+        if (allChunkDataList == null || allChunkDataList.Count == 0)
+        {
+            Debug.LogError("ChunkDataList is empty or Table is not assigned!");
+            return;
+        }
+
         BindUIEvents();
         RefreshView();
 
@@ -30,6 +38,18 @@ public class Lobby_StageSelectManager : MonoBehaviour
 
     private void InitializeData()
     {
+        if (chunkDataTable != null)
+        {
+            allChunkDataList = chunkDataTable.chunkList;
+        }
+        else
+        {
+            Debug.LogError("ChunkDataTable is missing in Inspector!");
+            allChunkDataList = new List<ChunkData>();
+        }
+
+        selectedChunkIndices.Clear();
+
         for (int i = 0; i < allChunkDataList.Count; i++)
         {
             if (allChunkDataList[i].isMandatory)
@@ -41,6 +61,11 @@ public class Lobby_StageSelectManager : MonoBehaviour
 
     private void BindUIEvents()
     {
+        leftArrowButton.onClick.RemoveAllListeners();
+        rightArrowButton.onClick.RemoveAllListeners();
+        selectionToggle.onValueChanged.RemoveAllListeners();
+        if (SelectCompleteButton != null) SelectCompleteButton.onClick.RemoveAllListeners();
+
         leftArrowButton.onClick.AddListener(() => NavigateChunk(-1));
         rightArrowButton.onClick.AddListener(() => NavigateChunk(1));
         
@@ -64,7 +89,7 @@ public class Lobby_StageSelectManager : MonoBehaviour
 
     private void RefreshView()
     {
-        if (allChunkDataList.Count == 0) return;
+        if (allChunkDataList == null || allChunkDataList.Count == 0) return;
 
         ChunkData currentData = allChunkDataList[currentViewingIndex];
 
@@ -117,6 +142,6 @@ public class Lobby_StageSelectManager : MonoBehaviour
             GameData.selectedChunks.Add(allChunkDataList[index]);
         }
 
-        Debug.Log($"Game Start! Selected Chunks: {GameData.selectedChunks.Count}");
+        Debug.Log($"Selected Chunks: {GameData.selectedChunks.Count}");
     }
 }

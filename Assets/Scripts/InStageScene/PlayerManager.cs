@@ -10,8 +10,8 @@ public class PlayerManager : MonoBehaviour
     [Header("Dependencies")]
     public DynamicChunkManager chunkManager;
 
-    [Header("Car Database")]
-    public List<CarData> carDatabase;
+    [Header("Data Management")]
+    public CarDataTable carDataTable;
 
     [Header("Player Container")]
     public Transform playerListContainer;
@@ -50,22 +50,16 @@ public class PlayerManager : MonoBehaviour
         int targetId = (carId == -1) ? GameData.CarId : carId;
         GameObject prefabToSpawn = null;
 
-        foreach (var data in carDatabase)
+        if (carDataTable != null)
         {
-            if (data.carID == targetId)
-            {
-                prefabToSpawn = data.carPrefab;
-                break;
-            }
+            prefabToSpawn = carDataTable.GetCarPrefab(targetId);
         }
 
-        if (prefabToSpawn == null && carDatabase.Count > 0)
+        if (prefabToSpawn == null)
         {
-            Debug.Log($"[PlayerManager] Target ID {targetId} not found. Spawning default car (Index 0) for testing.");
-            prefabToSpawn = carDatabase[0].carPrefab;
+            Debug.LogError($"[PlayerManager] Failed to load car prefab for ID {targetId}. Check CarDataTable.");
+            return null;
         }
-
-        if (prefabToSpawn == null) return null;
 
         if (playerListContainer == null)
         {

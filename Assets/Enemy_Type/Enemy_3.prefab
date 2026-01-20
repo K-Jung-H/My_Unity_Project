@@ -67,22 +67,20 @@ MonoBehaviour:
   m_GameObject: {fileID: 562171976151151253}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b35929cc9784520498f7ff8cef95e538, type: 3}
+  m_Script: {fileID: 11500000, guid: 5c4892298a3f2b24e9057b7a96ddf171, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyCarAnimation
+  stats: {fileID: 11400000, guid: fce383f58e230e84e98265b767da4f48, type: 2}
   targetTransform: {fileID: 0}
   roadAreaName: Road
   groundLayer:
     serializedVersion: 2
     m_Bits: 192
-  normalSpeed: 15
-  roadSpeed: 30
-  acceleration: 50
-  turnSpeed: 90
-  slopeDamping: 20
-  impactDistance: 1.5
-  pathUpdateInterval: 0.2
-  targetMoveThreshold: 0.5
+  obstacleLayer:
+    serializedVersion: 2
+    m_Bits: 192
+  currentState: 0
+  isDirectChasing: 0
 --- !u!54 &4165324266683990184
 Rigidbody:
   m_ObjectHideFlags: 0

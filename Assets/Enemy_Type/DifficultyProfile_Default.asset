@@ -10,8 +10,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1b8b08148e327b849b82c9eddd17bdca, type: 3}
-  m_Name: DifficultyProfile
+  m_Name: DifficultyProfile_Default
   m_EditorClassIdentifier: Assembly-CSharp::DifficultyProfile
+  difficultyName: Default
+  icon: {fileID: 21300000, guid: c693e9783139e9147af99935b7553eb7, type: 3}
   difficultyScaler: 0.01
   globalMaxEnemyCurve:
     serializedVersion: 2
@@ -65,7 +67,7 @@ MonoBehaviour:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    maxInstanceCount: 5
+    maxInstanceCount: 15
   - enemyName: Buldozer
     prefab: {fileID: 6223454433300995993, guid: 3dcaab3b235b4724aa73be3d05d08bca, type: 3}
     unlockThreshold: 30
@@ -124,7 +126,7 @@ MonoBehaviour:
     maxInstanceCount: 10
   - enemyName: RedTruck
     prefab: {fileID: 562171976151151253, guid: d5e1649eaa672564d89d3794b14362ce, type: 3}
-    unlockThreshold: 20
+    unlockThreshold: 10
     spawnWeightCurve:
       serializedVersion: 2
       m_Curve:

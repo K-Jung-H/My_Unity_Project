@@ -20,9 +20,13 @@ public class EnemySpawnConfig
 [CreateAssetMenu(fileName = "DifficultyProfile", menuName = "Game/Difficulty Profile")]
 public class DifficultyProfile : ScriptableObject
 {
+    [Header("UI Display")]
+    public string difficultyName;
+    public Sprite icon;
+    
     [Header("Global Settings")]
     [Tooltip("점수를 난이도 수치로 변환하는 비율 (예: 0.01이면 1000점 -> 난이도 10)")]
-    public float difficultyScaler = 0.01f; // [여기 추가됨!]
+    public float difficultyScaler = 0.01f;
 
     [Tooltip("X축: 현재 난이도 (Score * Scaler), Y축: 월드 전체 허용 가능한 최대 적 개수")]
     public AnimationCurve globalMaxEnemyCurve;

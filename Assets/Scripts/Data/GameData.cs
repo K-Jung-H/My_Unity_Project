@@ -33,16 +33,18 @@ public class GameResult
 
 public static class GameData
 {
-    public static int CarId = 0;
     public static GameMode gameMode = GameMode.Default;
+    public static int CarId = 0;
+    public static int DifficultyIndex = 0;
     public static List<ChunkData> selectedChunks = new List<ChunkData>();
     
     public static int TotalScore = 0;
 
     public static void Reset()
     {
-        CarId = 0;
         gameMode = GameMode.Default;
+        CarId = 0;
+        DifficultyIndex = 0;
         selectedChunks.Clear();
         TotalScore = 0;
     }

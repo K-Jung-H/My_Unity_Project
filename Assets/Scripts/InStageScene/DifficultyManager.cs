@@ -5,14 +5,17 @@ public class DifficultyManager : MonoBehaviour
 {
     public static DifficultyManager Instance { get; private set; }
 
-    [Header("Settings")]
-    public DifficultyProfile profile;
-    
+    [Header("Data Source")]
+    public DifficultyDataTable difficultyDataTable;
 
+    [Header("Fallback Settings")]
+    public int defaultMaxEnemies = 10;
+
+    [Header("Runtime State")]
+    [SerializeField] private DifficultyProfile currentProfile;
     [SerializeField] public float currentDifficultyValue = 0f;
 
     public float CurrentDifficulty => currentDifficultyValue;
-
 
     public void Initialize(ScoreManager targetScoreManager)
     {
@@ -22,19 +25,40 @@ public class DifficultyManager : MonoBehaviour
             return;
         }
         Instance = this;
-        
+
+        LoadDifficultyProfile();
+
         if (targetScoreManager != null)
         {
-            targetScoreManager.OnScoreChanged -= HandleScoreChange;         
+            targetScoreManager.OnScoreChanged -= HandleScoreChange;
             targetScoreManager.OnScoreChanged += HandleScoreChange;
-            
-            HandleScoreChange(targetScoreManager.Score);
 
-            Debug.Log("DifficultyManager Initialized (ScoreManager Connected)");
+            HandleScoreChange(targetScoreManager.Score);
         }
         else
         {
-            Debug.LogError("[DifficultyManager] 초기화 실패: 주입된 ScoreManager가 Null입니다.");
+            Debug.LogError("[DifficultyManager] ScoreManager is null.");
+        }
+    }
+
+    private void LoadDifficultyProfile()
+    {
+        if (difficultyDataTable == null)
+        {
+            Debug.LogError("[DifficultyManager] DifficultyDataTable is missing.");
+            return;
+        }
+
+        int index = GameData.DifficultyIndex;
+        currentProfile = difficultyDataTable.GetProfile(index);
+
+        if (currentProfile == null)
+        {
+            Debug.LogError($"[DifficultyManager] Failed to load profile for Index {index}.");
+        }
+        else
+        {
+            Debug.Log($"[DifficultyManager] Difficulty Profile Loaded: {currentProfile.name}");
         }
     }
 
@@ -48,25 +72,25 @@ public class DifficultyManager : MonoBehaviour
 
     private void HandleScoreChange(int newScore)
     {
-        if (profile == null) return; 
+        if (currentProfile == null) return;
 
-        currentDifficultyValue = newScore * profile.difficultyScaler;
+        currentDifficultyValue = newScore * currentProfile.difficultyScaler;
     }
 
     public int GetCurrentMaxEnemies()
     {
-        if (profile == null) return 10;
-        return Mathf.RoundToInt(profile.globalMaxEnemyCurve.Evaluate(currentDifficultyValue));
+        if (currentProfile == null) return defaultMaxEnemies;
+        return Mathf.RoundToInt(currentProfile.globalMaxEnemyCurve.Evaluate(currentDifficultyValue));
     }
 
     public EnemySpawnConfig PickEnemyToSpawn(Dictionary<string, int> currentEnemyCounts)
     {
-        if (profile == null || profile.enemyConfigs.Count == 0) return null;
+        if (currentProfile == null || currentProfile.enemyConfigs.Count == 0) return null;
 
         float totalWeight = 0f;
         List<EnemySpawnConfig> candidates = new List<EnemySpawnConfig>();
 
-        foreach (var config in profile.enemyConfigs)
+        foreach (var config in currentProfile.enemyConfigs)
         {
             if (currentDifficultyValue < config.unlockThreshold) continue;
 

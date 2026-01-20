@@ -1045,7 +1045,6 @@ MonoBehaviour:
     color: {r: 0.8627452, g: 0.07843138, b: 0.2352941, a: 1}
     blurIntensity: 3
     thickness: 4
-  IsDrifting: 0
 --- !u!114 &-3133670206689516498
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1058,8 +1057,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fec6cb9d7ab42434c953d8fdd955ce0f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HealthSystem
-  maxHealth: 100
-  currentHealth: 100
+  maxHealth: 10000
+  currentHealth: 10000
   enemyContactDamagePerSec: 10
   collisionImpactDamage: 30
   enemyLayerMask:
