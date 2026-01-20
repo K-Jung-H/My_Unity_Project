@@ -351,7 +351,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dad94a138bc506143a527d06eb70045b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ScoreManager
-  scoreUpdateTime: 3
+  scoreUpdateTime: 1
   scorePerUpdate: 10
 --- !u!1 &115444013
 GameObject:

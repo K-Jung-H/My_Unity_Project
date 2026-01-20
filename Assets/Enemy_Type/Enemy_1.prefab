@@ -78,9 +78,11 @@ MonoBehaviour:
     m_Bits: 192
   obstacleLayer:
     serializedVersion: 2
-    m_Bits: 192
+    m_Bits: 704
   currentState: 0
   isDirectChasing: 0
+  groundedTimer: 0
+  maxSlopeChaseHeight: 10
 --- !u!54 &711348216009606731
 Rigidbody:
   m_ObjectHideFlags: 0
