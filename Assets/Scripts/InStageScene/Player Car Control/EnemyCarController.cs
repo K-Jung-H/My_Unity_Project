@@ -4,10 +4,10 @@ using System.Collections;
 
 public enum EnemyState
 {
-    CHASE,
+    NAV_CHASE,
+    DIRECT_CHASE,
     CHARGE,
-    PRESS_ATTACK,
-    AIRBORNE
+    PRESS_ATTACK
 }
 
 public class EnemyCarController : MonoBehaviour
@@ -19,24 +19,25 @@ public class EnemyCarController : MonoBehaviour
     public Transform targetTransform;
     public string roadAreaName = "Road";
     
-    // [수정] 인스펙터에서 보이지만, Awake에서 코드로 덮어씌워질 변수
-    public LayerMask groundLayer; 
-    public LayerMask obstacleLayer;
+    public LayerMask groundLayer;
+
+    [Header("Life Cycle Settings")]
+    public float deathTime = 10.0f;
+    public float deathRange = 5.0f;
 
     [Header("State Info (Read Only)")]
-    public EnemyState currentState = EnemyState.CHASE;
-    public bool isDirectChasing = false;
+    public EnemyState currentState = EnemyState.NAV_CHASE; 
     
     private float pressTimer = 0f;
     private const float PRESS_DURATION = 2.0f;
     
-    private float lastObstacleDetectTime = -999f;
-    private const float OBSTACLE_AVOIDANCE_COOLDOWN = 2.0f; 
-
     private NavMeshAgent agent;
     private Rigidbody rb;
     private int roadAreaMask;
     
+    // [신규] 매니저 참조 변수
+    private EnemySpawnManager spawnManager;
+
     private float lastAttackTime = -999f;
     private bool isCharging = false;
     private bool isUnderPlayer = false;
@@ -44,25 +45,18 @@ public class EnemyCarController : MonoBehaviour
     private Vector3 lastTargetPosition;
     private const float TARGET_MOVE_THRESHOLD = 0.5f;
 
-    [SerializeField] private float groundedTimer = 0f;
-    
     [Header("Slope Settings")]
     public float maxSlopeChaseHeight = 10.0f; 
 
     private float currentAgentSpeed = 0f;
-    private float stuckTimer = 0f;
-
-    private const float RECOVERY_WAIT_TIME = 3.0f;
 
     void Awake()
     {
         agent = GetComponent<NavMeshAgent>();
         rb = GetComponent<Rigidbody>();
 
-        // [핵심 수정] 요청하신 두 레이어를 코드로 강제 할당 (대소문자 정확해야 함)
-        // Unity 에디터의 Layers 설정에 "Track"과 "Structure_Static"이 존재해야 합니다.
         groundLayer = LayerMask.GetMask("Track", "Structure_Static");
-
+        
         if (rb != null && stats != null)
         {
             rb.mass = stats.mass;
@@ -89,65 +83,56 @@ public class EnemyCarController : MonoBehaviour
         if (roadIndex != -1) roadAreaMask = 1 << roadIndex;
     }
 
+    void Start()
+    {
+        // [신규] 씬에 있는 매니저 찾기 (싱글톤이 없다면 FindObjectOfType 사용)
+        if (spawnManager == null)
+        {
+            spawnManager = FindObjectOfType<EnemySpawnManager>();
+        }
+    }
+
     void OnEnable()
     {
         if (agent != null)
         {
             NavMeshHit hit;
-            if (NavMesh.SamplePosition(transform.position, out hit, 5.0f, NavMesh.AllAreas))
+            if (NavMesh.SamplePosition(transform.position, out hit, 10.0f, NavMesh.AllAreas))
             {
                 agent.Warp(hit.position);
             }
             agent.velocity = Vector3.zero;
             currentAgentSpeed = 0f;
-            stuckTimer = 0f;
         }
         
         if (targetTransform == null) FindNearestPlayer();
         if (targetTransform != null) lastTargetPosition = Vector3.zero;
 
-        groundedTimer = 0f;
-        
-        if (CheckIfAirborneOrFlipped()) SwitchState(EnemyState.AIRBORNE);
-        else SwitchState(EnemyState.CHASE);
+        float dist = Vector3.Distance(transform.position, targetTransform.position);
+        if (dist <= stats.directChaseDistance) SwitchState(EnemyState.DIRECT_CHASE);
+        else SwitchState(EnemyState.NAV_CHASE);
 
         StartCoroutine(ThinkRoutine());
+        StartCoroutine(CheckActivityRoutine());
     }
 
     void Update()
     {
         if (targetTransform == null || stats == null) return;
 
-        bool isUnstable = CheckIfAirborneOrFlipped();
-
-        // 디버깅용 레이 그리기 (Scene 뷰에서 초록색 선 확인 가능)
-        Debug.DrawRay(transform.position + Vector3.up * 0.5f, Vector3.down * stats.airborneCheckDist, isUnstable ? Color.red : Color.green);
-
-        if (isUnstable && currentState != EnemyState.AIRBORNE)
+        if (currentState == EnemyState.CHARGE || currentState == EnemyState.PRESS_ATTACK)
         {
-            SwitchState(EnemyState.AIRBORNE);
-            return;
-        }
-
-        if (currentState == EnemyState.AIRBORNE)
-        {
-            HandleAirborneState();
-            return;
-        }
-        
-        if (currentState == EnemyState.CHASE && agent.enabled && !agent.isOnNavMesh)
-        {
-            NavMeshHit hit;
-            if (NavMesh.SamplePosition(transform.position, out hit, 3.0f, NavMesh.AllAreas))
-            {
-                agent.Warp(hit.position);
-            }
+            SyncAgentToPhysics();
         }
 
         switch (currentState)
         {
-            case EnemyState.CHASE:
-                HandleChase();
+            case EnemyState.NAV_CHASE:
+                HandleNavChase();
+                break;
+            
+            case EnemyState.DIRECT_CHASE:
+                HandleDirectChase();
                 break;
 
             case EnemyState.CHARGE:
@@ -159,29 +144,15 @@ public class EnemyCarController : MonoBehaviour
                 break;
         }
     }
-    
-    void OnCollisionEnter(Collision collision)
+
+    private void SyncAgentToPhysics()
     {
-        // 바닥 레이어와 충돌한 경우는 무시 (땅에 닿았다고 Airborne 되는 것 방지)
-        if (((1 << collision.gameObject.layer) & groundLayer) != 0) return;
-
-        if (currentState == EnemyState.CHASE)
+        if (agent != null && agent.isActiveAndEnabled)
         {
-            foreach (ContactPoint contact in collision.contacts)
-            {
-                if (contact.point.y < transform.position.y + 0.3f) continue;
-
-                if (collision.relativeVelocity.magnitude > 5.0f || ((1 << collision.gameObject.layer) & obstacleLayer) != 0)
-                {
-                    SwitchState(EnemyState.AIRBORNE);
-                    Vector3 bounceDir = contact.normal;
-                    rb.AddForce(bounceDir * stats.mass * 2.0f, ForceMode.Impulse);
-                    return; 
-                }
-            }
+            agent.nextPosition = transform.position;
         }
     }
-
+    
     void OnCollisionStay(Collision collision)
     {
         if (targetTransform != null && collision.gameObject == targetTransform.gameObject)
@@ -218,7 +189,7 @@ public class EnemyCarController : MonoBehaviour
                 FindNearestPlayer();
             }
             
-            if (targetTransform != null && agent.enabled && agent.isOnNavMesh && currentState == EnemyState.CHASE && !isDirectChasing)
+            if (targetTransform != null && agent.enabled && agent.isOnNavMesh && currentState == EnemyState.NAV_CHASE)
             {
                 NavMeshHit hit;
                 Vector3 targetPos = targetTransform.position;
@@ -238,7 +209,39 @@ public class EnemyCarController : MonoBehaviour
         }
     }
 
-    private void HandleChase()
+    private IEnumerator CheckActivityRoutine()
+    {
+        WaitForSeconds wait = new WaitForSeconds(deathTime);
+        float sqrDeathRange = deathRange * deathRange;
+
+        while (true)
+        {
+            Vector3 startPos = transform.position;
+            yield return wait;
+
+            if (gameObject == null) yield break;
+
+            float movedDistSqr = (transform.position - startPos).sqrMagnitude;
+
+            // [수정] 일정 범위 내에서 움직임이 없으면 삭제 요청
+            if (movedDistSqr < sqrDeathRange)
+            {
+                if (spawnManager != null)
+                {
+                    // 매니저에게 나를 명단에서 빼고 카운트 줄여달라고 요청 (SpawnManager가 Destroy까지 처리함)
+                    spawnManager.UnregisterEnemy(this.gameObject);
+                }
+                else
+                {
+                    // 매니저가 없으면 그냥 자폭
+                    Destroy(gameObject);
+                }
+                yield break;
+            }
+        }
+    }
+
+    private void HandleNavChase()
     {
         float targetSpeed = IsOnRoad() ? stats.roadSpeed : stats.normalSpeed;
         currentAgentSpeed = Mathf.Lerp(currentAgentSpeed, targetSpeed, Time.deltaTime * 5.0f);
@@ -246,52 +249,29 @@ public class EnemyCarController : MonoBehaviour
         
         float distToTarget = Vector3.Distance(transform.position, targetTransform.position);
         
-        bool isInAvoidanceCooldown = Time.time < lastObstacleDetectTime + OBSTACLE_AVOIDANCE_COOLDOWN;
-        bool hasObstacle = HasObstacleInPath();
-
-        if (hasObstacle) lastObstacleDetectTime = Time.time;
-
-        if (!isInAvoidanceCooldown && 
-            distToTarget <= stats.directChaseDistance && 
-            !hasObstacle) 
+        if (distToTarget <= stats.directChaseDistance) 
         {
-            isDirectChasing = true;
-            agent.updatePosition = true; 
-            stuckTimer = 0f;
-            MoveAndRotate(targetTransform.position, currentAgentSpeed, true);
+            SwitchState(EnemyState.DIRECT_CHASE);
+            return;
         }
-        else
-        {
-            isDirectChasing = false;
-            
-            if (agent.pathPending)
-            {
-                stuckTimer = 0f;
-                return;
-            }
-            
-            if (!agent.hasPath && agent.isOnNavMesh)
-            {
-                agent.SetDestination(targetTransform.position);
-            }
-            else if (agent.hasPath && agent.remainingDistance > agent.stoppingDistance)
-            {
-                if (agent.velocity.sqrMagnitude < 0.1f)
-                {
-                    stuckTimer += Time.deltaTime;
-                    if (stuckTimer > 1.0f)
-                    {
-                        SwitchState(EnemyState.AIRBORNE);
-                        stuckTimer = 0f;
-                    }
-                }
-                else
-                {
-                    stuckTimer = 0f;
-                }
-            }
 
-            MoveAndRotate(agent.steeringTarget, currentAgentSpeed, false);
+        if (agent.pathPending) return;
+        if (!agent.hasPath && agent.isOnNavMesh) agent.SetDestination(targetTransform.position);
+        
+        MoveAndRotate(agent.steeringTarget, currentAgentSpeed, false);
+    }
+
+    private void HandleDirectChase()
+    {
+        float targetSpeed = IsOnRoad() ? stats.roadSpeed : stats.normalSpeed;
+        currentAgentSpeed = Mathf.Lerp(currentAgentSpeed, targetSpeed, Time.deltaTime * 5.0f);
+        
+        float distToTarget = Vector3.Distance(transform.position, targetTransform.position);
+
+        if (distToTarget > stats.directChaseDistance + 2.0f)
+        {
+            SwitchState(EnemyState.NAV_CHASE);
+            return;
         }
 
         if (distToTarget <= stats.attackTriggerRange && 
@@ -299,30 +279,28 @@ public class EnemyCarController : MonoBehaviour
             !isCharging)
         {
             StartCoroutine(ChargeSequence());
+            return;
         }
+
+        MoveAndRotate(targetTransform.position, currentAgentSpeed, true);
     }
 
     private void MoveAndRotate(Vector3 desiredDestination, float maxSpeed, bool isDirect)
     {
-        float distToDest = Vector3.Distance(transform.position, desiredDestination);
-        
-        if (!isDirect && distToDest <= agent.stoppingDistance)
-        {
-            agent.velocity = Vector3.zero;
-            return; 
-        }
-
         Vector3 directionToTarget = (desiredDestination - transform.position);
         directionToTarget.y = 0; 
 
-        if (directionToTarget.sqrMagnitude < 0.1f) return;
-
-        directionToTarget.Normalize();
+        if (directionToTarget.sqrMagnitude > 0.1f)
+        {
+            directionToTarget.Normalize();
+        }
+        else
+        {
+            directionToTarget = transform.forward;
+        }
 
         Vector3 groundNormal = Vector3.up;
         RaycastHit hit;
-        
-        // [수정] MoveAndRotate에서도 동일한 groundLayer 사용
         if (Physics.Raycast(transform.position + Vector3.up, Vector3.down, out hit, 5.0f, groundLayer))
         {
             groundNormal = hit.normal;
@@ -335,30 +313,25 @@ public class EnemyCarController : MonoBehaviour
             float angleToTarget = Vector3.Angle(transform.forward, projectedForward);
             float corneringFactor = Mathf.Clamp(1.0f - (angleToTarget / 180.0f), 0.5f, 1.0f); 
             
-            agent.speed = maxSpeed * corneringFactor;
+            float finalSpeed = maxSpeed * corneringFactor;
+            
+            if (!isDirect) agent.speed = finalSpeed;
 
             Quaternion targetRotation = Quaternion.LookRotation(projectedForward, groundNormal);
             transform.rotation = Quaternion.RotateTowards(transform.rotation, targetRotation, stats.turnSpeed * Time.deltaTime * 5.0f); 
             
             Quaternion slopeRotation = Quaternion.FromToRotation(transform.up, groundNormal) * transform.rotation;
             transform.rotation = Quaternion.Slerp(transform.rotation, slopeRotation, stats.slopeDamping * Time.deltaTime);
-        }
 
-        if (isDirect)
+            if (isDirect)
+            {
+                agent.velocity = transform.forward * finalSpeed;
+            }
+        }
+        else if (isDirect)
         {
-            agent.velocity = transform.forward * agent.speed;
+            agent.velocity = Vector3.zero;
         }
-    }
-
-    private bool HasObstacleInPath()
-    {
-        if (targetTransform == null) return false;
-        
-        Vector3 dir = targetTransform.position - transform.position;
-        float dist = dir.magnitude;
-        float checkDist = Mathf.Min(dist, stats.directChaseDistance + 2.0f);
-
-        return Physics.Raycast(transform.position + Vector3.up, dir, checkDist, obstacleLayer);
     }
 
     private void HandleChargeRotation()
@@ -376,18 +349,21 @@ public class EnemyCarController : MonoBehaviour
     private void HandlePressAttack()
     {
         if (isUnderPlayer) return;
+        
         pressTimer += Time.deltaTime;
         if (pressTimer > PRESS_DURATION)
         {
-            SwitchState(EnemyState.CHASE);
+            SwitchState(EnemyState.NAV_CHASE);
             return;
         }
+        
         float dist = Vector3.Distance(transform.position, targetTransform.position);
         if (dist > stats.disengageDistance)
         {
-            SwitchState(EnemyState.CHASE);
+            SwitchState(EnemyState.NAV_CHASE);
             return;
         }
+        
         Vector3 dir = (targetTransform.position - transform.position);
         dir.y = 0;
         if (dir.sqrMagnitude > 0.1f)
@@ -402,8 +378,10 @@ public class EnemyCarController : MonoBehaviour
         isCharging = true;
         lastAttackTime = Time.time;
         SwitchState(EnemyState.CHARGE);
+        
         Vector3 dir = (targetTransform.position - transform.position);
         dir.y = 0;
+        
         if (dir.sqrMagnitude > 0.1f)
         {
             dir.Normalize();
@@ -413,149 +391,58 @@ public class EnemyCarController : MonoBehaviour
         {
             rb.AddForce(transform.forward * stats.chargeForce, ForceMode.Impulse);
         }
+        
         yield return new WaitForSeconds(stats.chargeDuration);
+        
         isCharging = false;
-        if (currentState != EnemyState.AIRBORNE)
-        {
-            SwitchState(EnemyState.PRESS_ATTACK);
-        }
+        SwitchState(EnemyState.PRESS_ATTACK);
     }
 
     private void SwitchState(EnemyState newState)
     {
         if (currentState == newState) return;
 
-        if (currentState == EnemyState.CHASE)
-        {
-            SafeSetStopped(true);
-            agent.updatePosition = false;
-        }
-
         currentState = newState;
 
         switch (currentState)
         {
-            case EnemyState.CHASE:
+            case EnemyState.NAV_CHASE:
+            case EnemyState.DIRECT_CHASE:
                 rb.linearVelocity = Vector3.zero;
                 rb.angularVelocity = Vector3.zero;
                 rb.isKinematic = true; 
                 
                 NavMeshHit hit;
-                if (NavMesh.SamplePosition(transform.position, out hit, 3.0f, NavMesh.AllAreas))
+                if (NavMesh.SamplePosition(transform.position, out hit, 10.0f, NavMesh.AllAreas))
                 {
-                    agent.Warp(hit.position);
+                    agent.Warp(hit.position); 
                 }
-
+                
                 if (agent.isOnNavMesh) 
                 {
                     agent.updatePosition = true;
-                    SafeSetStopped(false);
-                    currentAgentSpeed = 0f;
-                    stuckTimer = 0f;
+                    agent.isStopped = false;
+                    agent.ResetPath();
                 }
                 break;
 
             case EnemyState.CHARGE:
-                SafeSetStopped(true);
-                agent.updatePosition = false;
+                agent.updatePosition = false; 
                 rb.isKinematic = false; 
                 rb.linearVelocity = agent.velocity;
+                if (agent.isOnNavMesh) agent.ResetPath();
                 break;
                 
             case EnemyState.PRESS_ATTACK:
                 pressTimer = 0f;
-                SafeSetStopped(true);
                 agent.updatePosition = false;
                 rb.isKinematic = false; 
                 rb.linearVelocity = agent.velocity;
-                break;
-
-            case EnemyState.AIRBORNE:
-                groundedTimer = 0f;
-                SafeSetStopped(true);
-                agent.updatePosition = false;
-                rb.isKinematic = false; 
+                if (agent.isOnNavMesh) agent.ResetPath();
                 break;
         }
     }
 
-    private void SafeSetStopped(bool isStopped)
-    {
-        if (agent != null && agent.isActiveAndEnabled && agent.isOnNavMesh)
-        {
-            agent.isStopped = isStopped;
-        }
-    }
-
-    // [핵심 수정] isGround 판단 로직 개선
-    private bool CheckIfAirborneOrFlipped()
-    {
-        // SphereCast를 사용하여 바닥 감지 범위를 넓힘 (Radius 0.5f)
-        // transform.position + Vector3.up * 1.0f 위치에서 아래로 쏠 때, 차 바닥면 근처를 훑게 됨
-        bool isGrounded = Physics.CheckSphere(transform.position + Vector3.down * 0.1f, 0.5f, groundLayer);
-        
-        // SphereCast가 너무 넓으면 아래 Raycast로 이중 체크 (선택 사항이나, 정확도 위해 둘 다 사용 가능)
-        // 여기서는 SphereCast가 닿았거나, Raycast가 닿았으면 Ground로 판정
-        if (!isGrounded)
-        {
-             isGrounded = Physics.Raycast(transform.position + Vector3.up, Vector3.down, stats.airborneCheckDist, groundLayer);
-        }
-
-        bool isUpright = Vector3.Dot(transform.up, Vector3.up) > 0.5f;
-        
-        // 땅에 안 닿았거나, 뒤집혀 있다면 Unstable(Airborne)
-        return !isGrounded || !isUpright;
-    }
-
-    private void HandleAirborneState()
-    {
-        // [수정] 여기서도 동일한 groundLayer 마스크 사용
-        bool isTouchingGround = Physics.Raycast(transform.position + Vector3.up * 0.5f, Vector3.down, 2.0f, groundLayer);
-
-        if (isTouchingGround)
-        {
-            groundedTimer += Time.deltaTime;
-        }
-        else
-        {
-            groundedTimer = 0f;
-        }
-
-        if (groundedTimer > RECOVERY_WAIT_TIME)
-        {
-            bool recovered = HandleAirborneRecovery();
-            if (recovered)
-            {
-                SwitchState(EnemyState.CHASE);
-            }
-        }
-    }
-
-    private bool HandleAirborneRecovery()
-    {
-        RaycastHit hit;
-        // [수정] Recovery 시에도 동일한 groundLayer 사용
-        if (Physics.Raycast(transform.position, Vector3.down, out hit, 10.0f, groundLayer))
-        {
-            Vector3 targetPos = hit.point + Vector3.up * 1.0f;
-            
-            rb.linearVelocity = Vector3.Lerp(rb.linearVelocity, Vector3.zero, Time.deltaTime * 5.0f);
-            transform.position = Vector3.Lerp(transform.position, targetPos, stats.uprightSpeed * Time.deltaTime);
-
-            Vector3 projectedForward = Vector3.ProjectOnPlane(transform.forward, Vector3.up).normalized;
-            if (projectedForward == Vector3.zero) projectedForward = transform.forward;
-
-            Quaternion targetRot = Quaternion.LookRotation(projectedForward, Vector3.up);
-            transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, stats.uprightSpeed * Time.deltaTime);
-
-            if (Vector3.Dot(transform.up, Vector3.up) > 0.9f && Vector3.Distance(transform.position, targetPos) < 0.2f)
-            {
-                return true;
-            }
-        }
-        return false;
-    }
-    
     private bool IsOnRoad()
     {
         NavMeshHit hit;

@@ -9,9 +9,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3567247596014738102}
+  - component: {fileID: 7667698006336799719}
   - component: {fileID: 5992319075443068749}
   - component: {fileID: 4387275589082080657}
-  - component: {fileID: 7667698006336799719}
   - component: {fileID: 7612493949878896130}
   m_Layer: 10
   m_Name: Enemy_0
@@ -36,6 +36,28 @@ Transform:
   - {fileID: 9009187832279194361}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &7667698006336799719
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6744876025607187535}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5c4892298a3f2b24e9057b7a96ddf171, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyCarAnimation
+  stats: {fileID: 11400000, guid: baba195a52a6d1e429dfd2ff0b005df8, type: 2}
+  targetTransform: {fileID: 0}
+  roadAreaName: Road
+  groundLayer:
+    serializedVersion: 2
+    m_Bits: 192
+  deathTime: 10
+  deathRange: 5
+  currentState: 0
+  maxSlopeChaseHeight: 10
 --- !u!195 &5992319075443068749
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -48,16 +70,16 @@ NavMeshAgent:
   m_Radius: 3
   m_Speed: 25
   m_Acceleration: 20
-  avoidancePriority: 50
+  avoidancePriority: 20
   m_AngularSpeed: 120
   m_StoppingDistance: 2
   m_AutoTraverseOffMeshLink: 1
-  m_AutoBraking: 1
+  m_AutoBraking: 0
   m_AutoRepath: 1
   m_Height: 3
-  m_BaseOffset: 0
+  m_BaseOffset: 0.2
   m_WalkableMask: 4294967295
-  m_ObstacleAvoidanceType: 4
+  m_ObstacleAvoidanceType: 1
 --- !u!54 &4387275589082080657
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -66,7 +88,7 @@ Rigidbody:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6744876025607187535}
   serializedVersion: 5
-  m_Mass: 3000
+  m_Mass: 15000
   m_LinearDamping: 0
   m_AngularDamping: 2
   m_CenterOfMass: {x: 0, y: 0, z: 0}
@@ -81,35 +103,10 @@ Rigidbody:
   m_ImplicitCom: 1
   m_ImplicitTensor: 1
   m_UseGravity: 1
-  m_IsKinematic: 0
+  m_IsKinematic: 1
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
---- !u!114 &7667698006336799719
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6744876025607187535}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5c4892298a3f2b24e9057b7a96ddf171, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnemyCarAnimation
-  stats: {fileID: 11400000, guid: fce383f58e230e84e98265b767da4f48, type: 2}
-  targetTransform: {fileID: 0}
-  roadAreaName: Road
-  groundLayer:
-    serializedVersion: 2
-    m_Bits: 192
-  obstacleLayer:
-    serializedVersion: 2
-    m_Bits: 704
-  currentState: 0
-  isDirectChasing: 0
-  groundedTimer: 0
-  maxSlopeChaseHeight: 10
 --- !u!65 &7612493949878896130
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -129,7 +126,7 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 4, y: 3, z: 9}
+  m_Size: {x: 4, y: 2.5, z: 9}
   m_Center: {x: 0, y: 2, z: -2}
 --- !u!1001 &9009187832279056501
 PrefabInstance:
@@ -185,7 +182,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 400012, guid: 1508f459923b7df4889f466e17864ab4, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -2.44
+      value: -3
       objectReference: {fileID: 0}
     - target: {fileID: 400012, guid: 1508f459923b7df4889f466e17864ab4, type: 3}
       propertyPath: m_LocalRotation.w

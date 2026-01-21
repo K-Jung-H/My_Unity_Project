@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6d696665140bbb0458f8c11a3768e908, type: 3}
   m_Name: EnemyProfile_Light
   m_EditorClassIdentifier: Assembly-CSharp::EnemyStatProfile
-  mass: 800
+  mass: 500
   drag: 3
   angularDrag: 2
   normalSpeed: 60
@@ -22,12 +22,10 @@ MonoBehaviour:
   slopeDamping: 20
   pathUpdateInterval: 0.1
   directChaseDistance: 40
+  Health: 100
   attackTriggerRange: 8
   disengageDistance: 10
   chargeForce: 60
   pressForce: 20
   chargeDuration: 1
   chargeCooldown: 3
-  airborneCheckDist: 2
-  uprightSpeed: 3
-  recoveryDelay: 1

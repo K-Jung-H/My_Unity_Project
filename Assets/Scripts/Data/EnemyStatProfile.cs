@@ -20,6 +20,7 @@ public class EnemyStatProfile : ScriptableObject
     public float directChaseDistance = 40.0f;
 
     [Header("Combat Stats")]
+    public float Health = 100.0f;
     public float attackTriggerRange = 8.0f;
     public float disengageDistance = 10.0f;
     public float chargeForce = 60.0f;
@@ -27,8 +28,4 @@ public class EnemyStatProfile : ScriptableObject
     public float chargeDuration = 1.0f;
     public float chargeCooldown = 3.0f;
 
-    [Header("Stability Stats")]
-    public float airborneCheckDist = 2.0f;
-    public float uprightSpeed = 5.0f;
-    public float recoveryDelay = 1.0f; 
 }

@@ -12,18 +12,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6d696665140bbb0458f8c11a3768e908, type: 3}
   m_Name: EnemyProfile_Heavy
   m_EditorClassIdentifier: Assembly-CSharp::EnemyStatProfile
-  mass: 1500
-  drag: 0.5
-  normalSpeed: 15
-  roadSpeed: 25
-  turnSpeed: 10
-  acceleration: 60
-  slopeDamping: 20
+  mass: 20000
+  drag: 5
+  angularDrag: 2
+  normalSpeed: 30
+  roadSpeed: 60
+  turnSpeed: 90
+  acceleration: 20
+  slopeDamping: 10
+  pathUpdateInterval: 0.1
+  directChaseDistance: 40
+  Health: 200
   attackTriggerRange: 8
   disengageDistance: 10
-  chargeForce: 60
-  pressForce: 20
-  chargeDuration: 1
-  chargeCooldown: 3
-  airborneCheckDist: 2
-  uprightSpeed: 5
+  chargeForce: 30
+  pressForce: 30
+  chargeDuration: 3
+  chargeCooldown: 8

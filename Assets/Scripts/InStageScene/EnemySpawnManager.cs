@@ -88,6 +88,19 @@ public class EnemySpawnManager : MonoBehaviour
         }
     }
 
+    public void UnregisterEnemy(GameObject enemy)
+    {
+        if (activeEnemies.Contains(enemy))
+        {
+            int index = activeEnemies.IndexOf(enemy);
+            RemoveEnemy(enemy, index);
+        }
+        else
+        {
+            Destroy(enemy);
+        }
+    }
+
     private void RemoveEnemy(GameObject enemy, int index)
     {
         string typeName = enemy.name;
