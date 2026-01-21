@@ -21,7 +21,7 @@ public class PlayerManager : MonoBehaviour
     public GearBoxUI sceneGearBox;
     public HoldPressInput sceneAccelPedal;
     public HoldPressInput sceneBrakePedal;
-
+    public CarCameraUI sceneCameraUI;
     private CarController localPlayerInstance;
     private List<CarController> remotePlayerInstances = new List<CarController>();
 
@@ -91,6 +91,8 @@ public class PlayerManager : MonoBehaviour
                     carInput.brakePedalUI = sceneBrakePedal;
                 }
 
+                SetupCameraControl(newCarObj);
+
                 localPlayerInstance.OnDeath += HandleLocalPlayerDeath;
                 OnLocalPlayerCreated?.Invoke(carController);
                 SetupCamera(newCarObj.transform);
@@ -138,6 +140,25 @@ public class PlayerManager : MonoBehaviour
         {
             var camScript = Camera.main.GetComponent<CarCamera>();
             if (camScript != null) camScript.target = targetTransform;
+        }
+    }
+
+    private void SetupCameraControl(GameObject carObject)
+    {
+        if (sceneCameraUI == null) return;
+
+        CarCameraManager cameraMgr = carObject.GetComponent<CarCameraManager>();
+        
+        if (cameraMgr == null) 
+            cameraMgr = carObject.GetComponentInChildren<CarCameraManager>();
+
+        if (cameraMgr != null)
+        {
+            sceneCameraUI.Initialize(cameraMgr);
+        }
+        else
+        {
+            Debug.LogWarning("[PlayerManager] CarCameraManager not found on local player prefab.");
         }
     }
 

@@ -3,7 +3,9 @@ using UnityEngine.EventSystems;
 
 public class SteeringWheelUI : MonoBehaviour, IDragHandler, IPointerDownHandler, IPointerUpHandler
 {
-    private RectTransform rectTransform;
+    [Header("References")]
+    public RectTransform targetWheelTransform;
+
     private float currentAngle = 0f;
     private Vector2 lastDir;
     private bool isDragging = false;
@@ -16,7 +18,10 @@ public class SteeringWheelUI : MonoBehaviour, IDragHandler, IPointerDownHandler,
 
     void Start()
     {
-        rectTransform = GetComponent<RectTransform>();
+        if (targetWheelTransform == null)
+        {
+            targetWheelTransform = GetComponent<RectTransform>();
+        }
     }
 
     void Update()
@@ -35,13 +40,13 @@ public class SteeringWheelUI : MonoBehaviour, IDragHandler, IPointerDownHandler,
     {
         isDragging = true;
 
-        Vector2 centerPos = RectTransformUtility.WorldToScreenPoint(null, rectTransform.position);
+        Vector2 centerPos = RectTransformUtility.WorldToScreenPoint(null, targetWheelTransform.position);
         lastDir = eventData.position - centerPos;
     }
 
     public void OnDrag(PointerEventData eventData)
     {
-        Vector2 centerPos = RectTransformUtility.WorldToScreenPoint(null, rectTransform.position);
+        Vector2 centerPos = RectTransformUtility.WorldToScreenPoint(null, targetWheelTransform.position);
         Vector2 currentDir = eventData.position - centerPos;
 
         float deltaAngle = Vector2.SignedAngle(lastDir, currentDir);
@@ -62,6 +67,9 @@ public class SteeringWheelUI : MonoBehaviour, IDragHandler, IPointerDownHandler,
 
     private void ApplyRotation()
     {
-        rectTransform.localEulerAngles = new Vector3(0, 0, -currentAngle);
+        if (targetWheelTransform != null)
+        {
+            targetWheelTransform.localEulerAngles = new Vector3(0, 0, -currentAngle);
+        }
     }
 }
