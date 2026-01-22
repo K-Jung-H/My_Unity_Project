@@ -15,3 +15,5 @@ MonoBehaviour:
   carPrefabs:
   - {fileID: 5494273275932272791, guid: 001de7fd9ce1ff64a96e74aaece9509f, type: 3}
   - {fileID: 4112145874257017431, guid: 0a9a8af6614e5c54881977ed57a84850, type: 3}
+  - {fileID: 2819417945769492877, guid: 87cab7cdd61d260418148098a167fd60, type: 3}
+  - {fileID: 3371341466788449743, guid: 7ae8198b5ebc8ab45846d751ee76b47d, type: 3}

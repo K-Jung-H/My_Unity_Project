@@ -9,6 +9,9 @@ public class UIManager : MonoBehaviour
     [Header("UI Panels")]
     [SerializeField] private GameObject gameUIPanel;
     [SerializeField] private GameObject optionUIPanel;
+    [SerializeField] private GameObject playerSettingUIPanel;
+    [SerializeField] private GameObject playerResetUIPanel;
+
     [SerializeField] private GameObject deathUIPanel;
 
     private bool isPaused = false;
@@ -30,6 +33,8 @@ public class UIManager : MonoBehaviour
         if (gameUIPanel != null) gameUIPanel.SetActive(true);
         if (optionUIPanel != null) optionUIPanel.SetActive(false);
         if (deathUIPanel != null) deathUIPanel.SetActive(false);
+        if (playerSettingUIPanel != null) playerSettingUIPanel.SetActive(false);
+        if (playerResetUIPanel != null) playerResetUIPanel.SetActive(false);
 
         Debug.Log("UIManager Initialized");
     }
@@ -80,6 +85,9 @@ public class UIManager : MonoBehaviour
         Time.timeScale = 0f;
         
         if (gameUIPanel != null) gameUIPanel.SetActive(false);
+        if (playerSettingUIPanel != null) playerSettingUIPanel.SetActive(false);
+        if (playerResetUIPanel != null) playerResetUIPanel.SetActive(false);
+
         if (optionUIPanel != null) optionUIPanel.SetActive(true);
     }
 
@@ -94,10 +102,75 @@ public class UIManager : MonoBehaviour
         if (optionUIPanel != null) optionUIPanel.SetActive(false);
     }
 
-    public void OnClickReset()
+    public void OnClickReset_Soft()
+    {
+        if (playerSettingUIPanel != null) playerSettingUIPanel.SetActive(false);
+        if (playerResetUIPanel != null) playerResetUIPanel.SetActive(true);
+    }
+
+    public void OnClickReset_Hard()
     {
         Time.timeScale = 1f;
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+    }
+
+
+    private void ProcessRevive(float scoreRatio, float healthRatio, float fuelRatio)
+    {
+        GameObject player = GameObject.FindGameObjectWithTag("Player");
+        if (player == null)
+        {
+            Debug.LogError("Player not found!");
+            return;
+        }
+
+        DynamicChunkManager chunkManager = FindFirstObjectByType<DynamicChunkManager>(); 
+        var carController = player.GetComponent<CarController>();
+        var healthSystem = player.GetComponent<HealthSystem>();
+        
+        if (ScoreManager.Instance != null)
+        {
+            ScoreManager.Instance.ApplyScorePenalty(scoreRatio);
+        }
+
+        if (healthSystem != null)
+        {
+            healthSystem.Revive(healthRatio);
+        }
+
+        if (carController != null)
+        {
+            Transform safeSpawnPoint = null;
+            if (chunkManager != null)
+            {
+                safeSpawnPoint = chunkManager.GetRandomActiveSpawnPoint();
+            }
+            carController.Revive(fuelRatio, safeSpawnPoint);
+        }
+
+        isGameOver = false;
+        isPaused = false;
+
+        if (playerResetUIPanel != null) playerResetUIPanel.SetActive(false);
+        if (deathUIPanel != null) deathUIPanel.SetActive(false);
+        if (gameUIPanel != null) gameUIPanel.SetActive(true);
+
+        Debug.Log($"Revived! Ratios -> Score:{scoreRatio}, HP:{healthRatio}, Fuel:{fuelRatio}");
+    }
+
+    public void OnClickReset_Soft_Score()
+    {
+        ProcessRevive(0.5f, -1f, -1f);
+    }
+
+    public void OnClickReset_Soft_Health()
+    {
+        ProcessRevive(-1f, 0.5f, -1f);
+    }
+
+    public void OnClickReset_Soft_Fuel()
+    {
+        ProcessRevive(-1f, -1f, 0.5f);
     }
 
     public void OnClickLobby()
@@ -108,7 +181,8 @@ public class UIManager : MonoBehaviour
 
     public void OnClickSettings()
     {
-        Debug.Log("Open Settings Popup");
+        if (playerSettingUIPanel != null) playerSettingUIPanel.SetActive(true);
+        if (optionUIPanel != null) optionUIPanel.SetActive(false);
     }
 
     public void OnClickExitGame()

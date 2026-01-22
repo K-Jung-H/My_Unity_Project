@@ -599,4 +599,32 @@ public class CarController : MonoBehaviour
         manager.blurIntensity = Mathf.Lerp(from.blurIntensity, to.blurIntensity, t);
         manager.outlineThickness = (int)Mathf.Lerp((float)from.thickness, (float)to.thickness, t);
     }
+
+    public void Revive(float fuelRatio, Transform respawnPoint)    
+    {
+        isDead = false;
+        
+        if (fuelRatio > 0f)
+        {
+            currentFuel = currentFuel * fuelRatio;
+        }
+        
+        if (respawnPoint != null)
+        {
+            transform.position = respawnPoint.position;
+            transform.rotation = respawnPoint.rotation;
+        }
+
+        if (carRigidbody != null)
+        {
+            carRigidbody.linearVelocity = Vector3.zero; 
+            carRigidbody.angularVelocity = Vector3.zero;
+        }
+
+        if (FuelChargingParticle != null) FuelChargingParticle.Stop();
+        if (SmokeParticles != null)
+        {
+            foreach(var ps in SmokeParticles) ps.Play();
+        }
+    }
 }

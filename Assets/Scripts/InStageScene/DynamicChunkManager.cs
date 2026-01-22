@@ -57,6 +57,21 @@ public class DynamicChunkManager : MonoBehaviour
         return startChunk.GetRandomPlayerSpawnPoint();
     }
 
+    public Transform GetRandomActiveSpawnPoint()
+    {
+        if (activeChunks.Count == 0)
+        {
+            return GetMainSpawnPoint();
+        }
+
+        List<ChunkController> loadedChunks = new List<ChunkController>(activeChunks.Values);
+
+        int randomIndex = UnityEngine.Random.Range(0, loadedChunks.Count);
+        ChunkController randomChunk = loadedChunks[randomIndex];
+
+        return randomChunk.GetRandomPlayerSpawnPoint();
+    }
+
     public void RegisterPlayer(Transform playerTransform)
     {
         if (!trackedPlayers.Contains(playerTransform))

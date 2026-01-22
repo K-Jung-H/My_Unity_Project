@@ -82,6 +82,14 @@ public class HealthSystem : MonoBehaviour
         OnHealthChanged?.Invoke(currentHealth, maxHealth);
     }
 
+    public void Revive(float healthRatio)
+    {
+        if (healthRatio > 0f)
+            currentHealth = Mathf.FloorToInt(currentHealth * healthRatio);
+
+        OnHealthChanged?.Invoke(currentHealth, maxHealth);
+    }
+
     private void Die()
     {
         if (!string.IsNullOrEmpty(deathEffectKey) && EffectManager.Instance != null)

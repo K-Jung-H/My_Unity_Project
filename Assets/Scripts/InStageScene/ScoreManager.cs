@@ -61,6 +61,17 @@ public class ScoreManager : MonoBehaviour
         OnScoreChanged?.Invoke(GameData.TotalScore);
     }
 
+    public void ApplyScorePenalty(float keepRatio)
+    {
+        if (GameData.TotalScore > 0)
+        {
+            int newScore = Mathf.FloorToInt(GameData.TotalScore * keepRatio);
+            GameData.TotalScore = newScore;
+            OnScoreChanged?.Invoke(GameData.TotalScore);
+        }
+    }
+
+
     public void SaveGameResult()
     {
         if (!isScoringActive) return;
