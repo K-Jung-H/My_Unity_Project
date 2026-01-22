@@ -26,7 +26,7 @@ public class ScoreManager : MonoBehaviour
         }
         Instance = this;
 
-        GameData.TotalScore = 0;
+        GameData.TotalScore = Mathf.Max(0, GameData.TotalScore); 
         timer = 0f;
         isScoringActive = true;
 
@@ -35,10 +35,7 @@ public class ScoreManager : MonoBehaviour
 
     private void OnDestroy()
     {
-        if (Instance == this)
-        {
-            Instance = null;
-        }
+        if (Instance == this) Instance = null;
     }
 
     private void Update()
@@ -58,37 +55,37 @@ public class ScoreManager : MonoBehaviour
         if (!isScoringActive) return;
 
         GameData.TotalScore += amount;
+        if (GameData.TotalScore < 0)
+        {
+            GameData.TotalScore = 0;
+        }
+
         OnScoreChanged?.Invoke(GameData.TotalScore);
     }
 
     public void ApplyScorePenalty(float keepRatio)
     {
-        if (GameData.TotalScore > 0)
-        {
-            int newScore = Mathf.FloorToInt(GameData.TotalScore * keepRatio);
-            GameData.TotalScore = newScore;
-            OnScoreChanged?.Invoke(GameData.TotalScore);
-        }
-    }
+        if (keepRatio < 0f) return;
 
+        int newScore = Mathf.FloorToInt(GameData.TotalScore * keepRatio);
+        
+        if (newScore < 0) newScore = 0;
+
+        GameData.TotalScore = newScore;
+        OnScoreChanged?.Invoke(GameData.TotalScore);
+    }
 
     public void SaveGameResult()
     {
         if (!isScoringActive) return;
         
         isScoringActive = false;
-
         GameResult result = new GameResult();
-
         string json = JsonUtility.ToJson(result, true);
-
         string fileName = $"GameLog_{DateTime.Now:yyyyMMdd_HHmmss}.json";
         string path = Path.Combine(Application.persistentDataPath, "GameLogs");
 
-        if (!Directory.Exists(path))
-        {
-            Directory.CreateDirectory(path);
-        }
+        if (!Directory.Exists(path)) Directory.CreateDirectory(path);
 
         string fullPath = Path.Combine(path, fileName);
         File.WriteAllText(fullPath, json);
