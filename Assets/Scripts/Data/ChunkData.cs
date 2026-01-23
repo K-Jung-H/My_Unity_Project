@@ -7,4 +7,7 @@ public class ChunkData : ScriptableObject
     public GameObject chunkPrefab;
     public Sprite icon;
     public bool isMandatory;
+
+    [Range(0f, 100f)]
+    public float spawnWeight = 10f;
 }

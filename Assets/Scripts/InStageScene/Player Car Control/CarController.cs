@@ -144,6 +144,8 @@ public class CarController : MonoBehaviour
     {
         if (isDead) return;
         
+        isDead = true;
+
         targetSteerInput = 0f;
         accelInput = 0f;
         brakeInput = 1f;

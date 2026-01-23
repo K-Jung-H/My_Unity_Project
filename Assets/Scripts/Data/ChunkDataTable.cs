@@ -10,7 +10,6 @@ public class ChunkDataTable : ScriptableObject
 {
     [Header("Data List")]
     public List<ChunkData> chunkList = new List<ChunkData>();
-
     private Dictionary<string, ChunkData> _chunkMap;
 
     public void Initialize()

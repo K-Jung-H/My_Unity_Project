@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -6,49 +7,168 @@ public class DynamicChunkManager : MonoBehaviour
 {
     [Header("Managers")]
     public PlayerManager playerManager;
+    public ChunkDataTable globalChunkTable;
 
     [Header("References")]
     public Transform environmentRoot;
-    public ChunkController[] chunkPrefabs;
 
     public event Action<ChunkController, Vector2Int> OnChunkLoaded;
     public event Action<Vector2Int> OnChunkUnloaded;
 
     [Header("Settings")]
     public float chunkSize = 300f;
-    [Range(3, 16)]
-    public int renderDistance = 3;
-    [Range(1, 5)]
-    public int physicsDistance = 1;
+    [Range(3, 16)] public int renderDistance = 3;
+    [Range(1, 5)] public int physicsDistance = 1;
+    [Range(1, 10)] public int maxChunksPerFrame = 1;
+
+    private List<ChunkData> currentSessionChunks = new List<ChunkData>();
 
     private Dictionary<Vector2Int, ChunkController> activeChunks = new Dictionary<Vector2Int, ChunkController>();
-    private List<Transform> trackedPlayers = new List<Transform>();
+    private Dictionary<string, Queue<ChunkController>> chunkPool = new Dictionary<string, Queue<ChunkController>>();
 
-    private ChunkController[] defaultChunkPrefabs;
+    private List<Transform> trackedPlayers = new List<Transform>();
     private bool isInitialized = false;
+    private Coroutine updateRoutine;
 
     void Awake()
     {
-        if (chunkPrefabs != null)
-        {
-            defaultChunkPrefabs = (ChunkController[])chunkPrefabs.Clone();
-        }
+        if (globalChunkTable != null) globalChunkTable.Initialize();
     }
 
     public void Initialize()
     {
         ApplyMapSettings();
+        InitializePool();
         InitializeGameSequence();
+    }
+
+    private void ApplyMapSettings()
+    {
+        currentSessionChunks.Clear();
+
+        if (GameData.gameMode == GameMode.Default)
+        {
+            currentSessionChunks.AddRange(globalChunkTable.chunkList);
+        }
+        else
+        {
+            if (GameData.selectedChunks != null && GameData.selectedChunks.Count > 0)
+                currentSessionChunks.AddRange(GameData.selectedChunks);
+            else
+                currentSessionChunks.AddRange(globalChunkTable.chunkList);
+        }
+    }
+
+    private void InitializePool()
+    {
+        chunkPool.Clear();
+
+        int maxVisibleChunks = (renderDistance * 2 + 1) * (renderDistance * 2 + 1);
+        int safetyBuffer = 4; 
+
+        float totalWeight = 0f;
+        foreach (var data in currentSessionChunks) totalWeight += data.spawnWeight;
+
+        foreach (var data in currentSessionChunks)
+        {
+            if (data == null || data.chunkPrefab == null) continue;
+
+            string key = data.chunkName;
+            if (!chunkPool.ContainsKey(key))
+            {
+                chunkPool[key] = new Queue<ChunkController>();
+            }
+
+            float ratio = data.spawnWeight / totalWeight;
+            int spawnCount = Mathf.CeilToInt(maxVisibleChunks * ratio) + safetyBuffer;
+            spawnCount = Mathf.Clamp(spawnCount, 2, 25); 
+
+            for (int i = 0; i < spawnCount; i++)
+            {
+                CreateNewChunkInstance(data);
+            }
+        }
+    }
+
+    private ChunkController CreateNewChunkInstance(ChunkData data)
+    {
+        GameObject obj = Instantiate(data.chunkPrefab, environmentRoot);
+        ChunkController chunk = obj.GetComponent<ChunkController>();
+        
+        chunk.originalChunkName = data.chunkName; 
+        
+        obj.SetActive(false);
+        chunkPool[data.chunkName].Enqueue(chunk);
+        
+        return chunk;
+    }
+
+    private ChunkData GetRandomChunkData()
+    {
+        float totalWeight = 0f;
+        foreach (var data in currentSessionChunks)
+        {
+            if (data != null) totalWeight += data.spawnWeight;
+        }
+
+        float randomValue = UnityEngine.Random.Range(0, totalWeight);
+
+        foreach (var data in currentSessionChunks)
+        {
+            if (data == null) continue;
+            
+            if (randomValue <= data.spawnWeight) return data;
+            
+            randomValue -= data.spawnWeight;
+        }
+
+        return currentSessionChunks[currentSessionChunks.Count - 1];
+    }
+
+    private ChunkController GetChunkFromPool(Vector2Int coord)
+    {
+        ChunkData selectedData = GetRandomChunkData();
+        string key = selectedData.chunkName;
+
+        ChunkController chunk = null;
+
+        if (chunkPool.ContainsKey(key) && chunkPool[key].Count > 0)
+        {
+            chunk = chunkPool[key].Dequeue();
+        }
+        else
+        {
+            chunk = CreateNewChunkInstance(selectedData);
+            chunk = chunkPool[key].Dequeue(); 
+        }
+
+        chunk.transform.position = new Vector3(coord.x * chunkSize, 0, coord.y * chunkSize);
+        chunk.gameObject.SetActive(true);
+        chunk.Setup(coord); 
+
+        return chunk;
+    }
+
+    private void ReturnChunkToPool(Vector2Int coord, ChunkController chunk)
+    {
+        chunk.gameObject.SetActive(false);
+        
+        string key = chunk.originalChunkName; 
+        
+        if (!chunkPool.ContainsKey(key))
+        {
+            chunkPool[key] = new Queue<ChunkController>();
+        }
+        
+        chunkPool[key].Enqueue(chunk);
     }
 
     public Transform GetMainSpawnPoint()
     {
         if (activeChunks.ContainsKey(Vector2Int.zero))
-        {
             return activeChunks[Vector2Int.zero].GetRandomPlayerSpawnPoint();
-        }
 
-        ChunkController startChunk = CreateChunk(Vector2Int.zero);
+        ChunkController startChunk = GetChunkFromPool(Vector2Int.zero);
         activeChunks.Add(Vector2Int.zero, startChunk);
         
         OnChunkLoaded?.Invoke(startChunk, Vector2Int.zero);
@@ -65,6 +185,8 @@ public class DynamicChunkManager : MonoBehaviour
         }
 
         List<ChunkController> loadedChunks = new List<ChunkController>(activeChunks.Values);
+        
+        if (loadedChunks.Count == 0) return GetMainSpawnPoint();
 
         int randomIndex = UnityEngine.Random.Range(0, loadedChunks.Count);
         ChunkController randomChunk = loadedChunks[randomIndex];
@@ -72,13 +194,27 @@ public class DynamicChunkManager : MonoBehaviour
         return randomChunk.GetRandomPlayerSpawnPoint();
     }
 
+    private void InitializeGameSequence()
+    {
+        if (currentSessionChunks.Count == 0) return;
+
+        Transform spawnPoint = GetMainSpawnPoint();
+
+        // if (playerManager != null)
+        // {
+        //     GameObject playerObj = playerManager.CreatePlayer(spawnPoint, true, 0);
+        //     if (playerObj != null) RegisterPlayer(playerObj.transform);
+        // }
+
+        isInitialized = true;
+        
+        if(updateRoutine != null) StopCoroutine(updateRoutine);
+        updateRoutine = StartCoroutine(UpdateChunksRoutine());
+    }
+
     public void RegisterPlayer(Transform playerTransform)
     {
-        if (!trackedPlayers.Contains(playerTransform))
-        {
-            trackedPlayers.Add(playerTransform);
-            UpdateChunks();
-        }
+        if (!trackedPlayers.Contains(playerTransform)) trackedPlayers.Add(playerTransform);
     }
 
     public void UnregisterPlayer(Transform playerTransform)
@@ -89,165 +225,102 @@ public class DynamicChunkManager : MonoBehaviour
         }
     }
 
-    private void ApplyMapSettings()
+
+    IEnumerator UpdateChunksRoutine()
     {
-        if (GameData.gameMode == GameMode.Default)
+        WaitForSeconds wait = new WaitForSeconds(0.2f);
+
+        while (true)
         {
-            if (defaultChunkPrefabs != null && defaultChunkPrefabs.Length > 0)
-                chunkPrefabs = defaultChunkPrefabs;
-            else
-                Debug.LogError("[DynamicChunkManager] Default Mode chunks missing.");
-        }
-        else
-        {
-            if (GameData.selectedChunks != null && GameData.selectedChunks.Count > 0)
+            if (!isInitialized || trackedPlayers.Count == 0)
             {
-                List<ChunkController> selectedControllers = new List<ChunkController>();
-                foreach (ChunkData data in GameData.selectedChunks)
+                yield return wait;
+                continue;
+            }
+
+            HashSet<Vector2Int> requiredChunks = new HashSet<Vector2Int>();
+            foreach (var playerT in trackedPlayers)
+            {
+                if (playerT == null || !playerT.gameObject.activeInHierarchy) continue;
+
+                Vector2Int center = GetChunkCoord(playerT.position);
+                for (int x = -renderDistance; x <= renderDistance; x++)
                 {
-                    if (data != null && data.chunkPrefab != null)
+                    for (int y = -renderDistance; y <= renderDistance; y++)
                     {
-                        ChunkController controller = data.chunkPrefab.GetComponent<ChunkController>();
-                        if (controller != null) selectedControllers.Add(controller);
+                        requiredChunks.Add(new Vector2Int(center.x + x, center.y + y));
                     }
                 }
-                chunkPrefabs = selectedControllers.Count > 0 ? selectedControllers.ToArray() : defaultChunkPrefabs;
             }
-            else
+
+            List<Vector2Int> toRemove = new List<Vector2Int>();
+            foreach (var coord in activeChunks.Keys)
             {
-                chunkPrefabs = defaultChunkPrefabs;
+                if (!requiredChunks.Contains(coord)) toRemove.Add(coord);
             }
-        }
-    }
 
-    private void InitializeGameSequence()
-    {
-        if (chunkPrefabs == null || chunkPrefabs.Length == 0)
-        {
-            Debug.LogError("[Critical] No chunk prefabs available.");
-            return;
-        }
-
-        Transform spawnPoint = GetMainSpawnPoint();
-
-        if (playerManager != null)
-        {
-            GameObject playerObj = playerManager.CreatePlayer(spawnPoint, true, 0);
-            if (playerObj != null)
+            foreach (var coord in toRemove)
             {
-                RegisterPlayer(playerObj.transform);
-            }
-        }
-
-        isInitialized = true;
-        UpdateChunks();
-    }
-
-    void Update()
-    {
-        if (!isInitialized || trackedPlayers.Count == 0) return;
-        UpdateChunks();
-    }
-
-    void UpdateChunks()
-    {
-        if (trackedPlayers.Count == 0) return;
-
-        HashSet<Vector2Int> requiredChunks = new HashSet<Vector2Int>();
-
-        foreach (var playerT in trackedPlayers)
-        {
-            if (playerT == null || !playerT.gameObject.activeInHierarchy) continue;
-
-            Vector2Int center = GetChunkCoord(playerT.position);
-
-            for (int x = -renderDistance; x <= renderDistance; x++)
-            {
-                for (int y = -renderDistance; y <= renderDistance; y++)
-                {
-                    requiredChunks.Add(new Vector2Int(center.x + x, center.y + y));
-                }
-            }
-        }
-
-        List<Vector2Int> currentActiveCoords = new List<Vector2Int>(activeChunks.Keys);
-        foreach (var coord in currentActiveCoords)
-        {
-            if (!requiredChunks.Contains(coord))
-            {
-                if (activeChunks.TryGetValue(coord, out ChunkController chunkToRemove))
+                if (activeChunks.TryGetValue(coord, out ChunkController chunk))
                 {
                     OnChunkUnloaded?.Invoke(coord);
-                    Destroy(chunkToRemove.gameObject);
+                    ReturnChunkToPool(coord, chunk);
                     activeChunks.Remove(coord);
                 }
             }
-        }
 
-        bool isMapChanged = false;
+            int processedCount = 0;
+            bool isMapChanged = false;
 
-        foreach (var coord in requiredChunks)
-        {
-            if (!activeChunks.ContainsKey(coord))
+            foreach (var coord in requiredChunks)
             {
-                ChunkController newChunk = CreateChunk(coord);
-                activeChunks.Add(coord, newChunk);
-                OnChunkLoaded?.Invoke(newChunk, coord);
-                isMapChanged = true;
-            }
-
-            bool enablePhysics = false;
-            foreach (var playerT in trackedPlayers)
-            {
-                if (playerT == null) continue;
-                Vector2Int playerChunk = GetChunkCoord(playerT.position);
-                int dist = GetChebyshevDistance(coord, playerChunk);
-
-                if (dist <= physicsDistance)
+                if (!activeChunks.ContainsKey(coord))
                 {
-                    enablePhysics = true;
-                    break;
+                    ChunkController newChunk = GetChunkFromPool(coord);
+                    activeChunks.Add(coord, newChunk);
+                    OnChunkLoaded?.Invoke(newChunk, coord);
+                    isMapChanged = true;
+
+                    processedCount++;
+
+                    if (processedCount >= maxChunksPerFrame)
+                    {
+                        processedCount = 0;
+                        yield return null; 
+                    }
+                }
+
+                bool enablePhysics = false;
+                foreach (var playerT in trackedPlayers)
+                {
+                    if (playerT == null) continue;
+                    Vector2Int playerChunk = GetChunkCoord(playerT.position);
+                    int dist = GetChebyshevDistance(coord, playerChunk);
+
+                    if (dist <= physicsDistance)
+                    {
+                        enablePhysics = true;
+                        break;
+                    }
+                }
+
+                if (activeChunks.TryGetValue(coord, out ChunkController chunk))
+                {
+                    chunk.SetPhysicsState(enablePhysics);
                 }
             }
 
-            if (activeChunks.TryGetValue(coord, out ChunkController chunk))
+            if (isMapChanged)
             {
-                chunk.SetPhysicsState(enablePhysics);
+                RefreshAllLinks();
             }
+
+            yield return wait;
         }
-
-        if (isMapChanged)
-        {
-            RefreshAllLinks();
-        }
-    }
-
-    ChunkController CreateChunk(Vector2Int coord)
-    {
-        if (chunkPrefabs == null || chunkPrefabs.Length == 0)
-            chunkPrefabs = defaultChunkPrefabs;
-
-        ChunkController prefab = chunkPrefabs[UnityEngine.Random.Range(0, chunkPrefabs.Length)];
-
-        Vector3 spawnPos = new Vector3(coord.x * chunkSize, 0, coord.y * chunkSize);
-        
-        GameObject obj = Instantiate(prefab.gameObject, spawnPos, Quaternion.identity, environmentRoot);
-        
-        ChunkController chunk = obj.GetComponent<ChunkController>();
-        chunk.Setup(coord);
-
-        return chunk;
     }
 
     void RefreshAllLinks()
     {
-        StopCoroutine("RefreshRoutine");
-        StartCoroutine("RefreshRoutine");
-    }
-
-    System.Collections.IEnumerator RefreshRoutine()
-    {
-        yield return null;
         foreach (var kvp in activeChunks)
         {
             if (kvp.Value != null && kvp.Value.gameObject.activeInHierarchy)
@@ -261,6 +334,7 @@ public class DynamicChunkManager : MonoBehaviour
     {
         return activeChunks.Values;
     }
+
 
     Vector2Int GetChunkCoord(Vector3 pos)
     {

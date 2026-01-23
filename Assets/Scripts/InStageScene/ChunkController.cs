@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class ChunkController : MonoBehaviour
 {
+    [HideInInspector] public string originalChunkName;
+
     [Header("Spawn Settings")]
     public List<Transform> playerSpawnPoints = new List<Transform>();
     public List<Transform> enemySpawnPoints = new List<Transform>();
@@ -34,17 +36,15 @@ public class ChunkController : MonoBehaviour
     public void Setup(Vector2Int coord)
     {
         this.Coord = coord;
-        this.name = $"Chunk_{coord.x}_{coord.y}";
+        this.name = $"Chunk_{coord.x}_{coord.y}"; 
 
-        if (visualRoot != null)
-        {
-            visualRoot.SetActive(true);
-        }
+        if (visualRoot != null) visualRoot.SetActive(true);
 
         if (props != null)
         {
             for (int i = 0; i < props.Length; i++)
             {
+                props[i].ResetState(); 
                 props[i].InitProp(this.Coord, i);
 
                 if (WorldObjectDataManager.Instance != null)
@@ -52,10 +52,6 @@ public class ChunkController : MonoBehaviour
                     if (WorldObjectDataManager.Instance.IsPropDestroyed(this.Coord, i))
                     {
                         props[i].SetDestroyedState();
-                    }
-                    else
-                    {
-                        props[i].ResetState();
                     }
                 }
             }

@@ -911,15 +911,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 047220a3822fcc848919a12ac4922039, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DynamicChunkManager
-  playerManager: {fileID: 0}
+  playerManager: {fileID: 595181224}
+  globalChunkTable: {fileID: 11400000, guid: 223cf1ad888446a4a8be9bc6128dcb25, type: 2}
   environmentRoot: {fileID: 2010822095}
-  chunkPrefabs:
-  - {fileID: 3768041182012031290, guid: caf8570b6548c784ea002d440d998c75, type: 3}
-  - {fileID: 1151088984219134070, guid: 1fd1502e4ccad284f8154c7fe3407b5d, type: 3}
-  - {fileID: 1289990321284646564, guid: dd940403524c89d47bc19734be1f8d47, type: 3}
   chunkSize: 300
   renderDistance: 3
-  physicsDistance: 2
+  physicsDistance: 1
+  maxChunksPerFrame: 1
 --- !u!114 &120063263
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3905,7 +3903,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::GameFlowManager
   playerManager: {fileID: 595181224}
   uiManager: {fileID: 1932032087}
-  scoreManager: {fileID: 0}
+  scoreManager: {fileID: 70427007}
 --- !u!1 &1048568137
 GameObject:
   m_ObjectHideFlags: 0
