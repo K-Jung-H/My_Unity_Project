@@ -533,8 +533,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fec6cb9d7ab42434c953d8fdd955ce0f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HealthSystem
-  maxHealth: 100
-  currentHealth: 100
+  maxHealth: 1000
+  currentHealth: 1000
   enemyContactDamagePerSec: 10
   collisionImpactDamage: 30
   enemyLayerMask:
