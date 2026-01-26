@@ -3,16 +3,13 @@ using UnityEngine;
 [RequireComponent(typeof(Rigidbody))]
 public class EnemyCarMovement : MonoBehaviour
 {
-    [Header("Drive Settings")]
-    [SerializeField] private float accelerationForce = 50f;
-    [SerializeField] private float maxSpeed = 30f;
-    [SerializeField] private float turnSpeed = 200f; 
-    [SerializeField] private float brakeForce = 10f;
-
-    [Header("Handling")]
-    [Tooltip("낮을수록 드리프트(미끄러짐), 높을수록 그립 주행")]
-    [Range(0.1f, 5f)] [SerializeField] private float steeringGrip = 2.0f; 
-    [SerializeField] private float stability = 5.0f;
+    [Header("Current Stats (Read-Only Debug)")] 
+    [SerializeField] private float accelerationForce;
+    [SerializeField] private float maxSpeed;
+    [SerializeField] private float turnSpeed;
+    [SerializeField] private float brakeForce;
+    [SerializeField] private float steeringGrip;
+    [SerializeField] private float stability;
 
     [Header("Physics Sensors")]
     [SerializeField] private float downForce = 100f;
@@ -29,23 +26,38 @@ public class EnemyCarMovement : MonoBehaviour
     private void Awake()
     {
         rb = GetComponent<Rigidbody>();
+    }
+
+    public void InitializeFromProfile(EnemyStatProfile profile)
+    {
+        if (profile == null)
+        {
+            Debug.LogError($"{gameObject.name}: EnemyStatProfile is missing!");
+            return;
+        }
+
+        if (rb == null) rb = GetComponent<Rigidbody>();
+
+        rb.mass = profile.Mass;
+        rb.linearDamping = profile.LinearDamping;
+        rb.angularDamping = profile.AngularDamping;
+        rb.centerOfMass = new Vector3(0, profile.CenterOfMassY, 0);
         rb.interpolation = RigidbodyInterpolation.Interpolate;
-        rb.mass = 1500f;
-        rb.linearDamping = 0.2f; 
-        rb.angularDamping = 5f;
-        rb.centerOfMass = new Vector3(0, -0.9f, 0); 
+
+        this.accelerationForce = profile.AccelerationForce;
+        this.maxSpeed = profile.MaxSpeed;
+        this.turnSpeed = profile.TurnSpeed;
+        this.brakeForce = profile.BrakeForce;
+        this.steeringGrip = profile.SteeringGrip;
+        this.stability = profile.Stability;
     }
 
     private void FixedUpdate()
     {
         CheckGround();
-        
         ApplySteering();
-        
-        AlignVelocityToForward();
-        
+        KillLateralVelocity();
         ApplyEngineForce();
-        
         AlignToGround();
     }
 
@@ -58,7 +70,7 @@ public class EnemyCarMovement : MonoBehaviour
     private void CheckGround()
     {
         Vector3 origin = transform.position + (Vector3.up * groundCheckOffset);
-        if (Physics.Raycast(origin, -Vector3.up, out RaycastHit hit, groundCheckDist, groundLayer))
+        if (Physics.Raycast(origin, Vector3.down, out RaycastHit hit, groundCheckDist, groundLayer))
         {
             isGrounded = true;
             groundNormal = hit.normal;
@@ -80,18 +92,12 @@ public class EnemyCarMovement : MonoBehaviour
         }
     }
 
-    private void AlignVelocityToForward()
+    private void KillLateralVelocity()
     {
-        if (!isGrounded || rb.linearVelocity.magnitude < 0.1f) return;
-
-        Vector3 newVelocity = Vector3.RotateTowards(
-            rb.linearVelocity, 
-            transform.forward, 
-            steeringGrip * Time.fixedDeltaTime, 
-            0f
-        );
-
-        rb.linearVelocity = newVelocity.normalized * rb.linearVelocity.magnitude;
+        if (!isGrounded) return;
+        Vector3 localVelocity = transform.InverseTransformDirection(rb.linearVelocity);
+        localVelocity.x = Mathf.Lerp(localVelocity.x, 0f, Time.fixedDeltaTime * steeringGrip);
+        rb.linearVelocity = transform.TransformDirection(localVelocity);
     }
 
     private void ApplyEngineForce()
@@ -100,20 +106,19 @@ public class EnemyCarMovement : MonoBehaviour
         {
             Vector3 forwardForceDir = Vector3.ProjectOnPlane(transform.forward, groundNormal).normalized;
             
-            if (inputThrottle != 0)
+            if (Mathf.Abs(inputThrottle) > 0.01f)
             {
-                rb.AddForce(forwardForceDir * inputThrottle * accelerationForce, ForceMode.Acceleration);
+                rb.AddForce(forwardForceDir * inputThrottle * accelerationForce, ForceMode.Force);
             }
             else
             {
-                rb.linearVelocity = Vector3.Lerp(rb.linearVelocity, Vector3.zero, Time.fixedDeltaTime * brakeForce);
+                rb.linearVelocity = Vector3.Lerp(rb.linearVelocity, Vector3.zero, Time.fixedDeltaTime * brakeForce * 0.5f);
             }
-
-            rb.AddForce(-groundNormal * downForce, ForceMode.Acceleration);
+            rb.AddForce(-groundNormal * downForce * rb.mass, ForceMode.Force);
         }
         else
         {
-            rb.AddForce(Vector3.down * 20f, ForceMode.Acceleration);
+            rb.AddForce(Vector3.down * 50f * rb.mass, ForceMode.Force);
         }
         
         if (rb.linearVelocity.magnitude > maxSpeed)

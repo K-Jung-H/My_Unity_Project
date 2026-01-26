@@ -25,13 +25,14 @@ public class ContextSteering : MonoBehaviour
         }
     }
 
-    public Vector3 GetDirectionToMove(Vector3 targetPosition)
+    public Vector3 GetDirectionToMove(Vector3 targetPosition, Transform targetToIgnore = null)
     {
         Vector3 targetDirWorld = (targetPosition - transform.position).normalized;
         Vector3 targetDirLocal = transform.InverseTransformDirection(targetDirWorld);
 
         SetInterest(targetDirLocal);
-        SetDanger();
+        
+        SetDanger(targetToIgnore); 
 
         Vector3 chosenDirLocal = Vector3.zero;
         for (int i = 0; i < rayCount; i++)
@@ -52,7 +53,7 @@ public class ContextSteering : MonoBehaviour
         }
     }
 
-    private void SetDanger()
+    private void SetDanger(Transform targetToIgnore)
     {
         for (int i = 0; i < rayCount; i++)
         {
@@ -63,6 +64,11 @@ public class ContextSteering : MonoBehaviour
 
             if (Physics.Raycast(ray, out RaycastHit hit, rayRange, avoidanceMask))
             {
+                if (targetToIgnore != null && (hit.transform == targetToIgnore || hit.transform.root == targetToIgnore.root))
+                {
+                    continue; 
+                }
+
                 float weight = 1 - (hit.distance / rayRange);
                 dangerMap[i] = weight;
             }

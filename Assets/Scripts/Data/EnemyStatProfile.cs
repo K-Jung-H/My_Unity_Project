@@ -1,31 +1,21 @@
 using UnityEngine;
 
-[CreateAssetMenu(fileName = "NewEnemyProfile", menuName = "Game/Enemy Stat Profile")]
+[CreateAssetMenu(fileName = "NewEnemyProfile", menuName = "Data/Enemy Profile")]
 public class EnemyStatProfile : ScriptableObject
 {
-    [Header("Physical Stats")]
-    public float mass = 1500.0f;
-    public float drag = 1.0f;
-    public float angularDrag = 2.0f;
+    [Header("Basic Physics (Rigidbody)")]
+    public float Mass = 1500f;
+    public float LinearDamping = 0.2f;
+    public float AngularDamping = 5.0f;
+    public float CenterOfMassY = -0.9f;
 
-    [Header("Movement Stats")]
-    public float normalSpeed = 15.0f;
-    public float roadSpeed = 25.0f;
-    public float turnSpeed = 10.0f;
-    public float acceleration = 60.0f;
-    public float slopeDamping = 20.0f;
+    [Header("Drive Performance")]
+    public float AccelerationForce = 20000f;
+    public float MaxSpeed = 30f;   
+    public float TurnSpeed = 350f;
+    public float BrakeForce = 15f;
 
-    [Header("Pathfinding Optimization")]
-    public float pathUpdateInterval = 0.1f; 
-    public float directChaseDistance = 40.0f;
-
-    [Header("Combat Stats")]
-    public float Health = 100.0f;
-    public float attackTriggerRange = 8.0f;
-    public float disengageDistance = 10.0f;
-    public float chargeForce = 60.0f;
-    public float pressForce = 20.0f; 
-    public float chargeDuration = 1.0f;
-    public float chargeCooldown = 3.0f;
-
+    [Header("Handling & Grip")]
+    public float SteeringGrip = 12.0f;
+    public float Stability = 5.0f;
 }
