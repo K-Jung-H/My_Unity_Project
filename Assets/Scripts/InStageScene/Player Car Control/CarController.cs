@@ -13,10 +13,20 @@ public struct OutlineFuelState
     [Range(1, 10)] public int thickness;
 }
 
+[RequireComponent(typeof(CarInputManager))]
+[RequireComponent(typeof(CarCameraManager))]
+[RequireComponent(typeof(HealthSystem))]
+[RequireComponent(typeof(CarCollisionHandler))]
+[RequireComponent(typeof(Rigidbody))]
 public class CarController : MonoBehaviour
 {
     public event Action OnDeath;
-    private HealthSystem healthSystem;
+
+    [Header("Dependencies")]
+    [SerializeField] private CarInputManager inputManager;
+    [SerializeField] private CarCameraManager cameraManager;
+    [SerializeField] private HealthSystem healthSystem;
+    [SerializeField] private CarCollisionHandler collisionHandler;
 
     [Header("Wheel Colliders")]
     public WheelCollider frontLeftCollider;
@@ -108,8 +118,12 @@ public class CarController : MonoBehaviour
 
     private void Awake()
     {
-        healthSystem = GetComponent<HealthSystem>();
         carRigidbody = GetComponent<Rigidbody>();
+        
+        if (inputManager == null) inputManager = GetComponent<CarInputManager>();
+        if (cameraManager == null) cameraManager = GetComponent<CarCameraManager>();
+        if (healthSystem == null) healthSystem = GetComponent<HealthSystem>();
+        if (collisionHandler == null) collisionHandler = GetComponent<CarCollisionHandler>();
     }
 
     private void Start()

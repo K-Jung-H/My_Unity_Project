@@ -2,16 +2,21 @@ using UnityEngine;
 
 [RequireComponent(typeof(EnemyCarMovement))]
 [RequireComponent(typeof(ContextSteering))]
+[RequireComponent(typeof(HealthSystem))]
 public class EnemyCarController : MonoBehaviour
 {
     [Header("Settings Data")]
     [SerializeField] private EnemyStatProfile enemyProfile;
 
+    public EnemyStatProfile EnemyProfile => enemyProfile;
+    public HealthSystem Health { get; private set; }
+
     private enum AIState 
     { 
-        ChaseDirect,
-        ChasePath,
-        Escaping
+        ChaseDirect,    
+        ChasePath,      
+        Escaping,
+        Death
     } 
 
     [Header("Targeting")]
@@ -36,7 +41,7 @@ public class EnemyCarController : MonoBehaviour
     private Transform targetPlayer;
     private Rigidbody targetRb;
 
-    [SerializeField, Header("Debug State")] 
+    [SerializeField, Header("Debug State")]
     private AIState currentState;
     
     private Vector3 currentNavTarget;
@@ -54,21 +59,40 @@ public class EnemyCarController : MonoBehaviour
         movement = GetComponent<EnemyCarMovement>();
         steeringSensor = GetComponent<ContextSteering>();
         myRb = GetComponent<Rigidbody>(); 
+        Health = GetComponent<HealthSystem>();
         
         if (enemyProfile != null)
         {
             movement.InitializeFromProfile(enemyProfile);
+            Health.InitializeHealth(enemyProfile.Health);
         }
         else
         {
             Debug.LogWarning($"{gameObject.name} : EnemyStatProfile is missing!");
         }
+
+        Health.OnDeath += OnDeathHandler;
+    }
+
+    private void OnDestroy()
+    {
+        if (Health != null)
+        {
+            Health.OnDeath -= OnDeathHandler;
+        }
+    }
+
+    private void OnDeathHandler()
+    {
+        if (currentState == AIState.Death) return;
+
+        ChangeState(AIState.Death);
     }
 
     private void Start()
     {
         FindClosestPlayer();
-        ChangeState(AIState.ChasePath); 
+        ChangeState(AIState.ChasePath);
     }
 
     private void OnEnable()
@@ -77,7 +101,15 @@ public class EnemyCarController : MonoBehaviour
         positionCheckTimer = 0f;
         currentEscapeTimer = 0f;
         lastStuckCheckPosition = transform.position;
-        ChangeState(AIState.ChasePath);
+        
+        if (!Health.IsDead)
+        {
+            ChangeState(AIState.ChasePath);
+        }
+        else
+        {
+            ChangeState(AIState.Death);
+        }
     }
 
     private void FixedUpdate()
@@ -91,7 +123,6 @@ public class EnemyCarController : MonoBehaviour
 
         ExecuteCurrentState();
     }
-
 
     private void ChangeState(AIState newState)
     {
@@ -107,6 +138,11 @@ public class EnemyCarController : MonoBehaviour
 
             case AIState.Escaping:
                 InitializeEscape();
+                break;
+
+            case AIState.Death:
+                movement.SetInputs(0f, 0f);
+                ChangeMaterialToDead();
                 break;
         }
     }
@@ -124,8 +160,29 @@ public class EnemyCarController : MonoBehaviour
             case AIState.Escaping:
                 UpdateEscaping();
                 break;
+            case AIState.Death:
+                break;
         }
     }
+
+
+    private void ChangeMaterialToDead()
+    {
+        if (enemyProfile == null || enemyProfile.DeadMaterial == null) return;
+
+        MeshRenderer[] renderers = GetComponentsInChildren<MeshRenderer>();
+
+        foreach (var rend in renderers)
+        {
+            Material[] newMaterials = new Material[rend.materials.Length];
+            for (int i = 0; i < newMaterials.Length; i++)
+            {
+                newMaterials[i] = enemyProfile.DeadMaterial;
+            }
+            rend.materials = newMaterials;
+        }
+    }
+
 
     private void UpdateChaseDirect()
     {
@@ -177,51 +234,21 @@ public class EnemyCarController : MonoBehaviour
         }
     }
 
-
     private void DriveToTarget(Vector3 targetPos)
     {
         Vector3 moveDirection = steeringSensor.GetDirectionToMove(targetPos, targetPlayer);
-        
-        float steerInput = moveDirection.x;
-        float throttleInput = moveDirection.z;
-
-        if (Mathf.Abs(steerInput) > 0.4f)
-        {
-            float speedLimitFactor = Mathf.Lerp(1.0f, 0.2f, Mathf.Abs(steerInput));
-            throttleInput = Mathf.Min(throttleInput, speedLimitFactor);
-        }
-
-        if (throttleInput < -0.1f) 
-        {
-            throttleInput = 1.0f; 
-
-            if (Mathf.Abs(steerInput) < 0.1f)
-            {
-                steerInput = (Random.value > 0.5f) ? 1f : -1f;
-            }
-            else
-            {
-                steerInput = Mathf.Sign(steerInput); 
-            }
-        }
-
-        movement.SetInputs(throttleInput, steerInput);
+        movement.SetInputs(moveDirection.z, moveDirection.x);
     }
 
     private bool CheckIfStuck()
     {
         positionCheckTimer += Time.fixedDeltaTime;
-
         if (positionCheckTimer > positionCheckInterval)
         {
             float distanceMoved = Vector3.Distance(transform.position, lastStuckCheckPosition);
             lastStuckCheckPosition = transform.position;
             positionCheckTimer = 0f;
-
-            if (distanceMoved < minDistanceMoved)
-            {
-                return true;
-            }
+            if (distanceMoved < minDistanceMoved) return true;
         }
         return false;
     }
@@ -229,7 +256,6 @@ public class EnemyCarController : MonoBehaviour
     private void InitializeEscape()
     {
         currentEscapeTimer = escapeDuration;
-        
         bool hitRight = Physics.Raycast(transform.position, transform.right, 2.0f, obstacleMask);
         bool hitLeft = Physics.Raycast(transform.position, -transform.right, 2.0f, obstacleMask);
 
@@ -244,7 +270,6 @@ public class EnemyCarController : MonoBehaviour
         {
             return currentState == AIState.ChaseDirect; 
         }
-        
         lastSightCheckTime = Time.time;
         return CheckLineOfSight();
     }
@@ -257,10 +282,7 @@ public class EnemyCarController : MonoBehaviour
 
         if (Physics.Raycast(origin, direction.normalized, out RaycastHit hit, distance, viewBlockingLayers))
         {
-            if (hit.transform != targetPlayer)
-            {
-                return false;
-            }
+            if (hit.transform != targetPlayer) return false;
         }
         return true;
     }
@@ -291,7 +313,6 @@ public class EnemyCarController : MonoBehaviour
     {
         isWaitingForPath = true;
         lastPathRequestTime = Time.time;
-
         if (EnemyPathManager.Instance != null)
         {
             EnemyPathManager.Instance.RequestNextWaypoint(transform.position, OnPathReceived);
@@ -311,30 +332,6 @@ public class EnemyCarController : MonoBehaviour
         {
             targetPlayer = playerObj.transform;
             targetRb = playerObj.GetComponent<Rigidbody>();
-        }
-    }
-
-    private void OnDrawGizmos()
-    {
-        if (Application.isPlaying)
-        {
-            if (currentState == AIState.ChaseDirect)
-            {
-                Gizmos.color = Color.red;
-                Gizmos.DrawLine(transform.position, GetPredictedTargetPosition());
-            }
-            else if (currentState == AIState.ChasePath)
-            {
-                Gizmos.color = Color.blue;
-                Gizmos.DrawLine(transform.position, currentNavTarget);
-                Gizmos.DrawWireSphere(currentNavTarget, 1f);
-            }
-            else if (currentState == AIState.Escaping)
-            {
-                Gizmos.color = Color.magenta;
-                Gizmos.DrawWireSphere(transform.position, 2f);
-                Gizmos.DrawRay(transform.position, -transform.forward * 2f);
-            }
         }
     }
 }

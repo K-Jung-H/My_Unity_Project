@@ -75,6 +75,10 @@ public class OutlineBlurFeature : ScriptableRendererFeature
             var cameraData = frameData.Get<UniversalCameraData>();
             var renderingData = frameData.Get<UniversalRenderingData>();
 
+            // [핵심 수정] 프리팹 미리보기(Preview)거나, 화면 텍스처가 없으면 렌더링 중단
+            if (cameraData.cameraType == CameraType.Preview || !resources.activeColorTexture.IsValid())
+                return;
+
             var cameraDesc = cameraData.cameraTargetDescriptor;
             var cameraColor = resources.activeColorTexture;
 
@@ -128,10 +132,14 @@ public class OutlineBlurFeature : ScriptableRendererFeature
                 builder.SetRenderFunc((BlurPassData d, RasterGraphContext ctx) =>
                 {
                     ctx.cmd.ClearRenderTarget(false, true, Color.black);
-                    d.mat.SetTexture("_BlitTexture", d.src);
-                    d.mat.SetVector("_BlitTexture_TexelSize", new Vector4(1f/cameraDesc.width, 1f/cameraDesc.height, cameraDesc.width, cameraDesc.height));
-                    d.mat.SetFloat("_BlurScale", blurIntensity);
-                    Blitter.BlitTexture(ctx.cmd, d.src, new Vector4(1, 1, 0, 0), d.mat, 0);
+                    // 여기서 d.src가 유효한지 체크해야 안전함
+                    if (d.src.IsValid())
+                    {
+                        d.mat.SetTexture("_BlitTexture", d.src);
+                        d.mat.SetVector("_BlitTexture_TexelSize", new Vector4(1f/cameraDesc.width, 1f/cameraDesc.height, cameraDesc.width, cameraDesc.height));
+                        d.mat.SetFloat("_BlurScale", blurIntensity);
+                        Blitter.BlitTexture(ctx.cmd, d.src, new Vector4(1, 1, 0, 0), d.mat, 0);
+                    }
                 });
             }
 
@@ -202,8 +210,8 @@ public class OutlineBlurFeature : ScriptableRendererFeature
                     Blitter.BlitTexture(ctx.cmd, d.src, new Vector4(1, 1, 0, 0), 0, false);
                 });
             }
-        }
-        
+        }        
+
         static DrawingSettings CreateDrawingSettings(List<ShaderTagId> tags, UniversalCameraData cameraData)
         {
             var settings = new DrawingSettings(tags[0], new SortingSettings(cameraData.camera));

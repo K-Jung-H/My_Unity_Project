@@ -192,6 +192,7 @@ GameObject:
   - component: {fileID: 6837015560572015214}
   - component: {fileID: 52058930346944932}
   - component: {fileID: 5952027926394685051}
+  - component: {fileID: 8656643078278614720}
   m_Layer: 11
   m_Name: PickupTruck
   m_TagString: Player
@@ -290,6 +291,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 860771b3ad1ab2d4f83e9ca0105548fb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
+  inputManager: {fileID: 0}
+  cameraManager: {fileID: 0}
+  healthSystem: {fileID: 0}
+  collisionHandler: {fileID: 0}
   frontLeftCollider: {fileID: 96251161576399844}
   frontRightCollider: {fileID: 4156476989645419962}
   rearLeftCollider: {fileID: 5012364440221818635}
@@ -356,19 +361,22 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HealthSystem
   maxHealth: 500
-  currentHealth: 500
-  enemyContactDamagePerSec: 10
-  collisionImpactDamage: 30
-  enemyLayerMask:
-    serializedVersion: 2
-    m_Bits: 1024
-  collisionLayerMask:
-    serializedVersion: 2
-    m_Bits: 1152
-  collisionMinForce: 15000
-  explosionEffectCoolTime: 1
-  impactEffectKey: Explosion
-  deathEffectKey: Explosion
+  currentHealth: 0
+--- !u!114 &8656643078278614720
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3371341466788449743}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 91700b7b117b88845af85b5d94d8e673, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CarCollisionHandler
+  heavyImpactThreshold: 5000
+  explosionKey: Explosion
+  environmentDamageFactor: 0.001
 --- !u!1 &3857285764550323675
 GameObject:
   m_ObjectHideFlags: 0

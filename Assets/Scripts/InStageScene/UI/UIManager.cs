@@ -115,7 +115,7 @@ public class UIManager : MonoBehaviour
     }
 
 
-    private void ProcessRevive(float scoreRatio, float healthRatio, float fuelRatio)
+    private void Process_SoftReset(float scoreRatio, float healthRatio, float fuelRatio)
     {
         GameObject player = GameObject.FindGameObjectWithTag("Player");
         if (player == null)
@@ -135,7 +135,7 @@ public class UIManager : MonoBehaviour
 
         if (healthSystem != null)
         {
-            healthSystem.Revive(healthRatio);
+            healthSystem.MultiplyCurrentHealth(healthRatio);
         }
 
         if (carController != null)
@@ -160,17 +160,17 @@ public class UIManager : MonoBehaviour
 
     public void OnClickReset_Soft_Score()
     {
-        ProcessRevive(0.5f, -1f, -1f);
+        Process_SoftReset(0.5f, -1f, -1f);
     }
 
     public void OnClickReset_Soft_Health()
     {
-        ProcessRevive(-1f, 0.5f, -1f);
+        Process_SoftReset(-1f, 0.5f, -1f);
     }
 
     public void OnClickReset_Soft_Fuel()
     {
-        ProcessRevive(-1f, -1f, 0.5f);
+        Process_SoftReset(-1f, -1f, 0.5f);
     }
 
     public void OnClickLobby()

@@ -4,65 +4,32 @@ using System;
 public class HealthSystem : MonoBehaviour
 {
     [Header("Health Settings")]
-    public int maxHealth = 100;
+    [SerializeField] private float maxHealth = 100f;
+    [SerializeField] private float currentHealth;
 
+    public event Action<float, float> OnHealthChanged;
+    public event Action OnDeath;
 
-    [SerializeField]
-    private int currentHealth;
-    public int CurrentHealth => currentHealth;
-    
     public bool IsDead => currentHealth <= 0;
 
-    [Header("Damage Settings")]
-    public float enemyContactDamagePerSec = 10f;
-    public int collisionImpactDamage = 20;
-
-    [Header("Collision Configuration")]
-    public LayerMask enemyLayerMask;
-    public LayerMask collisionLayerMask;
-    public float collisionMinForce = 8000f;
-    public float explosionEffectCoolTime = 0.5f;
-
-    [Header("Visual Effects")]
-    public string impactEffectKey = "Explosion";
-    public string deathEffectKey = "";
-
-    public event Action OnDeath;
-    public event Action<int, int> OnHealthChanged;
-    public event Action<int> OnDamageTaken;
-
-    private float damageAccumulator = 0f;
-    private float lastExplosionTime = -999f;
-
-    private void OnValidate()
-    {
-        if (Application.isEditor && !Application.isPlaying)
-        {
-            currentHealth = maxHealth;
-        }
-    }
-
-    private void OnEnable()
-    {
-        Initialize();
-    }
-
-    public void Initialize()
+    private void Awake()
     {
         currentHealth = maxHealth;
-        damageAccumulator = 0f;
+    }
+
+    public void InitializeHealth(float healthValue)
+    {
+        maxHealth = healthValue;
+        currentHealth = healthValue;
         OnHealthChanged?.Invoke(currentHealth, maxHealth);
     }
 
-    public void TakeDamage(int amount)
+    public void TakeDamage(float amount)
     {
         if (IsDead || amount <= 0) return;
 
         currentHealth -= amount;
         
-
-
-        OnDamageTaken?.Invoke(amount);
         OnHealthChanged?.Invoke(currentHealth, maxHealth);
 
         if (currentHealth <= 0)
@@ -70,6 +37,12 @@ public class HealthSystem : MonoBehaviour
             currentHealth = 0;
             Die();
         }
+    }
+
+    private void Die()
+    {
+        Debug.Log($"{gameObject.name} Destroyed!");
+        OnDeath?.Invoke();
     }
 
     public void Heal(int amount)
@@ -82,58 +55,33 @@ public class HealthSystem : MonoBehaviour
         OnHealthChanged?.Invoke(currentHealth, maxHealth);
     }
 
-    public void Revive(float healthRatio)
+    public void MultiplyCurrentHealth(float ratio)
     {
-        if (healthRatio > 0f)
-            currentHealth = Mathf.FloorToInt(currentHealth * healthRatio);
+        currentHealth = Mathf.FloorToInt(currentHealth * ratio);
+        
+        currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth);
 
         OnHealthChanged?.Invoke(currentHealth, maxHealth);
-    }
-
-    private void Die()
-    {
-        if (!string.IsNullOrEmpty(deathEffectKey) && EffectManager.Instance != null)
+        
+        if (currentHealth <= 0 && !IsDead) 
         {
-            EffectManager.Instance.PlayEffect(deathEffectKey, transform.position, transform.rotation);
-        }
-
-        Debug.Log($"[HealthSystem] {gameObject.name} Died.");
-        OnDeath?.Invoke();
-    }
-
-    private void OnCollisionStay(Collision collision)
-    {
-        if (IsDead) return;
-
-        if (((1 << collision.gameObject.layer) & enemyLayerMask) != 0)
-        {
-            damageAccumulator += enemyContactDamagePerSec * Time.deltaTime;
-            if (damageAccumulator >= 1f)
-            {
-                int damageToApply = Mathf.FloorToInt(damageAccumulator);
-                TakeDamage(damageToApply);
-                damageAccumulator -= damageToApply; 
-            }
+            Die();
         }
     }
 
-    private void OnCollisionEnter(Collision collision)
+    public void SetHealthByMaxRatio(float ratio)
     {
-        if (Time.time - lastExplosionTime < explosionEffectCoolTime) return;
-
-        if (collisionLayerMask == (collisionLayerMask | (1 << collision.gameObject.layer)))
+        if (ratio > 0f)
         {
-            if (collision.impulse.magnitude >= collisionMinForce)
-            {
-                lastExplosionTime = Time.time;
-                
-                if (!string.IsNullOrEmpty(impactEffectKey) && EffectManager.Instance != null)
-                {
-                    EffectManager.Instance.PlayEffect(impactEffectKey, transform.position, transform.rotation);
-                }
-
-                TakeDamage(collisionImpactDamage);
-            }
+            currentHealth = Mathf.FloorToInt(maxHealth * ratio);
         }
+        else
+        {
+            currentHealth = maxHealth;
+        }
+
+        currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth);
+
+        OnHealthChanged?.Invoke(currentHealth, maxHealth);
     }
 }

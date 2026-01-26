@@ -1038,6 +1038,7 @@ GameObject:
   - component: {fileID: 3962629038887391382}
   - component: {fileID: 6133991259393573631}
   - component: {fileID: -3133670206689516498}
+  - component: {fileID: 2282095994373690696}
   m_Layer: 11
   m_Name: PoliceCar
   m_TagString: Player
@@ -1136,6 +1137,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 860771b3ad1ab2d4f83e9ca0105548fb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
+  inputManager: {fileID: 0}
+  cameraManager: {fileID: 0}
+  healthSystem: {fileID: 0}
+  collisionHandler: {fileID: 0}
   frontLeftCollider: {fileID: 1988536259352231377}
   frontRightCollider: {fileID: 2093654492023444018}
   rearLeftCollider: {fileID: 5593978103743518527}
@@ -1201,19 +1206,22 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HealthSystem
   maxHealth: 300
-  currentHealth: 300
-  enemyContactDamagePerSec: 10
-  collisionImpactDamage: 30
-  enemyLayerMask:
-    serializedVersion: 2
-    m_Bits: 1024
-  collisionLayerMask:
-    serializedVersion: 2
-    m_Bits: 1152
-  collisionMinForce: 15000
-  explosionEffectCoolTime: 1
-  impactEffectKey: Explosion
-  deathEffectKey: Explosion
+  currentHealth: 0
+--- !u!114 &2282095994373690696
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5494273275932272791}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 91700b7b117b88845af85b5d94d8e673, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CarCollisionHandler
+  heavyImpactThreshold: 5000
+  explosionKey: Explosion
+  environmentDamageFactor: 0.001
 --- !u!1 &6260781826423030719
 GameObject:
   m_ObjectHideFlags: 0

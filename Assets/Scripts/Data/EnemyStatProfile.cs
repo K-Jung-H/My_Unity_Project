@@ -18,4 +18,12 @@ public class EnemyStatProfile : ScriptableObject
     [Header("Handling & Grip")]
     public float SteeringGrip = 12.0f;
     public float Stability = 5.0f;
+
+    [Header("Combat Stats")]
+    public float ContinuousDamage = 5f; 
+    public float ImpactDamageFactor = 0.01f;
+    public float Health = 100f;
+
+    [Header("Visual Effects")]
+    public Material DeadMaterial;
 }

@@ -125,14 +125,25 @@ public class Lobby_CarSelectManager : MonoBehaviour
     private void CleanupCarComponents(GameObject obj)
     {
         var controller = obj.GetComponent<CarController>();
-        if (controller != null)
+        if (controller != null) 
         {
-            controller.StopAllCoroutines();
-            controller.enabled = false;  
+            DestroyImmediate(controller);
         }
 
+        var inputManager = obj.GetComponent<CarInputManager>();
+        if (inputManager != null) DestroyImmediate(inputManager);
+
+        var collisionHandler = obj.GetComponent<CarCollisionHandler>();
+        if (collisionHandler != null) DestroyImmediate(collisionHandler);
+        
+        var healthSystem = obj.GetComponent<HealthSystem>();
+        if (healthSystem != null) DestroyImmediate(healthSystem);
+
         var rb = obj.GetComponent<Rigidbody>();
-        if (rb) Destroy(rb);
+        if (rb != null) 
+        {
+            DestroyImmediate(rb);
+        }
 
         Transform effectContainer = obj.transform.Find("Effect");
         if (effectContainer != null)
@@ -142,6 +153,7 @@ public class Lobby_CarSelectManager : MonoBehaviour
 
         foreach (var cam in obj.GetComponentsInChildren<Camera>()) cam.enabled = false;
         foreach (var list in obj.GetComponentsInChildren<AudioListener>()) list.enabled = false;
+        foreach (var col in obj.GetComponentsInChildren<Collider>()) col.enabled = false;
     }
 
     private void HideAllCars()

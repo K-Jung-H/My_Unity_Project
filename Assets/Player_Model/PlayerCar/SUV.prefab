@@ -370,6 +370,7 @@ GameObject:
   - component: {fileID: 5219490177605189095}
   - component: {fileID: 981811355290933885}
   - component: {fileID: 7211610105696539527}
+  - component: {fileID: -7777284925872232814}
   m_Layer: 11
   m_Name: SUV
   m_TagString: Player
@@ -468,6 +469,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 860771b3ad1ab2d4f83e9ca0105548fb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
+  inputManager: {fileID: 0}
+  cameraManager: {fileID: 0}
+  healthSystem: {fileID: 0}
+  collisionHandler: {fileID: 0}
   frontLeftCollider: {fileID: 3366072950747539869}
   frontRightCollider: {fileID: 5450738708042213639}
   rearLeftCollider: {fileID: 1053614684718258874}
@@ -534,19 +539,22 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HealthSystem
   maxHealth: 1000
-  currentHealth: 1000
-  enemyContactDamagePerSec: 10
-  collisionImpactDamage: 30
-  enemyLayerMask:
-    serializedVersion: 2
-    m_Bits: 1024
-  collisionLayerMask:
-    serializedVersion: 2
-    m_Bits: 1152
-  collisionMinForce: 15000
-  explosionEffectCoolTime: 1
-  impactEffectKey: Explosion
-  deathEffectKey: Explosion
+  currentHealth: 0
+--- !u!114 &-7777284925872232814
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2819417945769492877}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 91700b7b117b88845af85b5d94d8e673, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CarCollisionHandler
+  heavyImpactThreshold: 5000
+  explosionKey: Explosion
+  environmentDamageFactor: 0.001
 --- !u!1 &2849831463313333645
 GameObject:
   m_ObjectHideFlags: 0

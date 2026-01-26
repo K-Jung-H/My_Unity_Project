@@ -12,20 +12,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6d696665140bbb0458f8c11a3768e908, type: 3}
   m_Name: EnemyProfile_Light
   m_EditorClassIdentifier: Assembly-CSharp::EnemyStatProfile
-  mass: 500
-  drag: 3
-  angularDrag: 2
-  normalSpeed: 60
-  roadSpeed: 120
-  turnSpeed: 150
-  acceleration: 50
-  slopeDamping: 20
-  pathUpdateInterval: 0.1
-  directChaseDistance: 40
+  Mass: 500
+  LinearDamping: 0.2
+  AngularDamping: 5
+  CenterOfMassY: -0.2
+  AccelerationForce: 20000
+  MaxSpeed: 50
+  TurnSpeed: 150
+  BrakeForce: 15
+  SteeringGrip: 12
+  Stability: 5
+  ContinuousDamage: 5
+  ImpactDamageFactor: 0.01
   Health: 100
-  attackTriggerRange: 8
-  disengageDistance: 10
-  chargeForce: 60
-  pressForce: 20
-  chargeDuration: 1
-  chargeCooldown: 3
+  DeadMaterial: {fileID: 2100000, guid: edeb6f80aa8b0bc44ba0ed8f6254a1b9, type: 2}

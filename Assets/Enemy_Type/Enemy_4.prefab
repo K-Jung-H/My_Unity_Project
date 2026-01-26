@@ -195,6 +195,7 @@ GameObject:
   - component: {fileID: 6636278867975592460}
   - component: {fileID: 6893515664191060255}
   - component: {fileID: 4278572788470097960}
+  - component: {fileID: 1908058321558927979}
   m_Layer: 10
   m_Name: Enemy_4
   m_TagString: Untagged
@@ -314,6 +315,7 @@ MonoBehaviour:
   obstacleMask:
     serializedVersion: 2
     m_Bits: 192
+  currentState: 0
 --- !u!114 &6893515664191060255
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -356,6 +358,20 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 1152
   showGizmos: 1
+--- !u!114 &1908058321558927979
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3818892491585895199}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fec6cb9d7ab42434c953d8fdd955ce0f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HealthSystem
+  maxHealth: 100
+  currentHealth: 0
 --- !u!1 &5697544929891492078
 GameObject:
   m_ObjectHideFlags: 0

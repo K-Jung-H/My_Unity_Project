@@ -802,6 +802,7 @@ GameObject:
   - component: {fileID: 3113235368605868551}
   - component: {fileID: 1395073120171073071}
   - component: {fileID: 5432310946891741356}
+  - component: {fileID: 3050787499458372619}
   m_Layer: 11
   m_Name: SpeedCar
   m_TagString: Player
@@ -900,6 +901,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 860771b3ad1ab2d4f83e9ca0105548fb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
+  inputManager: {fileID: 0}
+  cameraManager: {fileID: 0}
+  healthSystem: {fileID: 0}
+  collisionHandler: {fileID: 0}
   frontLeftCollider: {fileID: 4074739822371052442}
   frontRightCollider: {fileID: 3431848221246820073}
   rearLeftCollider: {fileID: 1778775754355671576}
@@ -966,19 +971,22 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HealthSystem
   maxHealth: 100
-  currentHealth: 100
-  enemyContactDamagePerSec: 10
-  collisionImpactDamage: 30
-  enemyLayerMask:
-    serializedVersion: 2
-    m_Bits: 1024
-  collisionLayerMask:
-    serializedVersion: 2
-    m_Bits: 1152
-  collisionMinForce: 15000
-  explosionEffectCoolTime: 1
-  impactEffectKey: Explosion
-  deathEffectKey: Explosion
+  currentHealth: 0
+--- !u!114 &3050787499458372619
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4112145874257017431}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 91700b7b117b88845af85b5d94d8e673, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CarCollisionHandler
+  heavyImpactThreshold: 5000
+  explosionKey: Explosion
+  environmentDamageFactor: 0.001
 --- !u!1 &4485040266954453754
 GameObject:
   m_ObjectHideFlags: 0
