@@ -4,6 +4,12 @@ public class PlayerUIManager : MonoBehaviour
 {
     public static PlayerUIManager Instance { get; private set; }
 
+    [Header("Input UI Components")]
+    [SerializeField] public SteeringWheelUI steeringWheelUI;
+    [SerializeField] public HoldPressInput accelPedalUI;
+    [SerializeField] public HoldPressInput brakePedalUI;
+
+
     [Header("UI Components")]
     [SerializeField] private ScoreBoardUI scoreBoardUI;
     [SerializeField] private FuelGaugeUI fuelGaugeUI;
@@ -11,11 +17,19 @@ public class PlayerUIManager : MonoBehaviour
     [SerializeField] private GearBoxUI gearBoxUI;
     [SerializeField] private CarCameraUIManager carCameraUI;
 
+    private void Awake()
+    {
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+        
+        Instance = this;
+    }    
+
     public void Initialize()
     {
-        if (Instance == null) Instance = this;
-        else { Destroy(gameObject); return; }
-
         if (scoreBoardUI != null) scoreBoardUI.Initialize();
         if (speedBoardUI != null) speedBoardUI.Initialize();
 
@@ -31,6 +45,21 @@ public class PlayerUIManager : MonoBehaviour
         gearBoxUI?.SetTarget(localPlayer);
         speedBoardUI?.SetTarget(localPlayer);
         carCameraUI?.SetTarget(localPlayer);
+
+        CarInputManager inputManager = localPlayer.GetComponent<CarInputManager>();
+        if (inputManager != null)
+        {
+            inputManager.targetCar = localPlayer;
+            inputManager.steeringWheelUI = this.steeringWheelUI;
+            inputManager.accelPedalUI = this.accelPedalUI;
+            inputManager.brakePedalUI = this.brakePedalUI;
+            
+            Debug.Log($"[PlayerUIManager] {localPlayer.name}의 InputManager 연결 완료");
+        }
+        else
+        {
+            Debug.LogWarning($"[PlayerUIManager] {localPlayer.name}에서 CarInputManager를 찾을 수 없습니다.");
+        }
 
         if (ScoreManager.Instance != null)
         {

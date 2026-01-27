@@ -17,29 +17,35 @@ public class DifficultyManager : MonoBehaviour
 
     public float CurrentDifficulty => currentDifficultyValue;
 
-    public void Initialize(ScoreManager targetScoreManager)
+    private void Awake()
     {
         if (Instance != null && Instance != this)
         {
             Destroy(gameObject);
             return;
         }
+        
         Instance = this;
+    }
 
+    public void Initialize()
+    {
         LoadDifficultyProfile();
 
-        if (targetScoreManager != null)
+        if (ScoreManager.Instance != null)
         {
-            targetScoreManager.OnScoreChanged -= HandleScoreChange;
-            targetScoreManager.OnScoreChanged += HandleScoreChange;
+            ScoreManager.Instance.OnScoreChanged -= HandleScoreChange;
+            ScoreManager.Instance.OnScoreChanged += HandleScoreChange;
 
-            HandleScoreChange(targetScoreManager.Score);
+            HandleScoreChange(ScoreManager.Instance.Score);
         }
         else
         {
             Debug.LogError("[DifficultyManager] ScoreManager is null.");
         }
     }
+
+
 
     private void LoadDifficultyProfile()
     {
@@ -85,7 +91,11 @@ public class DifficultyManager : MonoBehaviour
 
     public EnemySpawnConfig PickEnemyToSpawn(Dictionary<string, int> currentEnemyCounts)
     {
-        if (currentProfile == null || currentProfile.enemyConfigs.Count == 0) return null;
+        if (currentProfile == null || currentProfile.enemyConfigs.Count == 0) 
+        {
+            Debug.LogWarning("No Profile");
+            return null;
+        }
 
         float totalWeight = 0f;
         List<EnemySpawnConfig> candidates = new List<EnemySpawnConfig>();
@@ -121,6 +131,7 @@ public class DifficultyManager : MonoBehaviour
                 return config;
             }
         }
+
 
         return candidates[0];
     }

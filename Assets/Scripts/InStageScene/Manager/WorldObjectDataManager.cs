@@ -7,17 +7,15 @@ public class WorldObjectDataManager : MonoBehaviour
 
     private Dictionary<Vector2Int, HashSet<int>> destructionData = new Dictionary<Vector2Int, HashSet<int>>();
 
-    void Awake()
+    private void Awake()
     {
-        if (Instance == null)
-        {
-            Instance = this;
-            DontDestroyOnLoad(gameObject);
-        }
-        else
+        if (Instance != null && Instance != this)
         {
             Destroy(gameObject);
+            return;
         }
+        
+        Instance = this;
     }
 
     public void Initialize()

@@ -164,7 +164,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9ffad8e0085def54da798bcb856502aa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemySpawnManager
-  chunkManager: {fileID: 120063262}
   globalEnemyRoot: {fileID: 117796851}
   maxSpawnPerFrame: 5
   activationDistance: 500
@@ -2334,11 +2333,6 @@ MonoBehaviour:
   chunkManager: {fileID: 120063262}
   carDataTable: {fileID: 11400000, guid: 3b684c58f27be884b97e96160c6f5220, type: 2}
   playerListContainer: {fileID: 1251465580}
-  sceneSteeringWheel: {fileID: 1211472314}
-  sceneGearBox: {fileID: 1386914444}
-  sceneAccelPedal: {fileID: 38880380}
-  sceneBrakePedal: {fileID: 1808731194}
-  sceneCameraUIManager: {fileID: 1932032088}
 --- !u!1 &639831562
 GameObject:
   m_ObjectHideFlags: 0
@@ -6841,7 +6835,7 @@ GameObject:
   - component: {fileID: 1804275859}
   - component: {fileID: 1804275862}
   - component: {fileID: 1804275861}
-  - component: {fileID: 1804275860}
+  - component: {fileID: 1804275863}
   m_Layer: 0
   m_Name: SpeedBoard
   m_TagString: Untagged
@@ -6869,19 +6863,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: -450}
   m_SizeDelta: {x: 400, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &1804275860
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1804275858}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d1cc1e31975883349aa6d0daa4c57554, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ScoreBoardManager
-  scoreText: {fileID: 1823454918}
 --- !u!114 &1804275861
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6920,6 +6901,21 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1804275858}
   m_CullTransparentMesh: 1
+--- !u!114 &1804275863
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1804275858}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2b718b9a135b4ef4fb8fe0b7f64b9e95, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SpeedBoardUI
+  speedText: {fileID: 1823454918}
+  speedMultiplier: 1.2
+  displayScale: 1
 --- !u!1 &1808731192
 GameObject:
   m_ObjectHideFlags: 0
@@ -7555,11 +7551,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d75472ee8e50ff34c879ab07dc5e96eb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerUIManager
+  steeringWheelUI: {fileID: 1211472314}
+  accelPedalUI: {fileID: 38880380}
+  brakePedalUI: {fileID: 1808731194}
   scoreBoardUI: {fileID: 639831564}
   fuelGaugeUI: {fileID: 1640462396}
-  carCameraUI: {fileID: 1932032088}
-  speedBoardUI: {fileID: 0}
+  speedBoardUI: {fileID: 1804275863}
   gearBoxUI: {fileID: 1386914444}
+  carCameraUI: {fileID: 1932032088}
 --- !u!1 &1939843653
 GameObject:
   m_ObjectHideFlags: 0

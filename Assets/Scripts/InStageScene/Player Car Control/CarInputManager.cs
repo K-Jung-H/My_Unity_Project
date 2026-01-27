@@ -4,11 +4,11 @@ using UnityEngine.InputSystem;
 public class CarInputManager : MonoBehaviour
 {
     public CarController targetCar;
-
+    
     [Header("UI Input Sources")]
-    [SerializeField] public SteeringWheelUI steeringWheelUI;
-    [SerializeField] public HoldPressInput accelPedalUI;
-    [SerializeField] public HoldPressInput brakePedalUI;
+    [HideInInspector] public SteeringWheelUI steeringWheelUI;
+    [HideInInspector] public HoldPressInput accelPedalUI;
+    [HideInInspector] public HoldPressInput brakePedalUI;
 
     private void Update()
     {

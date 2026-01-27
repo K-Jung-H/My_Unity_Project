@@ -30,17 +30,19 @@ public class DynamicChunkManager : MonoBehaviour
     private bool isInitialized = false;
     private Coroutine updateRoutine;
 
-
-
-    public void Initialize()
+    private void Awake()
     {
         if (Instance != null && Instance != this)
         {
             Destroy(gameObject);
             return;
         }
-
+        
         Instance = this;
+    }
+
+    public void Initialize()
+    {
         StopUpdateRoutine();
         CleanupAllChunks();
         

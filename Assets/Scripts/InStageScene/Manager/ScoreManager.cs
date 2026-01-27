@@ -17,15 +17,19 @@ public class ScoreManager : MonoBehaviour
     private bool isScoringActive = false;
     private CarController targetCar;
 
-    public void Initialize()
+    private void Awake()
     {
         if (Instance != null && Instance != this)
         {
             Destroy(gameObject);
             return;
         }
+        
         Instance = this;
+    }
 
+    public void Initialize()
+    {
         GameData.TotalScore = Mathf.Max(0, GameData.TotalScore);
         timer = 0f;
     }

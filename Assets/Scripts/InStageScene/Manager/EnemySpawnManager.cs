@@ -9,7 +9,6 @@ public class EnemySpawnManager : MonoBehaviour
     public static EnemySpawnManager Instance { get; private set; }
 
     [Header("References")]
-    public DynamicChunkManager chunkManager;
     public Transform globalEnemyRoot;
 
     [Header("Global Settings")]
@@ -25,20 +24,25 @@ public class EnemySpawnManager : MonoBehaviour
 
     private GameObject[] cachedPlayers;
 
-
-    public void Initialize()
+    private void Awake()
     {
         if (Instance != null && Instance != this)
         {
             Destroy(gameObject);
             return;
         }
+        
         Instance = this;
+    }   
 
+
+    public void Initialize()
+    {
         StopAllCoroutines();
         StartCoroutine(ManageEnemyLifecycleRoutine());
         Debug.Log("EnemySpawnManager Initialized");
     }
+
 
     IEnumerator ManageEnemyLifecycleRoutine()
     {
@@ -47,17 +51,28 @@ public class EnemySpawnManager : MonoBehaviour
         while (true)
         {
             yield return wait;
-            
-            cachedPlayers = GameObject.FindGameObjectsWithTag("Player");
 
-            if (cachedPlayers != null && cachedPlayers.Length > 0)
+            if (PlayerManager.Instance != null)
             {
-                ManageActiveEnemies();
-                SpawnMissingEnemies();
-            }
-            else
-            {
-                Debug.LogWarning("[EnemySpawnManager] 플레이어를 찾을 수 없습니다. 태그를 확인하세요.");
+                List<GameObject> allPlayers = new List<GameObject>();
+
+                if (PlayerManager.Instance.LocalPlayer != null)
+                    allPlayers.Add(PlayerManager.Instance.LocalPlayer.gameObject);
+
+                var remotes = PlayerManager.Instance.RemotePlayers;
+                for (int i = 0; i < remotes.Count; i++)
+                {
+                    if (remotes[i] != null)
+                        allPlayers.Add(remotes[i].gameObject);
+                }
+
+                cachedPlayers = allPlayers.ToArray();
+
+                if (cachedPlayers.Length > 0)
+                {
+                    ManageActiveEnemies();
+                    SpawnMissingEnemies();
+                }
             }
         }
     }
@@ -126,43 +141,49 @@ public class EnemySpawnManager : MonoBehaviour
         activeEnemies.RemoveAt(index);
     }
 
-    private void SpawnMissingEnemies()
-    {
-        if (DifficultyManager.Instance == null) return;
-        
-
-        int currentMaxGlobalEnemies = DifficultyManager.Instance.GetCurrentMaxEnemies();
-        int currentCount = activeEnemies.Count;
-
-        if (currentCount >= currentMaxGlobalEnemies) return;
-        
-        int needed = currentMaxGlobalEnemies - currentCount;
-        int spawnLoopCount = Mathf.Min(needed, maxSpawnPerFrame);
-
-        List<ChunkController> activeChunks = chunkManager.GetActiveChunks().ToList();
-        if (activeChunks.Count == 0) return;
-        
-        NavMeshQueryFilter filter = new NavMeshQueryFilter();
-        filter.areaMask = NavMesh.AllAreas;
-
-        for (int i = 0; i < spawnLoopCount; i++)
-        {
-            ChunkController randomChunk = activeChunks[Random.Range(0, activeChunks.Count)];
-
-            if (randomChunk == null || !randomChunk.gameObject.activeInHierarchy) continue;
-            
-            List<Transform> spawnPoints = randomChunk.GetEnemySpawnPoints();
-            if (spawnPoints == null || spawnPoints.Count == 0) continue;
-            
-            Transform targetPoint = spawnPoints[Random.Range(0, spawnPoints.Count)];
-            
-            EnemySpawnConfig configToSpawn = DifficultyManager.Instance.PickEnemyToSpawn(enemyTypeCounts);
-            
-            if (configToSpawn != null && configToSpawn.prefab != null)
-                CreateEnemyAt(configToSpawn, targetPoint, filter);
-
-        }
+private void SpawnMissingEnemies()
+{
+    if (DifficultyManager.Instance == null) {
+        Debug.LogError("[SpawnDebug] DifficultyManager Instance is NULL!");
+        return;
     }
+
+    int currentMaxGlobalEnemies = DifficultyManager.Instance.GetCurrentMaxEnemies();
+    int currentCount = activeEnemies.Count;
+
+    if (currentCount >= currentMaxGlobalEnemies) {
+        return;
+    }
+    
+    List<ChunkController> activeChunks = DynamicChunkManager.Instance.GetActiveChunks().ToList();
+    if (activeChunks.Count == 0) {
+        Debug.LogWarning("[SpawnDebug] No active chunks found from DynamicChunkManager!");
+        return;
+    }
+
+    int needed = currentMaxGlobalEnemies - currentCount;
+    int spawnLoopCount = Mathf.Min(needed, maxSpawnPerFrame);
+
+    for (int i = 0; i < spawnLoopCount; i++)
+    {
+        ChunkController randomChunk = activeChunks[UnityEngine.Random.Range(0, activeChunks.Count)];
+        
+        List<Transform> spawnPoints = randomChunk.GetEnemySpawnPoints();
+        if (spawnPoints == null || spawnPoints.Count == 0) {
+            Debug.LogWarning($"[SpawnDebug] Chunk {randomChunk.name} has NO spawn points!");
+            continue;
+        }
+        
+        EnemySpawnConfig configToSpawn = DifficultyManager.Instance.PickEnemyToSpawn(enemyTypeCounts);
+        if (configToSpawn == null || configToSpawn.prefab == null) {
+            continue;
+        }
+        
+        Transform targetPoint = spawnPoints[UnityEngine.Random.Range(0, spawnPoints.Count)];
+        NavMeshQueryFilter filter = new NavMeshQueryFilter { areaMask = NavMesh.AllAreas };
+        CreateEnemyAt(configToSpawn, targetPoint, filter);
+    }
+}
 
     private void CreateEnemyAt(EnemySpawnConfig config, Transform targetPoint, NavMeshQueryFilter filter)
     {
@@ -186,6 +207,7 @@ public class EnemySpawnManager : MonoBehaviour
             }
             else
             {
+                Debug.LogError($"[SpawnDebug] NavMesh SamplePosition FAILED for {config.enemyName} at {targetPoint.position}. Is NavMesh baked?");
                 Destroy(enemy);
             }
         }

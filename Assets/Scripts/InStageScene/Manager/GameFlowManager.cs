@@ -17,14 +17,20 @@ public class GameFlowManager : MonoBehaviour
     private bool isGameOver = false;
     public bool IsGameRunning { get; private set; } = false;
 
-    public void Initialize()
+
+    private void Awake()
     {
         if (Instance != null && Instance != this)
         {
             Destroy(gameObject);
             return;
         }
+        
         Instance = this;
+    }
+
+    public void Initialize()
+    {
 
         if (playerManager != null)
         {

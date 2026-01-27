@@ -17,11 +17,22 @@ public class PlayerManager : MonoBehaviour
     private List<CarController> remotePlayerInstances = new List<CarController>();
 
     public CarController LocalPlayer => localPlayerInstance;
+    public IReadOnlyList<CarController> RemotePlayers => remotePlayerInstances;
+
+
+    private void Awake()
+    {
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+        
+        Instance = this;
+    }
 
     public void Initialize()
     {
-        if (Instance == null) Instance = this;
-        else { Destroy(gameObject); return; }
 
         if (chunkManager != null)
         {
