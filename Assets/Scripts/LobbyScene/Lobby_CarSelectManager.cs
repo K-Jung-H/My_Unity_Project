@@ -122,39 +122,42 @@ public class Lobby_CarSelectManager : MonoBehaviour
         }
     }
 
-    private void CleanupCarComponents(GameObject obj)
+private void CleanupCarComponents(GameObject obj)
+{
+    MonoBehaviour[] scripts = obj.GetComponentsInChildren<MonoBehaviour>();
+    foreach (MonoBehaviour script in scripts)
     {
-        var controller = obj.GetComponent<CarController>();
-        if (controller != null) 
-        {
-            DestroyImmediate(controller);
-        }
-
-        var inputManager = obj.GetComponent<CarInputManager>();
-        if (inputManager != null) DestroyImmediate(inputManager);
-
-        var collisionHandler = obj.GetComponent<CarCollisionHandler>();
-        if (collisionHandler != null) DestroyImmediate(collisionHandler);
-        
-        var healthSystem = obj.GetComponent<HealthSystem>();
-        if (healthSystem != null) DestroyImmediate(healthSystem);
-
-        var rb = obj.GetComponent<Rigidbody>();
-        if (rb != null) 
-        {
-            DestroyImmediate(rb);
-        }
-
-        Transform effectContainer = obj.transform.Find("Effect");
-        if (effectContainer != null)
-        {
-            effectContainer.gameObject.SetActive(false);
-        }
-
-        foreach (var cam in obj.GetComponentsInChildren<Camera>()) cam.enabled = false;
-        foreach (var list in obj.GetComponentsInChildren<AudioListener>()) list.enabled = false;
-        foreach (var col in obj.GetComponentsInChildren<Collider>()) col.enabled = false;
+        if (script != null && script != this) script.enabled = false;
     }
+
+    foreach (var wheel in obj.GetComponentsInChildren<WheelCollider>())
+    {
+        wheel.enabled = false;
+    }
+
+    foreach (var col in obj.GetComponentsInChildren<Collider>())
+    {
+        col.enabled = false;
+    }
+
+    var rb = obj.GetComponent<Rigidbody>();
+    if (rb != null)
+    {
+        rb.isKinematic = true;
+        rb.useGravity = false;
+        rb.linearVelocity = Vector3.zero;
+        rb.angularVelocity = Vector3.zero;
+    }
+
+    Transform effectContainer = obj.transform.Find("Effect");
+    if (effectContainer != null)
+    {
+        effectContainer.gameObject.SetActive(false);
+    }
+
+    foreach (var cam in obj.GetComponentsInChildren<Camera>()) cam.enabled = false;
+    foreach (var list in obj.GetComponentsInChildren<AudioListener>()) list.enabled = false;
+}
 
     private void HideAllCars()
     {

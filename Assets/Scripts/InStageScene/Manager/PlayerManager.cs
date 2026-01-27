@@ -4,45 +4,30 @@ using System;
 
 public class PlayerManager : MonoBehaviour
 {
+    public static PlayerManager Instance { get; private set; }
     public static event Action<CarController> OnLocalPlayerCreated;
     public event Action OnLocalPlayerDeath;
 
     [Header("Dependencies")]
     public DynamicChunkManager chunkManager;
-
-    [Header("Data Management")]
     public CarDataTable carDataTable;
-
-    [Header("Player Container")]
     public Transform playerListContainer;
 
-    [Header("Scene UI References")]
-    public SteeringWheelUI sceneSteeringWheel;
-    public GearBoxUI sceneGearBox;
-    public HoldPressInput sceneAccelPedal;
-    public HoldPressInput sceneBrakePedal;
-    public CarCameraUIManager sceneCameraUIManager;
     private CarController localPlayerInstance;
     private List<CarController> remotePlayerInstances = new List<CarController>();
 
+    public CarController LocalPlayer => localPlayerInstance;
+
     public void Initialize()
     {
+        if (Instance == null) Instance = this;
+        else { Destroy(gameObject); return; }
+
         if (chunkManager != null)
         {
             Transform spawnPoint = chunkManager.GetMainSpawnPoint();
-            GameObject localPlayer = CreatePlayer(spawnPoint, true);
-            
-            if (localPlayer != null)
-            {
-                chunkManager.RegisterPlayer(localPlayer.transform);
-            }
+            CreatePlayer(spawnPoint, true);
         }
-        else
-        {
-            Debug.LogError("[PlayerManager] DynamicChunkManager reference is missing.");
-        }
-        
-        Debug.Log("PlayerManager Initialized");
     }
 
     public GameObject CreatePlayer(Transform spawnPoint, bool isLocal, int carId = -1)
@@ -57,7 +42,7 @@ public class PlayerManager : MonoBehaviour
 
         if (prefabToSpawn == null)
         {
-            Debug.LogError($"[PlayerManager] Failed to load car prefab for ID {targetId}. Check CarDataTable.");
+            Debug.LogError($"[PlayerManager] Failed to load car prefab for ID {targetId}.");
             return null;
         }
 
@@ -67,51 +52,32 @@ public class PlayerManager : MonoBehaviour
             playerListContainer = container.transform;
         }
 
-        Vector3 pos = spawnPoint != null ? spawnPoint.position : Vector3.zero;
-        Quaternion rot = spawnPoint != null ? spawnPoint.rotation : Quaternion.identity;
+        GameObject newCarObj = Instantiate(prefabToSpawn, spawnPoint.position, spawnPoint.rotation, playerListContainer);
+        CarController controller = newCarObj.GetComponent<CarController>();
 
-        GameObject newCarObj = Instantiate(prefabToSpawn, pos, rot, playerListContainer);
-        newCarObj.tag = "Player";
-
-        CarController carController = newCarObj.GetComponent<CarController>();
-
-        if (carController != null)
+        if (DynamicChunkManager.Instance != null)
         {
-            if (isLocal)
+            DynamicChunkManager.Instance.RegisterPlayer(newCarObj.transform);
+        }
+
+        if (isLocal)
+        {
+            newCarObj.name = $"Local_Player_{targetId}";
+            localPlayerInstance = controller;
+            SetupCamera(newCarObj.transform);
+            
+            if (PlayerUIManager.Instance != null)
             {
-                newCarObj.name = $"Local_Player_{targetId}";
-                localPlayerInstance = carController;
-
-                CarInputManager carInput = newCarObj.GetComponent<CarInputManager>();
-                if (carInput != null)
-                {
-                    carInput.steeringWheelUI = sceneSteeringWheel;
-                    carInput.gearBoxUI = sceneGearBox;
-                    carInput.accelPedalUI = sceneAccelPedal;
-                    carInput.brakePedalUI = sceneBrakePedal;
-                }
-
-                SetupCameraControl(newCarObj);
-
-                localPlayerInstance.OnDeath += HandleLocalPlayerDeath;
-                OnLocalPlayerCreated?.Invoke(carController);
-                SetupCamera(newCarObj.transform);
+                PlayerUIManager.Instance.SetupPlayerUI(localPlayerInstance);
             }
-            else
-            {
-                newCarObj.name = $"Remote_Player_{targetId}";
-                remotePlayerInstances.Add(carController);
 
-                CarInputManager carInput = newCarObj.GetComponent<CarInputManager>();
-                if (carInput != null) Destroy(carInput);
-
-                carController.OnDeath += () => HandleRemotePlayerDeath(carController);
-                
-                if (chunkManager != null)
-                {
-                    chunkManager.RegisterPlayer(newCarObj.transform);
-                }
-            }
+            OnLocalPlayerCreated?.Invoke(localPlayerInstance);
+            localPlayerInstance.OnDeath += HandleLocalPlayerDeath;
+        }
+        else
+        {
+            newCarObj.name = $"Remote_Player_{targetId}";
+            remotePlayerInstances.Add(controller);
         }
 
         return newCarObj;
@@ -120,18 +86,8 @@ public class PlayerManager : MonoBehaviour
     private void HandleLocalPlayerDeath()
     {
         OnLocalPlayerDeath?.Invoke();
-
         if (localPlayerInstance != null)
             localPlayerInstance.OnDeath -= HandleLocalPlayerDeath;
-    }
-
-    private void HandleRemotePlayerDeath(CarController deadPlayer)
-    {
-        if (chunkManager != null)
-        {
-            chunkManager.UnregisterPlayer(deadPlayer.transform);
-        }
-        remotePlayerInstances.Remove(deadPlayer);
     }
 
     private void SetupCamera(Transform targetTransform)
@@ -141,27 +97,5 @@ public class PlayerManager : MonoBehaviour
             var camScript = Camera.main.GetComponent<CarCamera>();
             if (camScript != null) camScript.target = targetTransform;
         }
-    }
-
-    private void SetupCameraControl(GameObject carObject)
-    {
-        if (sceneCameraUIManager == null) return;
-
-        CarCameraManager cameraMgr = carObject.GetComponent<CarCameraManager>();
-        
-        if (cameraMgr == null) 
-            cameraMgr = carObject.GetComponentInChildren<CarCameraManager>();
-
-        if (cameraMgr != null)
-        {
-            sceneCameraUIManager.Initialize(cameraMgr);
-        }
-    }
-    
-
-    private void OnDestroy()
-    {
-        if (localPlayerInstance != null)
-            localPlayerInstance.OnDeath -= HandleLocalPlayerDeath;
     }
 }

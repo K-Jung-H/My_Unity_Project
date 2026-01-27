@@ -1,7 +1,5 @@
 using UnityEngine;
-using System.Collections;
 
-[DefaultExecutionOrder(-100)]
 public class GameSceneBuilder : MonoBehaviour
 {
     [Header("Core Systems")]
@@ -10,7 +8,8 @@ public class GameSceneBuilder : MonoBehaviour
     public ScoreManager scoreManager;
     public DifficultyManager difficultyManager;
     public GameFlowManager gameFlowManager;
-    public UIManager uiManager;
+    public InGame_CanvasManager canvasManager;
+    public PlayerUIManager playerUIManager;
 
     [Header("Gameplay Systems")]
     public DynamicChunkManager dynamicChunkManager;
@@ -24,39 +23,45 @@ public class GameSceneBuilder : MonoBehaviour
 
     private void InitializeGameSequence()
     {
-        Debug.Log("--- [GameSceneBuilder] Sequence Start ---");
+        if (WorldObjectDataManager.Instance != null) WorldObjectDataManager.Instance.Initialize();
+        else if (worldObjectDataManager != null) worldObjectDataManager.Initialize();
 
-        if (worldObjectDataManager != null) worldObjectDataManager.Initialize();
-        if (effectManager != null) effectManager.Initialize();
+        if (EffectManager.Instance != null) EffectManager.Instance.Initialize();
+        else if (effectManager != null) effectManager.Initialize();
 
-        if (dynamicChunkManager != null) dynamicChunkManager.Initialize();
+        if (DynamicChunkManager.Instance != null) DynamicChunkManager.Instance.Initialize();
+        else if (dynamicChunkManager != null) dynamicChunkManager.Initialize();
 
-        if (playerManager != null) playerManager.Initialize();
-        if (uiManager != null) uiManager.Initialize();
+        if (ScoreManager.Instance != null) ScoreManager.Instance.Initialize();
+        else if (scoreManager != null) scoreManager.Initialize();
 
-        if (scoreManager != null) scoreManager.Initialize();
+        if (InGame_CanvasManager.Instance != null) InGame_CanvasManager.Instance.Initialize();
+        else if (canvasManager != null) canvasManager.Initialize();
 
-        if (difficultyManager != null)
+        if (PlayerUIManager.Instance != null) PlayerUIManager.Instance.Initialize();
+        else if (playerUIManager != null) playerUIManager.Initialize();
+
+        if (PlayerManager.Instance != null) PlayerManager.Instance.Initialize();
+        else if (playerManager != null) playerManager.Initialize();
+
+        CarController localCar = PlayerManager.Instance != null ? PlayerManager.Instance.LocalPlayer : null;
+        if (localCar != null && PlayerUIManager.Instance != null)
         {
-            difficultyManager.Initialize(scoreManager);
+            PlayerUIManager.Instance.SetupPlayerUI(localCar);
         }
 
-        if (enemySpawnManager != null) enemySpawnManager.Initialize();
+        if (DifficultyManager.Instance != null) DifficultyManager.Instance.Initialize(ScoreManager.Instance);
+        if (EnemySpawnManager.Instance != null) EnemySpawnManager.Instance.Initialize();
 
-        if (gameFlowManager != null) 
+        if (GameFlowManager.Instance != null)
         {
-            if (gameFlowManager.scoreManager == null) gameFlowManager.scoreManager = scoreManager;
-            if (gameFlowManager.uiManager == null) gameFlowManager.uiManager = uiManager;
-            
-            gameFlowManager.Initialize();
+            GameFlowManager.Instance.Initialize();
+            GameFlowManager.Instance.StartGameSequence();
         }
-
-
-        if (gameFlowManager != null)
+        
+        if (InGame_CanvasManager.Instance != null)
         {
-            gameFlowManager.StartGameSequence();
+            InGame_CanvasManager.Instance.ShowPanel(UIPanelType.Game);
         }
-
-        Debug.Log("--- [GameSceneBuilder] Sequence Complete ---");
     }
 }

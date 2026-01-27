@@ -1,48 +1,72 @@
 using UnityEngine;
 using UnityEngine.UI;
-
-public enum GearState
-{
-    P = 0,
-    R = 1,
-    N = 2,
-    D = 3
-}
+using TMPro;
 
 public class GearBoxUI : MonoBehaviour
 {
     [Header("UI Components")]
-    public Slider gearSlider;
-    public Text currentGearText;
+    [SerializeField] private Slider gearSlider;
+    [SerializeField] private TextMeshProUGUI currentGearText;
 
-    [Header("Settings")]
-    private GearState currentGear;
+    private CarController targetCar;
 
-    public GearState CurrentGear => currentGear;
-
-    private void Start()
+    public void Initialize()
     {
         if (gearSlider != null)
         {
-            gearSlider.value = 0;
             gearSlider.minValue = 0;
-            gearSlider.maxValue = 3; 
+            gearSlider.maxValue = 3;
             gearSlider.wholeNumbers = true;
+            gearSlider.interactable = true;
             
+            gearSlider.onValueChanged.RemoveAllListeners();
             gearSlider.onValueChanged.AddListener(OnSliderValueChanged);
-            
-            OnSliderValueChanged(gearSlider.value);
         }
+
+        if (currentGearText != null)
+        {
+            currentGearText.text = "-";
+        }
+    }
+
+    public void SetTarget(CarController car)
+    {
+        targetCar = car;
+        UpdateUI();
     }
 
     private void OnSliderValueChanged(float value)
     {
-        int intValue = Mathf.RoundToInt(value);
-        currentGear = (GearState)intValue;
+        if (targetCar == null) return;
+
+        GearState selectedGear = (GearState)Mathf.RoundToInt(value);
+        if (targetCar.currentGear != selectedGear)
+        {
+            targetCar.ChangeGear(selectedGear);
+        }
+    }
+
+    private void Update()
+    {
+        if (targetCar == null) return;
+
+        UpdateUI();
+    }
+
+    private void UpdateUI()
+    {
+        if (targetCar == null) return;
+
+        int gearValue = (int)targetCar.currentGear;
+
+        if (gearSlider != null)
+        {
+            gearSlider.SetValueWithoutNotify(gearValue);
+        }
 
         if (currentGearText != null)
         {
-            currentGearText.text = currentGear.ToString();
+            currentGearText.text = targetCar.currentGear.ToString();
         }
     }
 }

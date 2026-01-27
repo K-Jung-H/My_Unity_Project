@@ -13,6 +13,21 @@ public struct OutlineFuelState
     [Range(1, 10)] public int thickness;
 }
 
+public enum GearState
+
+{
+
+    P = 0,
+
+    R = 1,
+
+    N = 2,
+
+    D = 3
+
+}
+
+
 [RequireComponent(typeof(CarInputManager))]
 [RequireComponent(typeof(CarCameraManager))]
 [RequireComponent(typeof(HealthSystem))]
@@ -91,7 +106,7 @@ public class CarController : MonoBehaviour
     public List<OutlineFuelState> outlineStates;
 
     public GearState currentGear { get; private set; } = GearState.P;
-    
+
     public bool IsDrifting { get; private set; } = false;
 
     public bool IsSkidding { get; private set; } = false;
@@ -203,7 +218,7 @@ public class CarController : MonoBehaviour
         ApplyWheelFriction();
     }
 
-    public void SetInput(float steer, float accel, float brake, GearState gear)
+    public void SetInputs(float steer, float accel, float brake)
     {
         if (isDead)
         {
@@ -216,7 +231,6 @@ public class CarController : MonoBehaviour
         targetSteerInput = steer;
         accelInput = accel;
         brakeInput = brake;
-        currentGear = gear;
     }
 
     public float ValidateAccelInput(float input)
@@ -241,6 +255,14 @@ public class CarController : MonoBehaviour
         {
             currentSteerInput = Mathf.MoveTowards(currentSteerInput, 0f, steerGravity * Time.deltaTime);
         }
+    }
+
+    public void ChangeGear(GearState newGear)
+    {
+        if (currentGear == newGear) return;
+        
+        currentGear = newGear;
+        Debug.Log($"Gear Changed to: {currentGear}");
     }
 
     private void CalculateFuelConsumption()

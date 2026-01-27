@@ -13,9 +13,15 @@ public class CarCameraUIManager : MonoBehaviour
 
     private CarCameraManager targetCameraManager;
 
-    public void Initialize(CarCameraManager cameraManager)
+    public void Initialize()
     {
-        targetCameraManager = cameraManager;
+        
+    }
+
+    public void SetTarget(CarController localPlayer)
+    {
+        CarCameraManager playerCameraManager = localPlayer.GetComponentInChildren<CarCameraManager>();
+        targetCameraManager = playerCameraManager;
         targetCameraManager.SetBackCameraState(false);
         
         SyncTogglesWithPlayer();

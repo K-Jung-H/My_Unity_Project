@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: DifficultyDataTable
   m_EditorClassIdentifier: Assembly-CSharp::DifficultyDataTable
   profiles:
-  - {fileID: 11400000, guid: 539e4dcd36ea336479dd883a1c131219, type: 2}
   - {fileID: 11400000, guid: bd90fc0f02435364bb51f6f6bf6d4c3d, type: 2}
   - {fileID: 11400000, guid: d2fbff513a197e543a35b18535b37b59, type: 2}
+  - {fileID: 11400000, guid: 539e4dcd36ea336479dd883a1c131219, type: 2}
   - {fileID: 11400000, guid: c2c4ad173aa6862458529aeaa8525e9f, type: 2}

@@ -1,15 +1,16 @@
 using UnityEngine;
 using TMPro;
 
-public class ScoreBoardManager : MonoBehaviour
+public class ScoreBoardUI : MonoBehaviour
 {
     [Header("UI Reference")]
     public TMP_Text scoreText;
 
-    void Start()
+    public void Initialize()
     {
         if (ScoreManager.Instance != null)
-        {
+        {            
+            ScoreManager.Instance.OnScoreChanged -= UpdateUI;
             ScoreManager.Instance.OnScoreChanged += UpdateUI;
             UpdateUI(GameData.TotalScore);
         }

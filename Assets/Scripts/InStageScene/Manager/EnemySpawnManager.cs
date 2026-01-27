@@ -6,6 +6,8 @@ using System.Linq;
 
 public class EnemySpawnManager : MonoBehaviour
 {
+    public static EnemySpawnManager Instance { get; private set; }
+
     [Header("References")]
     public DynamicChunkManager chunkManager;
     public Transform globalEnemyRoot;
@@ -26,6 +28,13 @@ public class EnemySpawnManager : MonoBehaviour
 
     public void Initialize()
     {
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+        Instance = this;
+
         StopAllCoroutines();
         StartCoroutine(ManageEnemyLifecycleRoutine());
         Debug.Log("EnemySpawnManager Initialized");

@@ -11,11 +11,11 @@ public class ScoreManager : MonoBehaviour
     public float scorePerUpdate = 10f;
 
     public int Score => GameData.TotalScore;
-
     public event Action<int> OnScoreChanged;
 
     private float timer;
     private bool isScoringActive = false;
+    private CarController targetCar;
 
     public void Initialize()
     {
@@ -26,21 +26,20 @@ public class ScoreManager : MonoBehaviour
         }
         Instance = this;
 
-        GameData.TotalScore = Mathf.Max(0, GameData.TotalScore); 
+        GameData.TotalScore = Mathf.Max(0, GameData.TotalScore);
         timer = 0f;
-        isScoringActive = true;
-
-        Debug.Log("ScoreManager Initialized");
     }
 
-    private void OnDestroy()
+    public void SetTarget(CarController car)
     {
-        if (Instance == this) Instance = null;
+        targetCar = car;
+        isScoringActive = (targetCar != null);
+        Debug.Log("ScoreManager Target Set and Active");
     }
 
     private void Update()
     {
-        if (!isScoringActive) return;
+        if (!isScoringActive || targetCar == null) return;
 
         timer += Time.deltaTime;
         if (timer >= scoreUpdateTime)
@@ -52,44 +51,30 @@ public class ScoreManager : MonoBehaviour
 
     public void AddScore(int amount)
     {
-        if (!isScoringActive) return;
-
         GameData.TotalScore += amount;
-        if (GameData.TotalScore < 0)
-        {
-            GameData.TotalScore = 0;
-        }
-
+        if (GameData.TotalScore < 0) GameData.TotalScore = 0;
         OnScoreChanged?.Invoke(GameData.TotalScore);
     }
 
     public void ApplyScorePenalty(float keepRatio)
     {
         if (keepRatio < 0f) return;
-
         int newScore = Mathf.FloorToInt(GameData.TotalScore * keepRatio);
-        
-        if (newScore < 0) newScore = 0;
-
-        GameData.TotalScore = newScore;
+        GameData.TotalScore = Mathf.Max(0, newScore);
         OnScoreChanged?.Invoke(GameData.TotalScore);
     }
 
     public void SaveGameResult()
     {
         if (!isScoringActive) return;
-        
         isScoringActive = false;
+        
         GameResult result = new GameResult();
         string json = JsonUtility.ToJson(result, true);
         string fileName = $"GameLog_{DateTime.Now:yyyyMMdd_HHmmss}.json";
         string path = Path.Combine(Application.persistentDataPath, "GameLogs");
 
         if (!Directory.Exists(path)) Directory.CreateDirectory(path);
-
-        string fullPath = Path.Combine(path, fileName);
-        File.WriteAllText(fullPath, json);
-
-        Debug.Log($"[ScoreManager] Game Saved: {fullPath}");
+        File.WriteAllText(Path.Combine(path, fileName), json);
     }
 }
