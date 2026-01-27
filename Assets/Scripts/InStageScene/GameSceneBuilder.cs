@@ -20,6 +20,9 @@ public class GameSceneBuilder : MonoBehaviour
     public PlayerManager playerManager;
     public EnemySpawnManager enemySpawnManager;
 
+    [Header("PostProcess Systems")]
+    public SpeedBlurManager speedBlurManager;
+
     private void Awake()
     {
         if (Instance != null && Instance != this)
@@ -65,10 +68,19 @@ public class GameSceneBuilder : MonoBehaviour
         if (EffectManager.Instance != null) EffectManager.Instance.Initialize();
         else if (effectManager != null) effectManager.Initialize();
 
+        if(SpeedBlurManager.Instance != null) SpeedBlurManager.Instance.Initialize();
+        else if (speedBlurManager != null) speedBlurManager.Initialize();
+
         CarController localCar = PlayerManager.Instance != null ? PlayerManager.Instance.LocalPlayer : null;
         if (localCar != null && PlayerUIManager.Instance != null)
         {
             PlayerUIManager.Instance.SetupPlayerUI(localCar);
+        }
+
+        if (localCar != null && SpeedBlurManager.Instance != null)
+        {
+            SpeedBlurManager.Instance.SetTargetCar(localCar);
+            Debug.Log("GameSceneBuilder: SpeedBlurManager Target Connected.");
         }
 
 

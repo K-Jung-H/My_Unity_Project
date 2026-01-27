@@ -871,7 +871,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CarInputManager
   targetCar: {fileID: 1395073120171073071}
   steeringWheelUI: {fileID: 0}
-  gearBoxUI: {fileID: 0}
   accelPedalUI: {fileID: 0}
   brakePedalUI: {fileID: 0}
 --- !u!114 &3113235368605868551
@@ -934,6 +933,7 @@ MonoBehaviour:
   downForce: 5000
   wheelStiffness: 2
   maxAngularVelocity: 5
+  speedMultiplier: 1.2
   slopeForce: 5
   slopeThreshold: 0.1
   minDriftSpeed: 50

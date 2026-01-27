@@ -1,5 +1,19 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!114 &-4039942769778768487
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e94eb4ee52f3ed647a6597e32daf9a7f, type: 3}
+  m_Name: RadialBlurFeature
+  m_EditorClassIdentifier: Assembly-CSharp::RadialBlurFeature
+  m_Active: 1
+  shader: {fileID: 4800000, guid: dc4960ac98f77f74f9c3a2d995372bde, type: 3}
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -26,7 +40,8 @@ MonoBehaviour:
     probeVolumeBlendStatesCS: {fileID: 0}
   m_RendererFeatures:
   - {fileID: 3046855062774980551}
-  m_RendererFeatureMap: c79fcd62899a482a
+  - {fileID: -4039942769778768487}
+  m_RendererFeatureMap: c79fcd62899a482a99c56d96743defc7
   m_UseNativeRenderPass: 0
   xrSystemData: {fileID: 0}
   postProcessData: {fileID: 0}

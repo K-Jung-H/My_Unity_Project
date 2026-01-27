@@ -14,19 +14,12 @@ public struct OutlineFuelState
 }
 
 public enum GearState
-
 {
-
     P = 0,
-
     R = 1,
-
     N = 2,
-
     D = 3
-
 }
-
 
 [RequireComponent(typeof(CarInputManager))]
 [RequireComponent(typeof(CarCameraManager))]
@@ -64,7 +57,6 @@ public class CarController : MonoBehaviour
     [Header("Fuel Settings")]
     public float maxFuel = 100f;
     public float currentFuel = 100f;
-
     public float idleConsumptionRate = 1.0f;
     public float driveConsumptionBase = 2.0f;
     public float speedConsumptionFactor = 0.05f;
@@ -87,6 +79,9 @@ public class CarController : MonoBehaviour
     [Range(0.1f, 3f)] public float wheelStiffness = 2.0f;
     public float maxAngularVelocity = 8.0f;
 
+    [Header("Speedometer Settings")]
+    [SerializeField] private float speedMultiplier = 1.2f;
+
     [Header("Slope Settings")]
     public float slopeForce = 5000f;
     public float slopeThreshold = 0.1f;
@@ -105,20 +100,18 @@ public class CarController : MonoBehaviour
     [Header("Outline Visual States")]
     public List<OutlineFuelState> outlineStates;
 
+    public float CurrentSpeed { get; private set; }
     public GearState currentGear { get; private set; } = GearState.P;
-
     public bool IsDrifting { get; private set; } = false;
-
     public bool IsSkidding { get; private set; } = false;
-    
+
+    private Rigidbody carRigidbody;
     private float currentSteerInput = 0f;
     private float targetSteerInput = 0f;
     private float accelInput;
     private float brakeInput;
-    private Rigidbody carRigidbody;
     private float defaultAngularDamping;
     private float driveDirection = 1f;
-    
     private bool isReverseBraking = false;
     private bool isDead = false;
 
@@ -161,33 +154,12 @@ public class CarController : MonoBehaviour
         }
     }
 
-    private void OnDestroy()
-    {
-        if (healthSystem != null)
-        {
-            healthSystem.OnDeath -= HandlePlayerDeath;
-        }
-    }
-
-    private void HandlePlayerDeath()
-    {
-        if (isDead) return;
-        
-        isDead = true;
-
-        targetSteerInput = 0f;
-        accelInput = 0f;
-        brakeInput = 1f;
-        currentGear = GearState.N;
-
-        OnDeath?.Invoke();
-    }
-
     private void Update()
     {
         if (isDead) return;
 
         ProcessSteeringSmoothing();
+        CalculateDisplaySpeed();
         CalculateFuelConsumption();
         UpdateExhaustParticles();
         UpdateOutlineEffect();
@@ -218,6 +190,14 @@ public class CarController : MonoBehaviour
         ApplyWheelFriction();
     }
 
+    private void OnDestroy()
+    {
+        if (healthSystem != null)
+        {
+            healthSystem.OnDeath -= HandlePlayerDeath;
+        }
+    }
+
     public void SetInputs(float steer, float accel, float brake)
     {
         if (isDead)
@@ -233,6 +213,33 @@ public class CarController : MonoBehaviour
         brakeInput = brake;
     }
 
+    public void ChangeGear(GearState newGear)
+    {
+        if (currentGear == newGear) return;
+        
+        currentGear = newGear;
+        Debug.Log($"Gear Changed to: {currentGear}");
+    }
+
+    public void AddFuel(float amount)
+    {
+        currentFuel += amount;
+        currentFuel = Mathf.Clamp(currentFuel, 0, maxFuel);
+    }
+
+    public void SetFuelCharging(bool isCharging)
+    {
+        if (FuelChargingParticle == null) return;
+        if (isCharging)
+        {
+            if (!FuelChargingParticle.isPlaying) FuelChargingParticle.Play();
+        }
+        else
+        {
+            if (FuelChargingParticle.isPlaying) FuelChargingParticle.Stop(true, ParticleSystemStopBehavior.StopEmitting);
+        }
+    }
+
     public float ValidateAccelInput(float input)
     {
         if (currentFuel <= 0)
@@ -243,6 +250,47 @@ public class CarController : MonoBehaviour
             }
         }
         return input;
+    }
+
+    public void Revive(float fuelRatio, Transform respawnPoint)    
+    {
+        isDead = false;
+        
+        if (fuelRatio > 0f)
+        {
+            currentFuel = currentFuel * fuelRatio;
+        }
+        
+        if (respawnPoint != null)
+        {
+            transform.position = respawnPoint.position;
+            transform.rotation = respawnPoint.rotation;
+        }
+
+        if (carRigidbody != null)
+        {
+            carRigidbody.linearVelocity = Vector3.zero; 
+            carRigidbody.angularVelocity = Vector3.zero;
+        }
+
+        if (FuelChargingParticle != null) FuelChargingParticle.Stop();
+        if (SmokeParticles != null)
+        {
+            foreach(var ps in SmokeParticles) ps.Play();
+        }
+    }
+
+    private void HandlePlayerDeath()
+    {
+        if (isDead) return;
+        
+        isDead = true;
+        targetSteerInput = 0f;
+        accelInput = 0f;
+        brakeInput = 1f;
+        currentGear = GearState.N;
+
+        OnDeath?.Invoke();
     }
 
     private void ProcessSteeringSmoothing()
@@ -257,12 +305,13 @@ public class CarController : MonoBehaviour
         }
     }
 
-    public void ChangeGear(GearState newGear)
+    private void CalculateDisplaySpeed()
     {
-        if (currentGear == newGear) return;
-        
-        currentGear = newGear;
-        Debug.Log($"Gear Changed to: {currentGear}");
+        if (carRigidbody != null)
+        {
+            Vector3 horizontalVelocity = new Vector3(carRigidbody.linearVelocity.x, 0, carRigidbody.linearVelocity.z);
+            CurrentSpeed = horizontalVelocity.magnitude * speedMultiplier;
+        }
     }
 
     private void CalculateFuelConsumption()
@@ -286,25 +335,6 @@ public class CarController : MonoBehaviour
 
         currentFuel -= consumption * Time.deltaTime;
         currentFuel = Mathf.Clamp(currentFuel, 0, maxFuel);
-    }
-
-    public void AddFuel(float amount)
-    {
-        currentFuel += amount;
-        currentFuel = Mathf.Clamp(currentFuel, 0, maxFuel);
-    }
-
-    public void SetFuelCharging(bool isCharging)
-    {
-        if (FuelChargingParticle == null) return;
-        if (isCharging)
-        {
-            if (!FuelChargingParticle.isPlaying) FuelChargingParticle.Play();
-        }
-        else
-        {
-            if (FuelChargingParticle.isPlaying) FuelChargingParticle.Stop(true, ParticleSystemStopBehavior.StopEmitting);
-        }
     }
 
     private void UpdateExhaustParticles()
@@ -397,7 +427,6 @@ public class CarController : MonoBehaviour
 
             if (effectiveAccel > 0.1f)
             {
-
                 if (forwardSpeed * gearDirection < -1.0f)
                 {
                     isReverseBraking = true; 
@@ -636,33 +665,5 @@ public class CarController : MonoBehaviour
         manager.outlineColor = Color.Lerp(from.color, to.color, t);
         manager.blurIntensity = Mathf.Lerp(from.blurIntensity, to.blurIntensity, t);
         manager.outlineThickness = (int)Mathf.Lerp((float)from.thickness, (float)to.thickness, t);
-    }
-
-    public void Revive(float fuelRatio, Transform respawnPoint)    
-    {
-        isDead = false;
-        
-        if (fuelRatio > 0f)
-        {
-            currentFuel = currentFuel * fuelRatio;
-        }
-        
-        if (respawnPoint != null)
-        {
-            transform.position = respawnPoint.position;
-            transform.rotation = respawnPoint.rotation;
-        }
-
-        if (carRigidbody != null)
-        {
-            carRigidbody.linearVelocity = Vector3.zero; 
-            carRigidbody.angularVelocity = Vector3.zero;
-        }
-
-        if (FuelChargingParticle != null) FuelChargingParticle.Stop();
-        if (SmokeParticles != null)
-        {
-            foreach(var ps in SmokeParticles) ps.Play();
-        }
     }
 }

@@ -14,6 +14,7 @@ public class OutlineBlurFeature : ScriptableRendererFeature
     public class Settings
     {
         public LayerMask targetLayer;
+        [Range(0, 2)] public int downsample = 1; 
         public Material maskMaterial;
         public Material blurHorizontalMaterial;
         public Material blurVerticalMaterial;
@@ -33,14 +34,7 @@ public class OutlineBlurFeature : ScriptableRendererFeature
     public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
     {
         if (!IsActive) return;
-
-        if (settings.maskMaterial == null || 
-            settings.blurHorizontalMaterial == null || 
-            settings.blurVerticalMaterial == null || 
-            settings.edgeMaterial == null ||
-            settings.compositeMaterial == null)
-            return;
-
+        if (settings.maskMaterial == null || settings.compositeMaterial == null) return;
         renderer.EnqueuePass(pass);
     }
 
@@ -59,14 +53,7 @@ public class OutlineBlurFeature : ScriptableRendererFeature
         class MaskPassData { public RendererListHandle list; }
         class BlurPassData { public Material mat; public TextureHandle src; }
         class EdgePassData { public Material mat; public TextureHandle mask; }
-        class CompositePassData
-        {
-            public Material mat;
-            public TextureHandle src;
-            public TextureHandle mask;
-            public TextureHandle blur;
-            public TextureHandle edge;
-        }
+        class CompositePassData { public Material mat; public TextureHandle src; public TextureHandle mask; public TextureHandle blur; public TextureHandle edge; }
         class BlitPassData { public TextureHandle src; }
 
         public override void RecordRenderGraph(RenderGraph graph, ContextContainer frameData)
@@ -75,7 +62,6 @@ public class OutlineBlurFeature : ScriptableRendererFeature
             var cameraData = frameData.Get<UniversalCameraData>();
             var renderingData = frameData.Get<UniversalRenderingData>();
 
-            // [핵심 수정] 프리팹 미리보기(Preview)거나, 화면 텍스처가 없으면 렌더링 중단
             if (cameraData.cameraType == CameraType.Preview || !resources.activeColorTexture.IsValid())
                 return;
 
@@ -86,13 +72,12 @@ public class OutlineBlurFeature : ScriptableRendererFeature
             float blurIntensity = settings.compositeMaterial.GetFloat("_BlurIntensity");
             blurIntensity = Mathf.Max(0.0f, blurIntensity);
 
-            TextureDesc maskDesc = new(cameraDesc.width, cameraDesc.height)
-            {
-                colorFormat = GraphicsFormat.R8_UNorm,
-                depthBufferBits = 0,
-                msaaSamples = MSAASamples.None,
-                name = "_OutlineMask"
-            };
+            TextureDesc maskDesc = new TextureDesc(cameraDesc.width, cameraDesc.height);
+            maskDesc.colorFormat = GraphicsFormat.R8_UNorm;
+            maskDesc.depthBufferBits = DepthBits.None;
+            maskDesc.msaaSamples = MSAASamples.None;
+            maskDesc.name = "_OutlineMask";
+            
             var maskTex = graph.CreateTexture(maskDesc);
 
             using (var builder = graph.AddRasterRenderPass<MaskPassData>("Outline Mask Pass", out var data))
@@ -100,9 +85,7 @@ public class OutlineBlurFeature : ScriptableRendererFeature
                 builder.SetRenderAttachment(maskTex, 0, AccessFlags.Write);
                 var drawing = CreateDrawingSettings(shaderTags, cameraData);
                 drawing.overrideMaterial = settings.maskMaterial;
-
                 var filtering = new FilteringSettings(RenderQueueRange.opaque, settings.targetLayer, ExtensionLayerMask);
-                
                 var listParams = new RendererListParams(renderingData.cullResults, drawing, filtering);
                 data.list = graph.CreateRendererList(listParams);
                 builder.UseRendererList(data.list);
@@ -114,14 +97,18 @@ public class OutlineBlurFeature : ScriptableRendererFeature
                 });
             }
 
-            TextureDesc colorDesc = new(cameraDesc.width, cameraDesc.height)
-            {
-                colorFormat = cameraDesc.graphicsFormat,
-                depthBufferBits = 0,
-                name = "_OutlineBlurTemp"
-            };
-            var blurTempTex = graph.CreateTexture(colorDesc);
-            var blurTex = graph.CreateTexture(colorDesc);
+            int blurW = Mathf.Max(1, cameraDesc.width >> settings.downsample);
+            int blurH = Mathf.Max(1, cameraDesc.height >> settings.downsample);
+
+            TextureDesc blurDesc = new TextureDesc(blurW, blurH);
+            blurDesc.colorFormat = cameraDesc.graphicsFormat;
+            blurDesc.depthBufferBits = DepthBits.None;
+            blurDesc.msaaSamples = MSAASamples.None;
+            blurDesc.filterMode = FilterMode.Bilinear;
+            blurDesc.name = "_OutlineBlurTemp";
+
+            var blurTempTex = graph.CreateTexture(blurDesc);
+            var blurTex = graph.CreateTexture(blurDesc);
 
             using (var builder = graph.AddRasterRenderPass<BlurPassData>("Outline Blur Horizontal", out var data))
             {
@@ -132,11 +119,10 @@ public class OutlineBlurFeature : ScriptableRendererFeature
                 builder.SetRenderFunc((BlurPassData d, RasterGraphContext ctx) =>
                 {
                     ctx.cmd.ClearRenderTarget(false, true, Color.black);
-                    // 여기서 d.src가 유효한지 체크해야 안전함
                     if (d.src.IsValid())
                     {
                         d.mat.SetTexture("_BlitTexture", d.src);
-                        d.mat.SetVector("_BlitTexture_TexelSize", new Vector4(1f/cameraDesc.width, 1f/cameraDesc.height, cameraDesc.width, cameraDesc.height));
+                        d.mat.SetVector("_BlitTexture_TexelSize", new Vector4(1f/blurW, 1f/blurH, blurW, blurH));
                         d.mat.SetFloat("_BlurScale", blurIntensity);
                         Blitter.BlitTexture(ctx.cmd, d.src, new Vector4(1, 1, 0, 0), d.mat, 0);
                     }
@@ -153,13 +139,13 @@ public class OutlineBlurFeature : ScriptableRendererFeature
                 {
                     ctx.cmd.ClearRenderTarget(false, true, Color.black);
                     d.mat.SetTexture("_BlitTexture", d.src);
-                    d.mat.SetVector("_BlitTexture_TexelSize", new Vector4(1f/cameraDesc.width, 1f/cameraDesc.height, cameraDesc.width, cameraDesc.height));
+                    d.mat.SetVector("_BlitTexture_TexelSize", new Vector4(1f/blurW, 1f/blurH, blurW, blurH));
                     d.mat.SetFloat("_BlurScale", blurIntensity);
                     Blitter.BlitTexture(ctx.cmd, d.src, new Vector4(1, 1, 0, 0), d.mat, 0);
                 });
             }
 
-            var edgeTex = graph.CreateTexture(maskDesc);
+            var edgeTex = graph.CreateTexture(maskDesc); 
             using (var builder = graph.AddRasterRenderPass<EdgePassData>("Outline Edge Gen", out var data))
             {
                 data.mat = settings.edgeMaterial;
@@ -175,7 +161,14 @@ public class OutlineBlurFeature : ScriptableRendererFeature
                 });
             }
 
-            var compositeTex = graph.CreateTexture(colorDesc);
+            TextureDesc compositeDesc = new TextureDesc(cameraDesc.width, cameraDesc.height);
+            compositeDesc.colorFormat = cameraDesc.graphicsFormat;
+            compositeDesc.depthBufferBits = DepthBits.None;
+            compositeDesc.msaaSamples = MSAASamples.None;
+            compositeDesc.name = "_OutlineComposite";
+            
+            var compositeTex = graph.CreateTexture(compositeDesc);
+
             using (var builder = graph.AddRasterRenderPass<CompositePassData>("Outline Composite", out var data))
             {
                 data.mat = settings.compositeMaterial;
