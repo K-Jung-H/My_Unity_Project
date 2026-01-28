@@ -22,6 +22,7 @@ public class GameSceneBuilder : MonoBehaviour
 
     [Header("PostProcess Systems")]
     public SpeedBlurManager speedBlurManager;
+    public SpeedLineManager speedLineManager;
 
     private void Awake()
     {
@@ -68,6 +69,9 @@ public class GameSceneBuilder : MonoBehaviour
         if (EffectManager.Instance != null) EffectManager.Instance.Initialize();
         else if (effectManager != null) effectManager.Initialize();
 
+        if (SpeedLineManager.Instance != null) SpeedLineManager.Instance.Initialize();
+        else if (speedLineManager != null) speedLineManager.Initialize();
+
         if(SpeedBlurManager.Instance != null) SpeedBlurManager.Instance.Initialize();
         else if (speedBlurManager != null) speedBlurManager.Initialize();
 
@@ -75,6 +79,12 @@ public class GameSceneBuilder : MonoBehaviour
         if (localCar != null && PlayerUIManager.Instance != null)
         {
             PlayerUIManager.Instance.SetupPlayerUI(localCar);
+        }
+
+        if (localCar != null && SpeedLineManager.Instance != null)
+        {
+            SpeedLineManager.Instance.SetTargetCar(localCar);
+            Debug.Log("GameSceneBuilder: SpeedLineManager Target Connected.");
         }
 
         if (localCar != null && SpeedBlurManager.Instance != null)

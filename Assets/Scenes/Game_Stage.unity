@@ -3044,6 +3044,7 @@ GameObject:
   m_Component:
   - component: {fileID: 764541217}
   - component: {fileID: 764541218}
+  - component: {fileID: 764541219}
   m_Layer: 0
   m_Name: EffectManager
   m_TagString: Untagged
@@ -3082,6 +3083,35 @@ MonoBehaviour:
   - key: Explosion
     prefab: {fileID: 1990747841027859044, guid: 5500f1520d265b94ba716dd56111e324, type: 3}
     poolSize: 20
+--- !u!114 &764541219
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 764541216}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2f1053b3a5b78f646bcaa2d6a3c667c4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SpeedLineManager
+  _effectContainer: {fileID: 764541217}
+  _effectorPrefabs:
+  - {fileID: 963694877346309872, guid: 7263b0b76a1177a42b5ff82c7e440be8, type: 3}
+  _speedTable:
+  - speedThreshold: 60
+    emissionRate: 40
+    radius: 15
+    startSize: {x: 1, y: 6, z: 2}
+  - speedThreshold: 80
+    emissionRate: 80
+    radius: 20
+    startSize: {x: 1, y: 7, z: 1}
+  - speedThreshold: 120
+    emissionRate: 120
+    radius: 20
+    startSize: {x: 1, y: 8, z: 1}
+  _smoothing: 5
 --- !u!1 &776037651
 GameObject:
   m_ObjectHideFlags: 0
@@ -3980,6 +4010,7 @@ MonoBehaviour:
   playerManager: {fileID: 595181224}
   enemySpawnManager: {fileID: 16981857}
   speedBlurManager: {fileID: 472318683}
+  speedLineManager: {fileID: 764541219}
 --- !u!114 &1023815565
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6531,7 +6562,7 @@ Camera:
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
-    m_Bits: 4294967295
+    m_Bits: 4294963199
   m_RenderingPath: -1
   m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0
