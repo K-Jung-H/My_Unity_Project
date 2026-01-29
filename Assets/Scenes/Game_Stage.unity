@@ -2280,13 +2280,26 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 484762d23e688254faf55f09c07fe585, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::OutlineBlurManager
-  edgeMaterial: {fileID: 2100000, guid: e3343ba6180ca0f48abc9de8fd6d0d3b, type: 2}
-  compositeMaterial: {fileID: 2100000, guid: 6b2726f91081a8f45a73cc1e94397a64, type: 2}
+  globalVolume: {fileID: 520135406}
+  outlineStates:
+  - fuelRatio: 0.5
+    color: {r: 1, g: 0.9321854, b: 0, a: 0}
+    blurIntensity: 1
+    outlineThickness: 2
+  - fuelRatio: 0.4
+    color: {r: 1, g: 0.55878204, b: 0, a: 0}
+    blurIntensity: 2
+    outlineThickness: 2
+  - fuelRatio: 0.3
+    color: {r: 1, g: 0, b: 0, a: 0}
+    blurIntensity: 3
+    outlineThickness: 2
   isOutlineActive: 1
-  outlineColor: {r: 0.552763, g: 1, b: 0.015686274, a: 1}
-  outlineThickness: 1
-  blurIntensity: 0
-  renderingLayerMask: 2
+  currentOutlineState:
+    fuelRatio: 0
+    color: {r: 0, g: 0, b: 0, a: 0}
+    blurIntensity: 0
+    outlineThickness: 0
 --- !u!114 &472318683
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4009,6 +4022,7 @@ MonoBehaviour:
   dynamicChunkManager: {fileID: 120063262}
   playerManager: {fileID: 595181224}
   enemySpawnManager: {fileID: 16981857}
+  outlineBlurManager: {fileID: 472318682}
   speedBlurManager: {fileID: 472318683}
   speedLineManager: {fileID: 764541219}
 --- !u!114 &1023815565
