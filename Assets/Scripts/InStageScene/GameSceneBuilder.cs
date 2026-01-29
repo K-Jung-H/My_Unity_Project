@@ -21,6 +21,7 @@ public class GameSceneBuilder : MonoBehaviour
     public EnemySpawnManager enemySpawnManager;
 
     [Header("PostProcess Systems")]
+    public OutlineBlurManager outlineBlurManager;
     public SpeedBlurManager speedBlurManager;
     public SpeedLineManager speedLineManager;
 
@@ -69,6 +70,9 @@ public class GameSceneBuilder : MonoBehaviour
         if (EffectManager.Instance != null) EffectManager.Instance.Initialize();
         else if (effectManager != null) effectManager.Initialize();
 
+        if (OutlineBlurManager.Instance != null) OutlineBlurManager.Instance.Initialize();
+        else if (outlineBlurManager != null) outlineBlurManager.Initialize();
+
         if (SpeedLineManager.Instance != null) SpeedLineManager.Instance.Initialize();
         else if (speedLineManager != null) speedLineManager.Initialize();
 
@@ -81,10 +85,10 @@ public class GameSceneBuilder : MonoBehaviour
             PlayerUIManager.Instance.SetupPlayerUI(localCar);
         }
 
-        if (localCar != null && SpeedLineManager.Instance != null)
+        if (localCar != null && OutlineBlurManager.Instance != null)
         {
-            SpeedLineManager.Instance.SetTargetCar(localCar);
-            Debug.Log("GameSceneBuilder: SpeedLineManager Target Connected.");
+            OutlineBlurManager.Instance.SetTargetCar(localCar);
+            Debug.Log("GameSceneBuilder: OutlineBlurManager Target Connected.");
         }
 
         if (localCar != null && SpeedBlurManager.Instance != null)
@@ -93,6 +97,11 @@ public class GameSceneBuilder : MonoBehaviour
             Debug.Log("GameSceneBuilder: SpeedBlurManager Target Connected.");
         }
 
+        if (localCar != null && SpeedLineManager.Instance != null)
+        {
+            SpeedLineManager.Instance.SetTargetCar(localCar);
+            Debug.Log("GameSceneBuilder: SpeedLineManager Target Connected.");
+        }
 
         if (GameFlowManager.Instance != null)
         {

@@ -3,16 +3,6 @@ using System.Collections.Generic;
 using System;
 using System.Linq;
 
-[System.Serializable]
-public struct OutlineFuelState
-{
-    [Range(0f, 1f)]
-    public float fuelRatio;
-    public Color color;
-    [Range(0f, 5f)] public float blurIntensity;
-    [Range(1, 10)] public int thickness;
-}
-
 public enum GearState
 {
     P = 0,
@@ -97,8 +87,6 @@ public class CarController : MonoBehaviour
     [Range(0.1f, 0.8f)] public float driftSteerThreshold = 0.3f;
     [Range(0.5f, 1f)] public float autoDriftThreshold = 0.9f;
 
-    [Header("Outline Visual States")]
-    public List<OutlineFuelState> outlineStates;
 
     public float CurrentSpeed { get; private set; }
     public GearState currentGear { get; private set; } = GearState.P;
@@ -143,11 +131,6 @@ public class CarController : MonoBehaviour
         if(FuelChargingParticle != null)
             FuelChargingParticle.Stop();
 
-        if (outlineStates != null && outlineStates.Count > 0)
-        {
-            outlineStates.Sort((a, b) => b.fuelRatio.CompareTo(a.fuelRatio));
-        }
-
         if (healthSystem != null)
         {
             healthSystem.OnDeath += HandlePlayerDeath;
@@ -162,7 +145,6 @@ public class CarController : MonoBehaviour
         CalculateDisplaySpeed();
         CalculateFuelConsumption();
         UpdateExhaustParticles();
-        UpdateOutlineEffect();
     }
 
     private void FixedUpdate()
@@ -624,46 +606,5 @@ public class CarController : MonoBehaviour
         rearRightCollider.sidewaysFriction = sidewaysFriction;
     }
 
-    private void UpdateOutlineEffect()
-    {
-        if (OutlineBlurManager.Instance == null) return;
-        if (outlineStates == null || outlineStates.Count == 0) return;
-
-        float currentRatio = currentFuel / maxFuel;
-        float maxThreshold = outlineStates[0].fuelRatio;
-
-        if (currentRatio > maxThreshold)
-        {
-            if (OutlineBlurManager.Instance.isOutlineActive)
-                OutlineBlurManager.Instance.isOutlineActive = false;
-            return;
-        }
-
-        OutlineBlurManager.Instance.isOutlineActive = true;
-
-        for (int i = 0; i < outlineStates.Count - 1; i++)
-        {
-            OutlineFuelState upper = outlineStates[i];
-            OutlineFuelState lower = outlineStates[i + 1];
-
-            if (currentRatio <= upper.fuelRatio && currentRatio >= lower.fuelRatio)
-            {
-                float range = upper.fuelRatio - lower.fuelRatio;
-                float t = (range == 0) ? 0 : (upper.fuelRatio - currentRatio) / range;
-                ApplyInterpolatedOutline(upper, lower, t);
-                return;
-            }
-        }
-
-        OutlineFuelState lastState = outlineStates[outlineStates.Count - 1];
-        ApplyInterpolatedOutline(lastState, lastState, 0);
-    }
-
-    private void ApplyInterpolatedOutline(OutlineFuelState from, OutlineFuelState to, float t)
-    {
-        var manager = OutlineBlurManager.Instance;
-        manager.outlineColor = Color.Lerp(from.color, to.color, t);
-        manager.blurIntensity = Mathf.Lerp(from.blurIntensity, to.blurIntensity, t);
-        manager.outlineThickness = (int)Mathf.Lerp((float)from.thickness, (float)to.thickness, t);
-    }
+    
 }

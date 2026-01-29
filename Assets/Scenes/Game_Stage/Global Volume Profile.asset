@@ -44,6 +44,28 @@ MonoBehaviour:
   downsample:
     m_OverrideState: 1
     m_Value: 1
+--- !u!114 &-2933948757906604881
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 0}
+  m_Name: RadialBlurVolume
+  m_EditorClassIdentifier: Assembly-CSharp::RadialBlurVolume
+  active: 1
+  intensity:
+    m_OverrideState: 1
+    m_Value: 0
+  sampleCount:
+    m_OverrideState: 1
+    m_Value: 10
+  downsample:
+    m_OverrideState: 1
+    m_Value: 0
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -57,7 +79,8 @@ MonoBehaviour:
   m_Name: Global Volume Profile
   m_EditorClassIdentifier: Unity.RenderPipelines.Core.Runtime::UnityEngine.Rendering.VolumeProfile
   components:
-  - {fileID: -3792239762640072106}
+  - {fileID: -2933948757906604881}
+  - {fileID: 2466948583473520344}
 --- !u!114 &621392178993920234
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -79,6 +102,42 @@ MonoBehaviour:
     m_Value: 10
   downsample:
     m_OverrideState: 0
+    m_Value: 1
+--- !u!114 &2466948583473520344
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 0}
+  m_Name: OutlineBlurVolume
+  m_EditorClassIdentifier: Assembly-CSharp::OutlineBlurVolume
+  active: 1
+  isActive:
+    m_OverrideState: 1
+    m_Value: 1
+  optimizeLayer:
+    m_OverrideState: 1
+    m_Value:
+      serializedVersion: 2
+      m_Bits: 4032
+  downsample:
+    m_OverrideState: 1
+    m_Value: 0
+  targetLightLayer:
+    m_OverrideState: 1
+    m_Value: 2
+  outlineColor:
+    m_OverrideState: 1
+    m_Value: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  outlineThickness:
+    m_OverrideState: 1
+    m_Value: 1
+  blurIntensity:
+    m_OverrideState: 1
     m_Value: 1
 --- !u!114 &7305975002116128833
 MonoBehaviour:

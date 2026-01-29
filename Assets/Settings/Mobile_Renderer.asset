@@ -25,9 +25,9 @@ MonoBehaviour:
     probeSamplingDebugTexture: {fileID: 0}
     probeVolumeBlendStatesCS: {fileID: 0}
   m_RendererFeatures:
-  - {fileID: 6005856812727104633}
+  - {fileID: 7284636688940443829}
   - {fileID: 5612684099535086234}
-  m_RendererFeatureMap: 79747566f31659539aa245857342e44d
+  m_RendererFeatureMap: b5a81212793a18659aa245857342e44d
   m_UseNativeRenderPass: 1
   xrSystemData: {fileID: 0}
   postProcessData: {fileID: 11400000, guid: 41439944d30ece34e96484bdb6645b55, type: 2}
@@ -70,7 +70,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::RadialBlurFeature
   m_Active: 1
   shader: {fileID: 4800000, guid: dc4960ac98f77f74f9c3a2d995372bde, type: 3}
---- !u!114 &6005856812727104633
+--- !u!114 &7284636688940443829
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -84,10 +84,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::OutlineBlurFeature
   m_Active: 1
   settings:
-    targetLayer:
-      serializedVersion: 2
-      m_Bits: 3968
-    downsample: 1
     maskMaterial: {fileID: 2100000, guid: b6d414ccc10cacd418ed0d2538de1aa5, type: 2}
     blurHorizontalMaterial: {fileID: 2100000, guid: c1f8f39ecb6dd1248b35b16d5c18b808, type: 2}
     blurVerticalMaterial: {fileID: 2100000, guid: 972dfa112f9ad984a818d929e861be77, type: 2}
