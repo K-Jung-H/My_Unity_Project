@@ -7,15 +7,8 @@ using Unity.AI.Navigation;
 
 public class ChunkBaker : EditorWindow
 {
-    public enum NavMeshBakeMode
-    {
-        RenderMeshes,
-        PhysicsColliders
-    }
-
     private GameObject sourcePrefab;
-    private string outputPath = "Assets/Resources/Chunks";
-    private NavMeshBakeMode navMeshMode = NavMeshBakeMode.PhysicsColliders;
+    private string outputPath = "Assets/Resources/Chunks - Baked";
 
     [MenuItem("Tools/Chunk Baker")]
     public static void ShowWindow()
@@ -29,7 +22,6 @@ public class ChunkBaker : EditorWindow
 
         sourcePrefab = (GameObject)EditorGUILayout.ObjectField("Source Prefab", sourcePrefab, typeof(GameObject), false);
         outputPath = EditorGUILayout.TextField("Output Path", outputPath);
-        navMeshMode = (NavMeshBakeMode)EditorGUILayout.EnumPopup("NavMesh Geometry", navMeshMode);
 
         GUILayout.Space(10);
 
@@ -65,19 +57,21 @@ public class ChunkBaker : EditorWindow
         Transform physicsRoot = new GameObject("Physics_Root").transform;
         physicsRoot.SetParent(staticGroup);
 
-        Transform logicRootDefault = new GameObject("Logic_Root").transform;
-        logicRootDefault.SetParent(bakedRoot.transform);
+        Transform extractedLogicRoot = new GameObject("Extracted_Logic").transform;
+        extractedLogicRoot.SetParent(bakedRoot.transform);
 
         Transform dynamicPropsRoot = new GameObject("Dynamic_Props_Root").transform;
         dynamicPropsRoot.SetParent(bakedRoot.transform);
 
         foreach (Transform child in tempSource.transform)
         {
-            ProcessRecursive(child, ChunkObjectType.None, visualRoot, physicsRoot, logicRootDefault, dynamicPropsRoot, bakedRoot.transform);
+            ProcessRecursive(child, ChunkObjectType.None, visualRoot, physicsRoot, extractedLogicRoot, dynamicPropsRoot, bakedRoot.transform);
         }
 
-        if (logicRootDefault.childCount == 0) DestroyImmediate(logicRootDefault.gameObject);
+        if (extractedLogicRoot.childCount == 0) DestroyImmediate(extractedLogicRoot.gameObject);
         if (dynamicPropsRoot.childCount == 0) DestroyImmediate(dynamicPropsRoot.gameObject);
+
+        AttachRootComponents(bakedRoot);
 
         string fileName = bakedRoot.name + ".prefab";
         string fullPath = Path.Combine(outputPath, fileName);
@@ -87,6 +81,12 @@ public class ChunkBaker : EditorWindow
 
         DestroyImmediate(tempSource);
         DestroyImmediate(bakedRoot);
+    }
+
+    private void AttachRootComponents(GameObject root)
+    {
+        NavMeshSurface surface = root.AddComponent<NavMeshSurface>();
+        surface.collectObjects = CollectObjects.Children;
     }
 
     private void ProcessRecursive(Transform currentSource, ChunkObjectType inheritedType, Transform visualRoot, Transform physicsRoot, Transform logicRoot, Transform dynamicRoot, Transform bakedRoot)
@@ -202,6 +202,7 @@ public class ChunkBaker : EditorWindow
         {
             if (script == null) continue;
             if (script is ChunkObj) continue;
+            if (script is NavMeshModifier) continue;
             return true;
         }
         return false;
@@ -227,15 +228,6 @@ public class ChunkBaker : EditorWindow
             if (!(script is ChunkObj))
             {
                 DestroyImmediate(script);
-            }
-        }
-
-        if (navMeshMode == NavMeshBakeMode.PhysicsColliders)
-        {
-            var modifier = obj.GetComponent<NavMeshModifier>();
-            if (modifier != null)
-            {
-                DestroyImmediate(modifier);
             }
         }
 
@@ -268,18 +260,9 @@ public class ChunkBaker : EditorWindow
         var scripts = obj.GetComponents<MonoBehaviour>();
         foreach (var script in scripts)
         {
-            if (!(script is ChunkObj))
+            if (!(script is ChunkObj) && !(script is NavMeshModifier))
             {
                 DestroyImmediate(script);
-            }
-        }
-
-        if (navMeshMode == NavMeshBakeMode.RenderMeshes)
-        {
-            var modifier = obj.GetComponent<NavMeshModifier>();
-            if (modifier != null)
-            {
-                DestroyImmediate(modifier);
             }
         }
 

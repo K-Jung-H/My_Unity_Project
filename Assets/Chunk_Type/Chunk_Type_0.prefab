@@ -3678,6 +3678,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4872293012842002494}
+  - component: {fileID: 930352099825322084}
   m_Layer: 0
   m_Name: Links_Root
   m_TagString: Untagged
@@ -3702,6 +3703,19 @@ Transform:
   - {fileID: 3361211342121753045}
   m_Father: {fileID: 6434603693405212917}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &930352099825322084
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 802176350081161781}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c99888ab8d95bff4c952fae41a17395d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ChunkObj
+  type: 5
 --- !u!1 &808868673379621540
 GameObject:
   m_ObjectHideFlags: 0
@@ -4859,7 +4873,7 @@ MonoBehaviour:
   m_Center: {x: 0, y: 2, z: 0}
   m_LayerMask:
     serializedVersion: 2
-    m_Bits: 1728
+    m_Bits: 704
   m_UseGeometry: 1
   m_DefaultArea: 0
   m_GenerateLinks: 0
@@ -14070,8 +14084,7 @@ Transform:
   - {fileID: 3066234542267571086}
   - {fileID: 6294115497931118615}
   - {fileID: 4872293012842002494}
-  - {fileID: 9086101566477311100}
-  - {fileID: 5689921957994553956}
+  - {fileID: 3912321691997720367}
   m_Father: {fileID: 216742637970844048}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &3183690393056169506
@@ -17211,7 +17224,7 @@ GameObject:
   m_Component:
   - component: {fileID: 9086101566477311100}
   m_Layer: 0
-  m_Name: Enemy_SpawnPoint_Root
+  m_Name: Enemy
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -17225,7 +17238,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3954890468923693524}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -17233,7 +17246,7 @@ Transform:
   - {fileID: 1850026818898154636}
   - {fileID: 4916044373373857196}
   - {fileID: 5045228389664682139}
-  m_Father: {fileID: 6434603693405212917}
+  m_Father: {fileID: 3912321691997720367}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &3963667011699684014
 GameObject:
@@ -25749,7 +25762,7 @@ GameObject:
   m_Component:
   - component: {fileID: 5689921957994553956}
   m_Layer: 0
-  m_Name: Player_SpawnPoint_Root
+  m_Name: Player
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -25771,7 +25784,7 @@ Transform:
   - {fileID: 5598643388357959023}
   - {fileID: 2381950887337563101}
   - {fileID: 4273822654723225536}
-  m_Father: {fileID: 6434603693405212917}
+  m_Father: {fileID: 3912321691997720367}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &5667072655024859123
 GameObject:
@@ -28228,6 +28241,53 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!1 &6183919825940471324
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3912321691997720367}
+  - component: {fileID: 4476352148429597633}
+  m_Layer: 0
+  m_Name: SpawnPoint
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3912321691997720367
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6183919825940471324}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 9086101566477311100}
+  - {fileID: 5689921957994553956}
+  m_Father: {fileID: 6434603693405212917}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &4476352148429597633
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6183919825940471324}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c99888ab8d95bff4c952fae41a17395d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ChunkObj
+  type: 5
 --- !u!1 &6196797191010383819
 GameObject:
   m_ObjectHideFlags: 0
