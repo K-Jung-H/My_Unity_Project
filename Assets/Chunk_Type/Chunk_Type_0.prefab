@@ -7970,6 +7970,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f61f276861ce8c446957b3259a105ef9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ChunkController
+  originalChunkName: 
   playerSpawnPoints:
   - {fileID: 5598643388357959023}
   - {fileID: 2381950887337563101}
