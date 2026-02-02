@@ -7,6 +7,8 @@ public class ChunkController : MonoBehaviour
     [HideInInspector] public string originalChunkName;
 
     [Header("Spawn Settings")]
+    [SerializeField] private Transform playerSpawnRoot;
+    [SerializeField] private Transform enemySpawnRoot;
     public List<Transform> playerSpawnPoints = new List<Transform>();
     public List<Transform> enemySpawnPoints = new List<Transform>();
 
@@ -18,7 +20,24 @@ public class ChunkController : MonoBehaviour
 
     public Vector2Int Coord { get; private set; }
 
-    [SerializeField] private DestructibleProp[] props;
+    [SerializeField] public DestructibleProp[] props;
+
+    private void OnValidate()
+    {
+        UpdateSpawnPoints(playerSpawnRoot, playerSpawnPoints);
+        UpdateSpawnPoints(enemySpawnRoot, enemySpawnPoints);
+    }
+
+    private void UpdateSpawnPoints(Transform root, List<Transform> list)
+    {
+        if (root == null) return;
+
+        list.Clear();
+        foreach (Transform child in root)
+        {
+            list.Add(child);
+        }
+    }
 
     void Awake()
     {

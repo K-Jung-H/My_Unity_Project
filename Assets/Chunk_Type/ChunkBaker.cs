@@ -38,7 +38,7 @@ public class ChunkBaker : EditorWindow
         }
     }
 
-    private void BakeChunk()
+private void BakeChunk()
     {
         if (!Directory.Exists(outputPath))
         {
@@ -68,10 +68,22 @@ public class ChunkBaker : EditorWindow
             ProcessRecursive(child, ChunkObjectType.None, visualRoot, physicsRoot, extractedLogicRoot, dynamicPropsRoot, bakedRoot.transform);
         }
 
-        if (extractedLogicRoot.childCount == 0) DestroyImmediate(extractedLogicRoot.gameObject);
-        if (dynamicPropsRoot.childCount == 0) DestroyImmediate(dynamicPropsRoot.gameObject);
+        if (extractedLogicRoot.childCount == 0) 
+        {
+            DestroyImmediate(extractedLogicRoot.gameObject);
+        }
 
-        AttachRootComponents(bakedRoot);
+        GameObject finalPropsRoot = null;
+        if (dynamicPropsRoot.childCount > 0)
+        {
+            finalPropsRoot = dynamicPropsRoot.gameObject;
+        }
+        else
+        {
+            DestroyImmediate(dynamicPropsRoot.gameObject);
+        }
+
+        AttachRootComponents(bakedRoot, visualRoot.gameObject, physicsRoot.gameObject, finalPropsRoot);
 
         string fileName = bakedRoot.name + ".prefab";
         string fullPath = Path.Combine(outputPath, fileName);
@@ -83,10 +95,16 @@ public class ChunkBaker : EditorWindow
         DestroyImmediate(bakedRoot);
     }
 
-    private void AttachRootComponents(GameObject root)
+    private void AttachRootComponents(GameObject root, GameObject visual, GameObject physics, GameObject props)
     {
         NavMeshSurface surface = root.AddComponent<NavMeshSurface>();
         surface.collectObjects = CollectObjects.Children;
+
+        ChunkController controller = root.AddComponent<ChunkController>();
+        
+        controller.visualRoot = visual;
+        controller.physicsRoot = physics;
+        controller.propsRoot = props; 
     }
 
     private void ProcessRecursive(Transform currentSource, ChunkObjectType inheritedType, Transform visualRoot, Transform physicsRoot, Transform logicRoot, Transform dynamicRoot, Transform bakedRoot)
@@ -98,31 +116,50 @@ public class ChunkBaker : EditorWindow
             currentType = chunkObj.type;
         }
 
+        if (currentType == ChunkObjectType.Prop)
+        {
+            GameObject propCopy = null;
+            
+            if (PrefabUtility.IsAnyPrefabInstanceRoot(currentSource.gameObject))
+            {
+                var sourceAsset = PrefabUtility.GetCorrespondingObjectFromSource(currentSource.gameObject);
+                if (sourceAsset != null)
+                {
+                    propCopy = (GameObject)PrefabUtility.InstantiatePrefab(sourceAsset);
+                }
+            }
+
+            if (propCopy == null)
+            {
+                propCopy = Instantiate(currentSource.gameObject);
+                propCopy.name = currentSource.name;
+            }
+
+            if (propCopy != null)
+            {
+                propCopy.transform.SetParent(dynamicRoot);
+                propCopy.transform.localPosition = currentSource.localPosition;
+                propCopy.transform.localRotation = currentSource.localRotation;
+                propCopy.transform.localScale = currentSource.localScale;
+
+                var cObj = propCopy.GetComponent<ChunkObj>();
+                if (cObj != null) DestroyImmediate(cObj);
+            }
+            
+            return; 
+        }
+
         if (currentType == ChunkObjectType.Logic)
         {
             GameObject logicCopy = Instantiate(currentSource.gameObject);
             logicCopy.name = currentSource.name;
 
             if (currentSource.parent.parent == null)
-            {
                 logicCopy.transform.SetParent(bakedRoot);
-            }
             else
-            {
                 logicCopy.transform.SetParent(logicRoot);
-            }
 
             CleanupChunkObjRecursive(logicCopy.transform);
-            return;
-        }
-
-        if (currentType == ChunkObjectType.Prop)
-        {
-            GameObject propCopy = Instantiate(currentSource.gameObject);
-            propCopy.name = currentSource.name;
-            propCopy.transform.SetParent(dynamicRoot);
-
-            CleanupChunkObjRecursive(propCopy.transform);
             return;
         }
 
@@ -138,6 +175,7 @@ public class ChunkBaker : EditorWindow
             ProcessRecursive(child, currentType, visualRoot, physicsRoot, logicRoot, dynamicRoot, bakedRoot);
         }
     }
+
 
     private void CleanupChunkObjRecursive(Transform target)
     {

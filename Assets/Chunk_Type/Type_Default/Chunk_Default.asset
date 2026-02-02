@@ -10,9 +10,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f0b6cb93cb80d1744b9df9c510e6dad6, type: 3}
-  m_Name: Chunk_1
+  m_Name: Chunk_Default
   m_EditorClassIdentifier: Assembly-CSharp::ChunkData
-  chunkName: Chunk_1
-  chunkPrefab: {fileID: 578888045295363231, guid: 1fd1502e4ccad284f8154c7fe3407b5d, type: 3}
-  icon: {fileID: 21300000, guid: 4b3cb5892482dea4faa9b389b1486eec, type: 3}
-  isMandatory: 0
+  chunkName: Chunk_Default
+  chunkPrefab: {fileID: 892080352932556790, guid: 3f42d15baea3f06458ee6d7ae59820e3, type: 3}
+  icon: {fileID: 21300000, guid: f0342a43bb1b5d04c96f2fb4e33a43bf, type: 3}
+  isMandatory: 1
+  spawnWeight: 10
