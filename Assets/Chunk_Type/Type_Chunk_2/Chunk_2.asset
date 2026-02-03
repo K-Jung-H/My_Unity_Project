@@ -12,7 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f0b6cb93cb80d1744b9df9c510e6dad6, type: 3}
   m_Name: Chunk_2
   m_EditorClassIdentifier: Assembly-CSharp::ChunkData
-  chunkName: Chunk_2
-  chunkPrefab: {fileID: 291280986102999547, guid: dd940403524c89d47bc19734be1f8d47, type: 3}
-  icon: {fileID: 21300000, guid: ce6c1be8d87b3c54c8392a21e6d82873, type: 3}
+  chunkName: City - Rocky
+  chunkPrefab: {fileID: 4406135039271612634, guid: 9c67f7bbbceb9804d8643cf5f6d835e2, type: 3}
+  icon: {fileID: 21300000, guid: d0da33d68465de441a1abdc4fe531015, type: 3}
   isMandatory: 0
+  spawnWeight: 10

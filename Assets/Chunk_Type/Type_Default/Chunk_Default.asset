@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f0b6cb93cb80d1744b9df9c510e6dad6, type: 3}
   m_Name: Chunk_Default
   m_EditorClassIdentifier: Assembly-CSharp::ChunkData
-  chunkName: Chunk_Default
+  chunkName: City - Default
   chunkPrefab: {fileID: 892080352932556790, guid: 3f42d15baea3f06458ee6d7ae59820e3, type: 3}
   icon: {fileID: 21300000, guid: f0342a43bb1b5d04c96f2fb4e33a43bf, type: 3}
   isMandatory: 1

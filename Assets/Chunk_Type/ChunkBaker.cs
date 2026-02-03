@@ -20,7 +20,20 @@ public class ChunkBaker : EditorWindow
     {
         GUILayout.Label("Chunk Bake Settings", EditorStyles.boldLabel);
 
+        EditorGUI.BeginChangeCheck();
         sourcePrefab = (GameObject)EditorGUILayout.ObjectField("Source Prefab", sourcePrefab, typeof(GameObject), false);
+        if (EditorGUI.EndChangeCheck())
+        {
+            if (sourcePrefab != null)
+            {
+                string assetPath = AssetDatabase.GetAssetPath(sourcePrefab);
+                if (!string.IsNullOrEmpty(assetPath))
+                {
+                    outputPath = Path.GetDirectoryName(assetPath).Replace("\\", "/");
+                }
+            }
+        }
+
         outputPath = EditorGUILayout.TextField("Output Path", outputPath);
 
         GUILayout.Space(10);
@@ -38,7 +51,7 @@ public class ChunkBaker : EditorWindow
         }
     }
 
-private void BakeChunk()
+    private void BakeChunk()
     {
         if (!Directory.Exists(outputPath))
         {
@@ -87,6 +100,8 @@ private void BakeChunk()
 
         string fileName = bakedRoot.name + ".prefab";
         string fullPath = Path.Combine(outputPath, fileName);
+        
+        fullPath = fullPath.Replace("\\", "/");
 
         PrefabUtility.SaveAsPrefabAsset(bakedRoot, fullPath);
         Debug.Log($"Chunk Baked Successfully: {fullPath}");
@@ -175,7 +190,6 @@ private void BakeChunk()
             ProcessRecursive(child, currentType, visualRoot, physicsRoot, logicRoot, dynamicRoot, bakedRoot);
         }
     }
-
 
     private void CleanupChunkObjRecursive(Transform target)
     {
