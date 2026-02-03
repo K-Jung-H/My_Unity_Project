@@ -20,7 +20,13 @@ public class RadialBlurFeature : ScriptableRendererFeature
 
     public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
     {
-        if (material != null) renderer.EnqueuePass(renderPass);
+        var stack = VolumeManager.instance.stack;
+        var volume = stack.GetComponent<RadialBlurVolume>();
+
+        if (material != null && volume != null && volume.IsActive())
+        {
+            renderer.EnqueuePass(renderPass);
+        }
     }
 
     protected override void Dispose(bool disposing) { CoreUtils.Destroy(material); }
@@ -48,7 +54,10 @@ public class RadialBlurFeature : ScriptableRendererFeature
             var resourceData = frameData.Get<UniversalResourceData>();
             var cameraData = frameData.Get<UniversalCameraData>();
 
-            if (cameraData.cameraType == CameraType.Preview || !resourceData.activeColorTexture.IsValid())
+            if (cameraData.camera.cameraType != CameraType.Game) 
+                return;
+
+            if (!resourceData.activeColorTexture.IsValid())
                 return;
 
             TextureHandle sourceTexture = resourceData.activeColorTexture;

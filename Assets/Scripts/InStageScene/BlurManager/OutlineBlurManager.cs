@@ -123,22 +123,24 @@ public class OutlineBlurManager : MonoBehaviour
     {
         if (globalVolume == null || globalVolume.profile == null) return;
 
+
+
         if (globalVolume.profile.TryGet(out OutlineBlurVolume volumeComponent))
         {
-            volumeComponent.isActive.overrideState = true;
+            volumeComponent.isActive.overrideState = true; 
             volumeComponent.isActive.value = isOutlineActive;
 
             if (isOutlineActive)
             {
-                volumeComponent.outlineColor.overrideState = true;
-                volumeComponent.outlineColor.value = currentOutlineState.color;
+                    volumeComponent.outlineColor.overrideState = true;
+                    volumeComponent.outlineColor.value = currentOutlineState.color;
 
-                volumeComponent.outlineThickness.overrideState = true;
-                volumeComponent.outlineThickness.value = currentOutlineState.outlineThickness;
+                    volumeComponent.outlineThickness.overrideState = true;
+                    volumeComponent.outlineThickness.value = currentOutlineState.outlineThickness;
 
-                volumeComponent.blurIntensity.overrideState = true;
-                volumeComponent.blurIntensity.value = currentOutlineState.blurIntensity;
+                    volumeComponent.blurIntensity.overrideState = true;
+                    volumeComponent.blurIntensity.value = currentOutlineState.blurIntensity;
+                }
             }
-        }
     }
 }

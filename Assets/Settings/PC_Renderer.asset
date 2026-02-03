@@ -44,7 +44,7 @@ MonoBehaviour:
   m_RendererFeatureMap: c79fcd62899a482a99c56d96743defc7
   m_UseNativeRenderPass: 0
   xrSystemData: {fileID: 0}
-  postProcessData: {fileID: 0}
+  postProcessData: {fileID: 11400000, guid: 41439944d30ece34e96484bdb6645b55, type: 2}
   m_AssetVersion: 3
   m_PrepassLayerMask:
     serializedVersion: 2
@@ -62,7 +62,7 @@ MonoBehaviour:
     passOperation: 2
     failOperation: 0
     zFailOperation: 0
-  m_ShadowTransparentReceive: 1
+  m_ShadowTransparentReceive: 0
   m_RenderingMode: 0
   m_DepthPrimingMode: 0
   m_CopyDepthMode: 1
@@ -84,10 +84,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::OutlineBlurFeature
   m_Active: 1
   settings:
-    targetLayer:
-      serializedVersion: 2
-      m_Bits: 3968
-    downsample: 1
     maskMaterial: {fileID: 2100000, guid: b6d414ccc10cacd418ed0d2538de1aa5, type: 2}
     blurHorizontalMaterial: {fileID: 2100000, guid: c1f8f39ecb6dd1248b35b16d5c18b808, type: 2}
     blurVerticalMaterial: {fileID: 2100000, guid: 972dfa112f9ad984a818d929e861be77, type: 2}

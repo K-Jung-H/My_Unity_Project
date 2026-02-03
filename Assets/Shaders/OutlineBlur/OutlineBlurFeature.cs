@@ -27,6 +27,14 @@ public class OutlineBlurFeature : ScriptableRendererFeature
 
     public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
     {
+        var stack = VolumeManager.instance.stack;
+        var volume = stack.GetComponent<OutlineBlurVolume>();
+
+        if (volume == null || !volume.IsActive()) 
+        {
+            return; 
+        }
+        
         renderer.EnqueuePass(pass);
     }
 
@@ -65,7 +73,10 @@ public class OutlineBlurFeature : ScriptableRendererFeature
             var resourceData = frameData.Get<UniversalResourceData>();
             var cameraData = frameData.Get<UniversalCameraData>();
             var renderingData = frameData.Get<UniversalRenderingData>();
-            
+
+            if (cameraData.camera.cameraType != CameraType.Game) 
+                return;
+                
             if (cameraData.renderType != CameraRenderType.Base) 
                 return;
 
