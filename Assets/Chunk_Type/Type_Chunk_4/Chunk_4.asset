@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f0b6cb93cb80d1744b9df9c510e6dad6, type: 3}
+  m_Name: Chunk_4
+  m_EditorClassIdentifier: Assembly-CSharp::ChunkData
+  chunkName: Snow - Rocky
+  chunkPrefab: {fileID: 7880312913616192740, guid: 89b316bec97bbcd4ea891ddb8b4ac3fa, type: 3}
+  icon: {fileID: 21300000, guid: ef449b72e6a74f2459fd41c52d23c487, type: 3}
+  isMandatory: 0
+  spawnWeight: 100
