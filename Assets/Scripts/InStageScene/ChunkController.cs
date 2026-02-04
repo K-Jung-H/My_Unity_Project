@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using Unity.AI.Navigation;
 using UnityEngine;
@@ -22,6 +23,8 @@ public class ChunkController : MonoBehaviour
 
     [SerializeField] public DestructibleProp[] props;
 
+    public bool IsSetupDone { get; private set; } = false;
+
     private void OnValidate()
     {
         UpdateSpawnPoints(playerSpawnRoot, playerSpawnPoints);
@@ -31,12 +34,8 @@ public class ChunkController : MonoBehaviour
     private void UpdateSpawnPoints(Transform root, List<Transform> list)
     {
         if (root == null) return;
-
         list.Clear();
-        foreach (Transform child in root)
-        {
-            list.Add(child);
-        }
+        foreach (Transform child in root) list.Add(child);
     }
 
     void Awake()
@@ -52,12 +51,18 @@ public class ChunkController : MonoBehaviour
         }
     }
 
-    public void Setup(Vector2Int coord)
+    public IEnumerator SetupRoutine(Vector2Int coord, int propsBatchSize = 15)
     {
+        IsSetupDone = false;
         this.Coord = coord;
-        this.name = $"Chunk_{coord.x}_{coord.y}"; 
+        this.name = $"Chunk_{coord.x}_{coord.y}";
 
-        if (visualRoot != null) visualRoot.SetActive(true);
+        if (visualRoot != null && !visualRoot.activeSelf)
+        {
+            visualRoot.SetActive(true);
+        }
+        
+        yield return null;
 
         if (props != null)
         {
@@ -66,15 +71,19 @@ public class ChunkController : MonoBehaviour
                 props[i].ResetState(); 
                 props[i].InitProp(this.Coord, i);
 
-                if (WorldObjectDataManager.Instance != null)
+                if (WorldObjectDataManager.Instance != null && WorldObjectDataManager.Instance.IsPropDestroyed(this.Coord, i))
                 {
-                    if (WorldObjectDataManager.Instance.IsPropDestroyed(this.Coord, i))
-                    {
-                        props[i].SetDestroyedState();
-                    }
+                    props[i].SetDestroyedState();
+                }
+
+                if ((i + 1) % propsBatchSize == 0)
+                {
+                    yield return null;
                 }
             }
         }
+        
+        IsSetupDone = true;
     }
 
     public void RefreshNavMeshLinks()
@@ -92,31 +101,24 @@ public class ChunkController : MonoBehaviour
     public Transform GetRandomPlayerSpawnPoint()
     {
         if (playerSpawnPoints != null && playerSpawnPoints.Count > 0)
-        {
             return playerSpawnPoints[Random.Range(0, playerSpawnPoints.Count)];
-        }
         return this.transform;
     }
 
     public List<Transform> GetEnemySpawnPoints()
     {
-        if (enemySpawnPoints == null)
-        {
-            enemySpawnPoints = new List<Transform>();
-        }
+        if (enemySpawnPoints == null) enemySpawnPoints = new List<Transform>();
         return enemySpawnPoints;
     }
 
     public void SetPhysicsState(bool enablePhysics)
     {
+        if (!IsSetupDone && enablePhysics) return;
+
         if (physicsRoot != null && physicsRoot.activeSelf != enablePhysics)
-        {
             physicsRoot.SetActive(enablePhysics);
-        }
 
         if (propsRoot != null && propsRoot.activeSelf != enablePhysics)
-        {
             propsRoot.SetActive(enablePhysics);
-        }
     }
 }

@@ -12381,12 +12381,12 @@ MonoBehaviour:
   m_GenerateLinks: 0
   m_IgnoreNavMeshAgent: 1
   m_IgnoreNavMeshObstacle: 1
-  m_OverrideTileSize: 0
-  m_TileSize: 256
-  m_OverrideVoxelSize: 0
-  m_VoxelSize: 0.033333335
+  m_OverrideTileSize: 1
+  m_TileSize: 512
+  m_OverrideVoxelSize: 1
+  m_VoxelSize: 0.3
   m_MinRegionArea: 2
-  m_NavMeshData: {fileID: 23800000, guid: 2d73468020dd9424488f29348370b9ea, type: 2}
+  m_NavMeshData: {fileID: 23800000, guid: 4d164566ea829c243a6d9c0a53e5d201, type: 2}
   m_BuildHeightMesh: 0
 --- !u!114 &8392088452043239624
 MonoBehaviour:

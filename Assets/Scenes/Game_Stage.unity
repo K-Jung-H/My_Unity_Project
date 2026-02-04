@@ -932,7 +932,11 @@ MonoBehaviour:
   chunkSize: 300
   renderDistance: 3
   physicsDistance: 1
-  maxChunksPerFrame: 1
+  maxChunksPerFrame: 3
+  minPoolPerType: 50
+  poolMultiplier: 1.5
+  worldSeed: 0
+  autoRandomizeSeed: 1
 --- !u!114 &120063263
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6660,13 +6664,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CarCamera
   target: {fileID: 0}
-  offset: {x: 0, y: 10, z: -20}
+  defaultOffset: {x: 0, y: 10, z: -20}
+  topDownOffset: {x: 0, y: 50, z: 0}
+  targetLookAtOffset: {x: 0, y: 0.5, z: 0}
   smoothSpeed: 5
   rotationSpeed: 5
   collisionLayers:
     serializedVersion: 2
-    m_Bits: 449
-  collisionBuffer: 0.5
+    m_Bits: 384
+  collisionRadius: 0.2
 --- !u!1 &1772336289
 GameObject:
   m_ObjectHideFlags: 0
