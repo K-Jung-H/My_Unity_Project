@@ -20,9 +20,9 @@ public class GameResult
         carId = GameData.CarId;
         gameMode = GameData.gameMode;
         
-        if (GameData.selectedChunks != null)
+        if (GameData.activeBiomes != null)
         {
-            playedChunkCount = GameData.selectedChunks.Count;
+            playedChunkCount = GameData.activeBiomes.Count;
         }
         else
         {
@@ -36,8 +36,7 @@ public static class GameData
     public static GameMode gameMode = GameMode.Default;
     public static int CarId = 0;
     public static int DifficultyIndex = 0;
-    public static List<ChunkData> selectedChunks = new List<ChunkData>();
-    
+    public static List<BiomeType> activeBiomes = new List<BiomeType>();
     public static int TotalScore = 0;
 
     public static void Reset()
@@ -45,7 +44,7 @@ public static class GameData
         gameMode = GameMode.Default;
         CarId = 0;
         DifficultyIndex = 0;
-        selectedChunks.Clear();
+        activeBiomes.Clear();
         TotalScore = 0;
     }
 }

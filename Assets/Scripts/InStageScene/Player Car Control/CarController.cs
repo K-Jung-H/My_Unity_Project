@@ -87,6 +87,10 @@ public class CarController : MonoBehaviour
     [Range(0.1f, 0.8f)] public float driftSteerThreshold = 0.3f;
     [Range(0.5f, 1f)] public float autoDriftThreshold = 0.9f;
 
+    [Header("Interaction Settings")]
+    public LayerMask structureNatureLayer;
+    [Range(0f, 1f)] public float slowSpeedFactor = 0.5f;
+    public float slowDragAmount = 1.5f;
 
     public float CurrentSpeed { get; private set; }
     public GearState currentGear { get; private set; } = GearState.P;
@@ -102,6 +106,7 @@ public class CarController : MonoBehaviour
     private float driveDirection = 1f;
     private bool isReverseBraking = false;
     private bool isDead = false;
+    private bool isSlowed = false;
 
     public bool IsGrounded
     {
@@ -161,7 +166,15 @@ public class CarController : MonoBehaviour
         if (IsGrounded)
         {
             ApplyArcadePhysics();
-            if (!IsDrifting) carRigidbody.linearDamping = 0.05f;
+            
+            if (isSlowed)
+            {
+                carRigidbody.linearDamping = slowDragAmount;
+            }
+            else if (!IsDrifting) 
+            {
+                carRigidbody.linearDamping = 0.05f;
+            }
         }
         else
         {
@@ -198,9 +211,7 @@ public class CarController : MonoBehaviour
     public void ChangeGear(GearState newGear)
     {
         if (currentGear == newGear) return;
-        
         currentGear = newGear;
-        Debug.Log($"Gear Changed to: {currentGear}");
     }
 
     public void AddFuel(float amount)
@@ -387,6 +398,8 @@ public class CarController : MonoBehaviour
         float effectiveAccel = ValidateAccelInput(accelInput);
         float forwardSpeed = Vector3.Dot(transform.forward, carRigidbody.linearVelocity);
 
+        float currentMaxMotorForce = isSlowed ? motorForce * slowSpeedFactor : motorForce;
+
         isReverseBraking = false;
 
         if (currentGear == GearState.P)
@@ -417,7 +430,7 @@ public class CarController : MonoBehaviour
                 }
                 else
                 {
-                    currentMotorForce = effectiveAccel * motorForce * gearDirection;
+                    currentMotorForce = effectiveAccel * currentMaxMotorForce * gearDirection;
                     if (brakeInput < 0.1f) currentBrakeForce = 0f;
                 }
             }
@@ -606,5 +619,19 @@ public class CarController : MonoBehaviour
         rearRightCollider.sidewaysFriction = sidewaysFriction;
     }
 
-    
+    private void OnTriggerEnter(Collider other)
+    {
+        if (((1 << other.gameObject.layer) & structureNatureLayer) != 0)
+        {
+            isSlowed = true;
+        }
+    }
+
+    private void OnTriggerExit(Collider other)
+    {
+        if (((1 << other.gameObject.layer) & structureNatureLayer) != 0)
+        {
+            isSlowed = false;
+        }
+    }
 }

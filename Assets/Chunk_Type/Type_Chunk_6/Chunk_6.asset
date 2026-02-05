@@ -10,10 +10,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f0b6cb93cb80d1744b9df9c510e6dad6, type: 3}
-  m_Name: Chunk_4
+  m_Name: Chunk_6
   m_EditorClassIdentifier: Assembly-CSharp::ChunkData
-  chunkName: Snow - Rocky
-  chunkPrefab: {fileID: 7880312913616192740, guid: 89b316bec97bbcd4ea891ddb8b4ac3fa, type: 3}
+  chunkName: Snow - Icy Lake
+  chunkPrefab: {fileID: 3776893249517124303, guid: 561d3fea9f1a8f64aac83a61ab2d092d, type: 3}
   icon: {fileID: 21300000, guid: ef449b72e6a74f2459fd41c52d23c487, type: 3}
   isMandatory: 0
   spawnWeight: 100

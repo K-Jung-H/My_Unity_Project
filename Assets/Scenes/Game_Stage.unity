@@ -935,6 +935,9 @@ MonoBehaviour:
   maxChunksPerFrame: 3
   minPoolPerType: 50
   poolMultiplier: 1.5
+  activeBiomes: 0000000001000000
+  biomeScale: 0.05
+  biomeInfluence: 10
   worldSeed: 0
   autoRandomizeSeed: 1
 --- !u!114 &120063263

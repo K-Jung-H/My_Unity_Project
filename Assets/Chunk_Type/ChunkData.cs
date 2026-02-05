@@ -1,5 +1,13 @@
 using UnityEngine;
 
+public enum BiomeType
+{
+    City,
+    Snow,
+    Desert,
+    Nature,
+}
+
 [CreateAssetMenu(fileName = "NewChunk", menuName = "Game/ChunkData")]
 public class ChunkData : ScriptableObject
 {
@@ -10,4 +18,7 @@ public class ChunkData : ScriptableObject
 
     [Range(0f, 100f)]
     public float spawnWeight = 10f;
+
+    [Header("Biome Setting")]
+    public BiomeType biomeType = BiomeType.City;
 }

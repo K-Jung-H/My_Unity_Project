@@ -27,15 +27,25 @@ public class DynamicChunkManager : MonoBehaviour
     public int minPoolPerType = 10;
     public float poolMultiplier = 1.5f;
 
+    [Header("Biome Settings")]
+    public List<BiomeType> activeBiomes = new List<BiomeType>();
+    public float biomeScale = 0.05f;
+    public float biomeInfluence = 10f;
+    
     [Header("Seed Settings")]
     public int worldSeed = 0;
     public bool autoRandomizeSeed = true;
 
+    private float noiseOffsetX;
+    private float noiseOffsetY;
+
+    private Dictionary<BiomeType, List<ChunkData>> biomeChunksCache = new Dictionary<BiomeType, List<ChunkData>>();
     private List<ChunkData> currentSessionChunks = new List<ChunkData>();
+    
     private Dictionary<Vector2Int, ChunkController> activeChunks = new Dictionary<Vector2Int, ChunkController>();
     private Dictionary<string, Queue<ChunkController>> chunkPool = new Dictionary<string, Queue<ChunkController>>();
-    private List<Transform> trackedPlayers = new List<Transform>();
     
+    private List<Transform> trackedPlayers = new List<Transform>();
     private Queue<ChunkController> disableQueue = new Queue<ChunkController>();
 
     private bool isInitialized = false;
@@ -65,10 +75,24 @@ public class DynamicChunkManager : MonoBehaviour
         if (globalChunkTable != null) globalChunkTable.Initialize();
         if (WorldObjectDataManager.Instance != null) WorldObjectDataManager.Instance.Initialize();
 
+        if (GameData.activeBiomes != null && GameData.activeBiomes.Count > 0)
+        {
+            this.activeBiomes = new List<BiomeType>(GameData.activeBiomes);
+            Debug.Log($"[DynamicChunkManager] Loaded Biomes from GameData: {string.Join(", ", this.activeBiomes)}");
+        }
+        else
+        {
+            Debug.LogWarning("[DynamicChunkManager] No Biomes in GameData. Using Inspector settings.");
+        }
+
         if (autoRandomizeSeed)
         {
-            worldSeed = UnityEngine.Random.Range(int.MinValue, int.MaxValue);
+            worldSeed = UnityEngine.Random.Range(-10000, 10000);
         }
+        
+        System.Random prng = new System.Random(worldSeed);
+        noiseOffsetX = prng.Next(-100000, 100000);
+        noiseOffsetY = prng.Next(-100000, 100000);
 
         ApplyMapSettings();
         InitializePool();
@@ -105,10 +129,28 @@ public class DynamicChunkManager : MonoBehaviour
     private void ApplyMapSettings()
     {
         currentSessionChunks.Clear();
-        if (GameData.gameMode == GameMode.Default)
-            currentSessionChunks.AddRange(globalChunkTable.chunkList);
-        else
-            currentSessionChunks.AddRange(GameData.selectedChunks != null && GameData.selectedChunks.Count > 0 ? GameData.selectedChunks : globalChunkTable.chunkList);
+        biomeChunksCache.Clear();
+
+        if (globalChunkTable == null) return;
+
+        foreach (var chunk in globalChunkTable.chunkList)
+        {
+            if (activeBiomes.Contains(chunk.biomeType))
+            {
+                currentSessionChunks.Add(chunk);
+
+                if (!biomeChunksCache.ContainsKey(chunk.biomeType))
+                {
+                    biomeChunksCache[chunk.biomeType] = new List<ChunkData>();
+                }
+                biomeChunksCache[chunk.biomeType].Add(chunk);
+            }
+        }
+
+        if (currentSessionChunks.Count == 0)
+        {
+            Debug.LogWarning("Activated biome chunks are not available! Please check the settings.");
+        }
     }
 
     private void InitializePool()
@@ -149,6 +191,14 @@ public class DynamicChunkManager : MonoBehaviour
     {
         if (currentSessionChunks.Count == 0) return null;
 
+        float xCoord = (coord.x * biomeScale) + noiseOffsetX;
+        float yCoord = (coord.y * biomeScale) + noiseOffsetY;
+        float noiseValue = Mathf.Clamp01(Mathf.PerlinNoise(xCoord, yCoord));
+
+        int biomeIndex = Mathf.FloorToInt(noiseValue * activeBiomes.Count);
+        biomeIndex = Mathf.Clamp(biomeIndex, 0, activeBiomes.Count - 1);
+        BiomeType targetBiome = activeBiomes[biomeIndex];
+
         uint seed = (uint)(coord.x * 73856093 ^ coord.y * 19349663);
         seed ^= (uint)worldSeed;
         seed ^= seed << 13;
@@ -156,15 +206,34 @@ public class DynamicChunkManager : MonoBehaviour
         seed ^= seed << 5;
         
         double randomValue = (seed % 10000) / 10000.0;
+        
         float totalWeight = 0f;
-        foreach (var data in currentSessionChunks) totalWeight += data.spawnWeight;
-        double targetWeight = randomValue * totalWeight;
+        List<float> adjustedWeights = new List<float>();
 
-        foreach (var data in currentSessionChunks)
+        for (int i = 0; i < currentSessionChunks.Count; i++)
         {
-            if (targetWeight <= data.spawnWeight) return data;
-            targetWeight -= data.spawnWeight;
+            ChunkData data = currentSessionChunks[i];
+            float weight = data.spawnWeight;
+
+            if (data.biomeType == targetBiome)
+            {
+                weight *= biomeInfluence; 
+            }
+
+            adjustedWeights.Add(weight);
+            totalWeight += weight;
         }
+
+        double targetValue = randomValue * totalWeight;
+        for (int i = 0; i < currentSessionChunks.Count; i++)
+        {
+            if (targetValue <= adjustedWeights[i])
+            {
+                return currentSessionChunks[i];
+            }
+            targetValue -= adjustedWeights[i];
+        }
+
         return currentSessionChunks[currentSessionChunks.Count - 1];
     }
 

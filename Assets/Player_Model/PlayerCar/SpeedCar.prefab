@@ -945,19 +945,11 @@ MonoBehaviour:
   driftDragFactor: 5
   driftSteerThreshold: 0.1
   autoDriftThreshold: 0.9
-  outlineStates:
-  - fuelRatio: 0.5
-    color: {r: 0.9333334, g: 0.8666667, b: 0.509804, a: 1}
-    blurIntensity: 1
-    thickness: 2
-  - fuelRatio: 0.3
-    color: {r: 1, g: 0.4980392, b: 0.3137255, a: 1}
-    blurIntensity: 2
-    thickness: 3
-  - fuelRatio: 0.2
-    color: {r: 0.8627452, g: 0.07843138, b: 0.2352941, a: 1}
-    blurIntensity: 3
-    thickness: 4
+  structureNatureLayer:
+    serializedVersion: 2
+    m_Bits: 256
+  slowSpeedFactor: 0.5
+  slowDragAmount: 1.5
 --- !u!114 &5432310946891741356
 MonoBehaviour:
   m_ObjectHideFlags: 0
