@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ChunkData
   chunkName: Snow - Icy Lake
   chunkPrefab: {fileID: 3776893249517124303, guid: 561d3fea9f1a8f64aac83a61ab2d092d, type: 3}
-  icon: {fileID: 21300000, guid: ef449b72e6a74f2459fd41c52d23c487, type: 3}
+  icon: {fileID: 21300000, guid: f57ebc8da53a48345bb18378feeb20b6, type: 3}
   isMandatory: 0
-  spawnWeight: 100
+  spawnWeight: 10
   biomeType: 1

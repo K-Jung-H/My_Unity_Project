@@ -93,7 +93,7 @@ LightmapSettings:
     m_ExportTrainingData: 0
     m_TrainingDataDestination: TrainingData
     m_LightProbeSampleCountMultiplier: 4
-  m_LightingDataAsset: {fileID: 112000000, guid: 06a698b12c0caf8449b1e756ecc11bb6, type: 2}
+  m_LightingDataAsset: {fileID: 112000000, guid: 38c730139cc60f74db3729c2a004b3f4, type: 2}
   m_LightingSettings: {fileID: 4890085278179872738, guid: 86adb1dfdb9c0904193493f94a19c1d2, type: 2}
 --- !u!196 &5
 NavMeshSettings:
@@ -935,7 +935,7 @@ MonoBehaviour:
   maxChunksPerFrame: 3
   minPoolPerType: 50
   poolMultiplier: 1.5
-  activeBiomes: 0000000001000000
+  activeBiomes: 000000000100000002000000
   biomeScale: 0.05
   biomeInfluence: 10
   worldSeed: 0
@@ -6674,7 +6674,7 @@ MonoBehaviour:
   rotationSpeed: 5
   collisionLayers:
     serializedVersion: 2
-    m_Bits: 384
+    m_Bits: 128
   collisionRadius: 0.2
 --- !u!1 &1772336289
 GameObject:

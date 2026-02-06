@@ -37,10 +37,9 @@ public class ConcavePlaneGenerator : MonoBehaviour
         _meshCollider = GetComponent<MeshCollider>();
         _meshRenderer = GetComponent<MeshRenderer>();
         
-        GenerateMesh(); // 컴포넌트 켜질 때 생성
+        GenerateMesh(); 
     }
 
-    // 인스펙터 값이 바뀔 때마다 자동 호출
     private void OnValidate()
     {
         if (_meshFilter == null) _meshFilter = GetComponent<MeshFilter>();
@@ -52,6 +51,7 @@ public class ConcavePlaneGenerator : MonoBehaviour
     public void GenerateMesh()
     {
         if (resolution < 2) return;
+        if (size <= 0.001f) return;
 
         Mesh mesh = new Mesh();
         mesh.name = "CustomConcavePlane";
@@ -64,23 +64,18 @@ public class ConcavePlaneGenerator : MonoBehaviour
         float halfSize = size * 0.5f;
         float step = size / resolution;
 
-        // 1. 정점(Vertex) 생성
         for (int z = 0; z <= resolution; z++)
         {
             for (int x = 0; x <= resolution; x++)
             {
-                // 현재 정점의 X, Z 좌표 (-halfSize ~ +halfSize)
                 float xPos = (x * step) - halfSize;
                 float zPos = (z * step) - halfSize;
 
-                // 중심으로부터의 거리 계산 (0 ~ 1 사이로 정규화)
-                // 0이면 정중앙, 1이면 가장자리 끝
+                
                 float dist = Mathf.Sqrt(xPos * xPos + zPos * zPos);
                 float normalizedDist = Mathf.Clamp01(dist / halfSize);
 
-                // ★ 핵심: 커브를 이용해 높이(Y) 결정 ★
-                // 커브 값(0~1)에 따라 깊이를 곱해줌
-                // 커브가 0이면 바닥(-depth), 1이면 원래 높이(0)가 되도록 계산
+               
                 float curveValue = slopeCurve.Evaluate(normalizedDist);
                 float yPos = (curveValue - 1f) * depth; 
 
@@ -90,7 +85,6 @@ public class ConcavePlaneGenerator : MonoBehaviour
             }
         }
 
-        // 2. 삼각형(Triangle) 연결
         int tIndex = 0;
         for (int z = 0; z < resolution; z++)
         {
@@ -101,12 +95,10 @@ public class ConcavePlaneGenerator : MonoBehaviour
                 int topLeft = (z + 1) * vCount + x;
                 int topRight = topLeft + 1;
 
-                // 삼각형 1
                 triangles[tIndex++] = bottomLeft;
                 triangles[tIndex++] = topLeft;
                 triangles[tIndex++] = bottomRight;
 
-                // 삼각형 2
                 triangles[tIndex++] = bottomRight;
                 triangles[tIndex++] = topLeft;
                 triangles[tIndex++] = topRight;
@@ -117,7 +109,7 @@ public class ConcavePlaneGenerator : MonoBehaviour
         mesh.triangles = triangles;
         mesh.uv = uvs;
         
-        mesh.RecalculateNormals(); // 조명을 위한 법선 계산
+        mesh.RecalculateNormals(); 
         mesh.RecalculateBounds();
 
         if (_meshFilter != null) _meshFilter.sharedMesh = mesh;
