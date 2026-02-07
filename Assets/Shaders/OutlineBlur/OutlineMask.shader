@@ -26,7 +26,7 @@ Shader "Hidden/OutlineMask"
             F vert (V v)
             {
                 F o;
-                o.pos = TransformObjectToHClip(v.positionOS);
+                o.pos = TransformObjectToHClip(v.positionOS.xyz);
                 return o;
             }
 

@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: DifficultyProfile_Duo
   m_EditorClassIdentifier: Assembly-CSharp::DifficultyProfile
   difficultyName: Duo
-  icon: {fileID: 21300000, guid: a99668b9efd8dd04fb8ddbf724c1eb52, type: 3}
+  icon: {fileID: 21300000, guid: 2e9cedc822b591a4f9b538c7656598f4, type: 3}
   difficultyScaler: 0.01
   globalMaxEnemyCurve:
     serializedVersion: 2

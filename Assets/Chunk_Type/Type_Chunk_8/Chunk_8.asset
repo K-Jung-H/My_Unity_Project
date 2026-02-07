@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Chunk_8
   m_EditorClassIdentifier: Assembly-CSharp::ChunkData
   chunkName: Desert - Hill
-  chunkPrefab: {fileID: 603636071617664440, guid: b381881c560d51f4c95b2acf763f2e33, type: 3}
+  chunkPrefab: {fileID: 603636071617664440, guid: e88cc876fe815ff488910c4845f02f2b, type: 3}
   icon: {fileID: 21300000, guid: cefc38001b535e84f975a093df800098, type: 3}
   isMandatory: 0
   spawnWeight: 10

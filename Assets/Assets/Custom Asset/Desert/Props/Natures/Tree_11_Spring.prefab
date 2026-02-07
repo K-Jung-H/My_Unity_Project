@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 4944756048558948485}
   - component: {fileID: 4849959141668588215}
   - component: {fileID: 6935077708956992601}
-  - component: {fileID: 490676783728239677}
+  - component: {fileID: 2320521731982592115}
   m_Layer: 0
   m_Name: Tree_11_p2_Spring
   m_TagString: Untagged
@@ -91,8 +91,8 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!64 &490676783728239677
-MeshCollider:
+--- !u!65 &2320521731982592115
+BoxCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -109,10 +109,9 @@ MeshCollider:
   m_IsTrigger: 0
   m_ProvidesContacts: 0
   m_Enabled: 1
-  serializedVersion: 5
-  m_Convex: 1
-  m_CookingOptions: 30
-  m_Mesh: {fileID: -5540620010892457536, guid: a234ad77ef295504a9591fa31ea012c1, type: 3}
+  serializedVersion: 3
+  m_Size: {x: 3.350737, y: 1.0589945, z: 2.8494854}
+  m_Center: {x: 0.012939811, y: -0.43432665, z: -0.11563057}
 --- !u!1 &6132201329521837959
 GameObject:
   m_ObjectHideFlags: 0
