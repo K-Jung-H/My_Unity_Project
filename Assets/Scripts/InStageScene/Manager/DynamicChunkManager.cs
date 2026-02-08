@@ -398,6 +398,22 @@ public class DynamicChunkManager : MonoBehaviour
 
     public IEnumerable<ChunkController> GetActiveChunks() => activeChunks.Values;
 
-    Vector2Int GetChunkCoord(Vector3 pos) => new Vector2Int(Mathf.FloorToInt(pos.x / chunkSize), Mathf.FloorToInt(pos.z / chunkSize));
+    public ChunkController GetActiveChunk(Vector2Int coord)
+    {
+        if (activeChunks.TryGetValue(coord, out ChunkController chunk))
+        {
+            return chunk;
+        }
+        return null;
+    }
+
+    public ChunkController GetChunkAtPosition(Vector3 worldPos)
+    {
+        Vector2Int coord = GetChunkCoord(worldPos);
+        return GetActiveChunk(coord);
+    }
+
+    public Vector2Int GetChunkCoord(Vector3 pos) => new Vector2Int(Mathf.FloorToInt(pos.x / chunkSize), Mathf.FloorToInt(pos.z / chunkSize));
+    
     int GetChebyshevDistance(Vector2Int a, Vector2Int b) => Mathf.Max(Mathf.Abs(a.x - b.x), Mathf.Abs(a.y - b.y));
 }

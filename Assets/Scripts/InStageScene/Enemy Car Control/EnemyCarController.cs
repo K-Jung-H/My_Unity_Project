@@ -54,6 +54,8 @@ public class EnemyCarController : MonoBehaviour
     private float currentEscapeTimer;
     private float escapeSteerDirection;
 
+    private int deadLayer; 
+
     private void Awake()
     {
         movement = GetComponent<EnemyCarMovement>();
@@ -61,6 +63,8 @@ public class EnemyCarController : MonoBehaviour
         myRb = GetComponent<Rigidbody>(); 
         Health = GetComponent<HealthSystem>();
         
+        deadLayer = LayerMask.NameToLayer("Prop"); 
+
         if (enemyProfile != null)
         {
             movement.InitializeFromProfile(enemyProfile);
@@ -86,13 +90,77 @@ public class EnemyCarController : MonoBehaviour
     {
         if (currentState == AIState.Death) return;
 
+        Debug.Log($"[Death Log] Enemy Died at World Pos: {transform.position}");
+
         ChangeState(AIState.Death);
+
+        if (EnemySpawnManager.Instance != null)
+        {
+            EnemySpawnManager.Instance.RetireEnemy(this.gameObject);
+        }
+
+        if (WorldObjectDataManager.Instance != null)
+        {
+            ChunkController currentChunk = GetCurrentChunk(); 
+            if (currentChunk != null)
+            {
+                string cleanName = this.name.Replace("(Clone)", "");
+
+                WorldObjectDataManager.Instance.RegisterDeadEnemy(
+                    currentChunk.Coord, 
+                    cleanName,
+                    transform.position, 
+                    transform.rotation, 
+                    currentChunk.transform
+                );
+                
+                transform.SetParent(currentChunk.transform); 
+            }
+        }
+
+        SetupDeadPhysics();
+    }
+
+    public void SetAsDeadState()
+    {
+        Debug.Log($"[Restoration Log] Enemy Wreckage Placed at World Pos: {transform.position}");
+
+        if (movement != null) movement.enabled = false;
+        if (steeringSensor != null) steeringSensor.enabled = false;
+        
+        var agent = GetComponent<UnityEngine.AI.NavMeshAgent>();
+        if (agent != null) agent.enabled = false;
+        
+        currentState = AIState.Death;
+        if (Health != null) Health.InitializeHealth(0); 
+        
+        ChangeMaterialToDead();
+        
+        SetupDeadPhysics();
+    }
+
+    private void SetupDeadPhysics()
+    {
+        gameObject.tag = "Untagged"; 
+        gameObject.layer = deadLayer; 
+    }
+
+    private ChunkController GetCurrentChunk()
+    {
+        if (DynamicChunkManager.Instance != null)
+        {
+            return DynamicChunkManager.Instance.GetChunkAtPosition(transform.position);
+        }
+        return null;
     }
 
     private void Start()
     {
         FindClosestPlayer();
-        ChangeState(AIState.ChasePath);
+        if (currentState != AIState.Death)
+        {
+            ChangeState(AIState.ChasePath);
+        }
     }
 
     private void OnEnable()
@@ -102,18 +170,21 @@ public class EnemyCarController : MonoBehaviour
         currentEscapeTimer = 0f;
         lastStuckCheckPosition = transform.position;
         
-        if (!Health.IsDead)
+        if (Health != null && !Health.IsDead && currentState != AIState.Death)
         {
             ChangeState(AIState.ChasePath);
         }
         else
         {
             ChangeState(AIState.Death);
+            if(currentState == AIState.Death) SetupDeadPhysics();
         }
     }
 
     private void FixedUpdate()
     {
+        if (currentState == AIState.Death) return;
+
         if (targetPlayer == null)
         {
             movement.SetInputs(0f, 0f);
@@ -165,7 +236,6 @@ public class EnemyCarController : MonoBehaviour
         }
     }
 
-
     private void ChangeMaterialToDead()
     {
         if (enemyProfile == null || enemyProfile.DeadMaterial == null) return;
@@ -182,7 +252,6 @@ public class EnemyCarController : MonoBehaviour
             rend.materials = newMaterials;
         }
     }
-
 
     private void UpdateChaseDirect()
     {

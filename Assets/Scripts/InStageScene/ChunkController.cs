@@ -17,6 +17,9 @@ public class ChunkController : MonoBehaviour
     public GameObject physicsRoot;
     public GameObject visualRoot;
     public GameObject propsRoot;
+    
+    private Transform deadEnemyRoot; 
+
     public NavMeshLink[] myLinks;
 
     public Vector2Int Coord { get; private set; }
@@ -54,6 +57,9 @@ public class ChunkController : MonoBehaviour
     public IEnumerator SetupRoutine(Vector2Int coord, int propsBatchSize = 15)
     {
         IsSetupDone = false;
+        
+        CleanupDeadEnemies();
+
         this.Coord = coord;
         this.name = $"Chunk_{coord.x}_{coord.y}";
 
@@ -62,6 +68,11 @@ public class ChunkController : MonoBehaviour
             visualRoot.SetActive(true);
         }
         
+        if (WorldObjectDataManager.Instance != null)
+        {
+            RestoreDeadEnemies(coord);
+        }
+
         yield return null;
 
         if (props != null)
@@ -120,5 +131,54 @@ public class ChunkController : MonoBehaviour
 
         if (propsRoot != null && propsRoot.activeSelf != enablePhysics)
             propsRoot.SetActive(enablePhysics);
+    }
+
+    private void CleanupDeadEnemies()
+    {
+        if (deadEnemyRoot != null)
+        {
+            foreach (Transform child in deadEnemyRoot) Destroy(child.gameObject);
+        }
+        else
+        {
+            GameObject rootObj = new GameObject("DeadEnemy_Root");
+            rootObj.transform.SetParent(this.transform);
+            rootObj.transform.localPosition = Vector3.zero;
+            deadEnemyRoot = rootObj.transform;
+        }
+    }
+
+    private void RestoreDeadEnemies(Vector2Int coord)
+    {
+        var deadList = WorldObjectDataManager.Instance.GetDeadEnemies(coord);
+        if (deadList == null) return;
+
+        foreach (var data in deadList)
+        {
+            GameObject prefab = GetDeadEnemyPrefab(data.enemyID); 
+
+            if (prefab != null)
+            {
+                Vector3 spawnPos = transform.TransformPoint(data.localPosition);
+                Quaternion spawnRot = transform.rotation * data.localRotation;
+
+                GameObject obj = Instantiate(prefab, spawnPos, spawnRot, deadEnemyRoot);
+                
+                var controller = obj.GetComponent<EnemyCarController>();
+                if (controller != null)
+                {
+                    controller.SetAsDeadState();
+                }
+            }
+        }
+    }
+
+    private GameObject GetDeadEnemyPrefab(string enemyID)
+    {
+        if (DifficultyManager.Instance != null && DifficultyManager.Instance.difficultyDataTable != null)
+        {
+             return DifficultyManager.Instance.difficultyDataTable.FindEnemyPrefabByID(enemyID);
+        }
+        return null; 
     }
 }

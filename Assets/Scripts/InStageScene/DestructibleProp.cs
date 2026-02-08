@@ -11,6 +11,8 @@ public class DestructibleProp : MonoBehaviour
     private bool isInitialized = false;
     private bool isDestroyed = false; 
 
+    private int playerLayer;
+
     [Header("Physics Settings")]
     public float pushPower = 2.0f;
     public float hitThreshold = 1.0f;
@@ -29,6 +31,7 @@ public class DestructibleProp : MonoBehaviour
     {
         rb = GetComponent<Rigidbody>();
         col = GetComponent<Collider>();
+        playerLayer = LayerMask.NameToLayer("Player");
 
         initialLocalPos = transform.localPosition;
         initialLocalRot = transform.localRotation;
@@ -39,6 +42,8 @@ public class DestructibleProp : MonoBehaviour
         myChunkCoord = chunkCoord;
         myIndex = index;
         isInitialized = true;
+        
+        rb.isKinematic = true;
     }
 
     public void SetDestroyedState()
@@ -52,24 +57,49 @@ public class DestructibleProp : MonoBehaviour
         isDestroyed = false;
         gameObject.SetActive(true);
 
-
-        rb.isKinematic = false;
+        rb.isKinematic = false; 
         rb.linearVelocity = Vector3.zero;
         rb.angularVelocity = Vector3.zero;
-        rb.isKinematic = true;
-
+        rb.isKinematic = true; 
 
         transform.localPosition = initialLocalPos;
         transform.localRotation = initialLocalRot;
     }
 
+    void OnTriggerEnter(Collider other)
+    {
+        if (isDestroyed) return;
+
+        if (other.gameObject.layer == playerLayer)
+        {
+            rb.isKinematic = false;
+        }
+    }
+
+    void OnTriggerExit(Collider other)
+    {
+        if (isDestroyed) return;
+
+        if (other.gameObject.layer == playerLayer)
+        {
+            rb.linearVelocity = Vector3.zero;
+            rb.angularVelocity = Vector3.zero;
+            rb.isKinematic = true;
+        }
+    }
+
     void OnCollisionEnter(Collision collision)
     {
-        if (!isInitialized || isDestroyed || !rb.isKinematic)
+        if (!isInitialized || isDestroyed)
         {
             return;
         }
         
+        if (rb.isKinematic)
+        {
+            rb.isKinematic = false;
+        }
+
         if (collision.rigidbody == null)
         {
             return;
@@ -77,7 +107,7 @@ public class DestructibleProp : MonoBehaviour
 
         if (collision.relativeVelocity.magnitude > hitThreshold)
         {
-            bool isPlayerAction = collision.gameObject.CompareTag("Player");
+            bool isPlayerAction = collision.gameObject.layer == playerLayer;
             BreakAndPush(collision, isPlayerAction);
         }
     }
@@ -94,8 +124,10 @@ public class DestructibleProp : MonoBehaviour
         rb.AddForce(dir * impactSpeed * pushPower, ForceMode.VelocityChange);
         rb.AddTorque(Random.insideUnitSphere * impactSpeed * pushPower * 2f, ForceMode.Impulse);
 
-        WorldObjectDataManager.Instance.RegisterDestruction(myChunkCoord, myIndex);
-
+        if (WorldObjectDataManager.Instance != null)
+        {
+            WorldObjectDataManager.Instance.RegisterDestruction(myChunkCoord, myIndex);
+        }
 
         if (causedByPlayer && ScoreManager.Instance != null)
         {

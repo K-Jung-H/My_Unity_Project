@@ -17,6 +17,7 @@ GameObject:
   - component: {fileID: 9084125528161772721}
   - component: {fileID: 4905050403346157137}
   - component: {fileID: 3025195005466163990}
+  - component: {fileID: 45707911279795435}
   m_Layer: 10
   m_Name: Enemy_0
   m_TagString: Untagged
@@ -178,7 +179,7 @@ MonoBehaviour:
   stability: 5
   downForce: 50
   groundCheckDist: 1.5
-  groundCheckOffset: 0.5
+  groundCheckOffset: 1
   groundLayer:
     serializedVersion: 2
     m_Bits: 192
@@ -214,6 +215,21 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::HealthSystem
   maxHealth: 100
   currentHealth: 0
+--- !u!114 &45707911279795435
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6744876025607187535}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 980ee19ac28ac1a40b386a2115391451, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyCollisionHandler
+  heavyImpactThreshold: 5000
+  environmentDamageFactor: 0.002
+  explosionKey: Explosion
 --- !u!1001 &9009187832279056501
 PrefabInstance:
   m_ObjectHideFlags: 0

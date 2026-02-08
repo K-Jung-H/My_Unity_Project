@@ -12,9 +12,9 @@ public class EnemyCarMovement : MonoBehaviour
     [SerializeField] private float stability;
 
     [Header("Physics Sensors")]
-    [SerializeField] private float downForce = 100f;
+    [SerializeField] private float downForce = 50f; 
     [SerializeField] private float groundCheckDist = 2.0f;
-    [SerializeField] private float groundCheckOffset = 0.5f;
+    [SerializeField] private float groundCheckOffset = 1.0f; 
     [SerializeField] private LayerMask groundLayer;
 
     private Rigidbody rb;
@@ -22,6 +22,8 @@ public class EnemyCarMovement : MonoBehaviour
     private float inputSteer;
     private bool isGrounded;
     private Vector3 groundNormal = Vector3.up;
+    
+    private float currentGroundDist; 
 
     private void Awake()
     {
@@ -70,15 +72,20 @@ public class EnemyCarMovement : MonoBehaviour
     private void CheckGround()
     {
         Vector3 origin = transform.position + (Vector3.up * groundCheckOffset);
-        if (Physics.Raycast(origin, Vector3.down, out RaycastHit hit, groundCheckDist, groundLayer))
+        
+        float checkDistance = groundCheckDist + groundCheckOffset;
+
+        if (Physics.Raycast(origin, Vector3.down, out RaycastHit hit, checkDistance, groundLayer))
         {
             isGrounded = true;
             groundNormal = hit.normal;
+            currentGroundDist = hit.distance - groundCheckOffset; 
         }
         else
         {
             isGrounded = false;
             groundNormal = Vector3.up;
+            currentGroundDist = float.MaxValue;
         }
     }
 
@@ -114,11 +121,15 @@ public class EnemyCarMovement : MonoBehaviour
             {
                 rb.linearVelocity = Vector3.Lerp(rb.linearVelocity, Vector3.zero, Time.fixedDeltaTime * brakeForce * 0.5f);
             }
-            rb.AddForce(-groundNormal * downForce * rb.mass, ForceMode.Force);
+
+            if (currentGroundDist > 0.1f)
+            {
+                rb.AddForce(-groundNormal * downForce * rb.mass, ForceMode.Force);
+            }
         }
         else
         {
-            rb.AddForce(Vector3.down * 50f * rb.mass, ForceMode.Force);
+            rb.AddForce(Vector3.down * 15f * rb.mass, ForceMode.Force);
         }
         
         if (rb.linearVelocity.magnitude > maxSpeed)
