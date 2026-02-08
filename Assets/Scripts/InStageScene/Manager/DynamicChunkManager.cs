@@ -19,6 +19,8 @@ public class DynamicChunkManager : MonoBehaviour
 
     [Header("Settings")]
     public float chunkSize = 300f;
+    private float _chunkSizeInverse;
+
     [Range(3, 16)] public int renderDistance = 3;
     [Range(1, 5)] public int physicsDistance = 1;
     [Range(1, 10)] public int maxChunksPerFrame = 1;
@@ -39,14 +41,16 @@ public class DynamicChunkManager : MonoBehaviour
     private float noiseOffsetX;
     private float noiseOffsetY;
 
-    private Dictionary<BiomeType, List<ChunkData>> biomeChunksCache = new Dictionary<BiomeType, List<ChunkData>>();
     private List<ChunkData> currentSessionChunks = new List<ChunkData>();
+    private Dictionary<string, ChunkData> _chunkDataMap = new Dictionary<string, ChunkData>();
     
     private Dictionary<Vector2Int, ChunkController> activeChunks = new Dictionary<Vector2Int, ChunkController>();
     private Dictionary<string, Queue<ChunkController>> chunkPool = new Dictionary<string, Queue<ChunkController>>();
     
     private List<Transform> trackedPlayers = new List<Transform>();
     private Queue<ChunkController> disableQueue = new Queue<ChunkController>();
+
+    private Dictionary<Vector2Int, string> generatedChunkHistory = new Dictionary<Vector2Int, string>();
 
     private bool isInitialized = false;
     private Coroutine updateRoutine;
@@ -71,6 +75,10 @@ public class DynamicChunkManager : MonoBehaviour
         activeChunks.Clear();
         chunkPool.Clear();
         disableQueue.Clear();
+        generatedChunkHistory.Clear();
+        _chunkDataMap.Clear();
+
+        if (chunkSize > 0) _chunkSizeInverse = 1f / chunkSize;
 
         if (globalChunkTable != null) globalChunkTable.Initialize();
         if (WorldObjectDataManager.Instance != null) WorldObjectDataManager.Instance.Initialize();
@@ -78,6 +86,7 @@ public class DynamicChunkManager : MonoBehaviour
         if (GameData.activeBiomes != null && GameData.activeBiomes.Count > 0)
         {
             this.activeBiomes = new List<BiomeType>(GameData.activeBiomes);
+            this.activeBiomes.Sort();
             Debug.Log($"[DynamicChunkManager] Loaded Biomes from GameData: {string.Join(", ", this.activeBiomes)}");
         }
         else
@@ -129,7 +138,7 @@ public class DynamicChunkManager : MonoBehaviour
     private void ApplyMapSettings()
     {
         currentSessionChunks.Clear();
-        biomeChunksCache.Clear();
+        _chunkDataMap.Clear();
 
         if (globalChunkTable == null) return;
 
@@ -139,11 +148,10 @@ public class DynamicChunkManager : MonoBehaviour
             {
                 currentSessionChunks.Add(chunk);
 
-                if (!biomeChunksCache.ContainsKey(chunk.biomeType))
+                if (!_chunkDataMap.ContainsKey(chunk.chunkName))
                 {
-                    biomeChunksCache[chunk.biomeType] = new List<ChunkData>();
+                    _chunkDataMap.Add(chunk.chunkName, chunk);
                 }
-                biomeChunksCache[chunk.biomeType].Add(chunk);
             }
         }
 
@@ -162,6 +170,7 @@ public class DynamicChunkManager : MonoBehaviour
         foreach (var data in currentSessionChunks)
         {
             if (data == null || data.chunkPrefab == null) continue;
+            
             string key = data.chunkName;
             if (!chunkPool.ContainsKey(key)) chunkPool[key] = new Queue<ChunkController>();
 
@@ -191,6 +200,14 @@ public class DynamicChunkManager : MonoBehaviour
     {
         if (currentSessionChunks.Count == 0) return null;
 
+        if (generatedChunkHistory.TryGetValue(coord, out string historyChunkName))
+        {
+            if (_chunkDataMap.TryGetValue(historyChunkName, out ChunkData historyData))
+            {
+                return historyData;
+            }
+        }
+
         float xCoord = (coord.x * biomeScale) + noiseOffsetX;
         float yCoord = (coord.y * biomeScale) + noiseOffsetY;
         float noiseValue = Mathf.Clamp01(Mathf.PerlinNoise(xCoord, yCoord));
@@ -208,33 +225,37 @@ public class DynamicChunkManager : MonoBehaviour
         double randomValue = (seed % 10000) / 10000.0;
         
         float totalWeight = 0f;
-        List<float> adjustedWeights = new List<float>();
+        for (int i = 0; i < currentSessionChunks.Count; i++)
+        {
+            ChunkData data = currentSessionChunks[i];
+            float weight = data.spawnWeight;
+            if (data.biomeType == targetBiome) weight *= biomeInfluence; 
+            totalWeight += weight;
+        }
+
+        ChunkData selectedChunk = currentSessionChunks[currentSessionChunks.Count - 1];
+        double targetValue = randomValue * totalWeight;
 
         for (int i = 0; i < currentSessionChunks.Count; i++)
         {
             ChunkData data = currentSessionChunks[i];
             float weight = data.spawnWeight;
+            if (data.biomeType == targetBiome) weight *= biomeInfluence;
 
-            if (data.biomeType == targetBiome)
+            if (targetValue <= weight)
             {
-                weight *= biomeInfluence; 
+                selectedChunk = data;
+                break;
             }
-
-            adjustedWeights.Add(weight);
-            totalWeight += weight;
+            targetValue -= weight;
         }
 
-        double targetValue = randomValue * totalWeight;
-        for (int i = 0; i < currentSessionChunks.Count; i++)
+        if (!generatedChunkHistory.ContainsKey(coord))
         {
-            if (targetValue <= adjustedWeights[i])
-            {
-                return currentSessionChunks[i];
-            }
-            targetValue -= adjustedWeights[i];
+            generatedChunkHistory.Add(coord, selectedChunk.chunkName);
         }
 
-        return currentSessionChunks[currentSessionChunks.Count - 1];
+        return selectedChunk;
     }
 
     private ChunkController GetChunkFromPool(Vector2Int coord)
@@ -243,8 +264,8 @@ public class DynamicChunkManager : MonoBehaviour
         string key = selectedData.chunkName;
         ChunkController chunk = null;
 
-        if (chunkPool.ContainsKey(key) && chunkPool[key].Count > 0)
-            chunk = chunkPool[key].Dequeue();
+        if (chunkPool.TryGetValue(key, out Queue<ChunkController> pool) && pool.Count > 0)
+            chunk = pool.Dequeue();
         else
             chunk = CreateNewChunkInstance(selectedData);
 
@@ -271,6 +292,7 @@ public class DynamicChunkManager : MonoBehaviour
         disableQueue.Enqueue(chunk);
 
         string key = chunk.originalChunkName;
+        if (!chunkPool.ContainsKey(key)) chunkPool[key] = new Queue<ChunkController>();
         chunkPool[key].Enqueue(chunk);
     }
 
@@ -349,13 +371,18 @@ public class DynamicChunkManager : MonoBehaviour
                 int processedCount = 0;
                 foreach (var coord in requiredChunks)
                 {
-                    if (!activeChunks.ContainsKey(coord))
+                    ChunkController chunk = null;
+                    
+                    if (activeChunks.TryGetValue(coord, out chunk))
                     {
-                        ChunkController newChunk = GetChunkFromPool(coord);
-                        activeChunks.Add(coord, newChunk);
+                    }
+                    else
+                    {
+                        chunk = GetChunkFromPool(coord);
+                        activeChunks.Add(coord, chunk);
                         
-                        StartCoroutine(newChunk.SetupRoutine(coord));
-                        OnChunkLoaded?.Invoke(newChunk, coord);
+                        StartCoroutine(chunk.SetupRoutine(coord));
+                        OnChunkLoaded?.Invoke(chunk, coord);
                         
                         if (++processedCount >= maxChunksPerFrame)
                         {
@@ -364,21 +391,18 @@ public class DynamicChunkManager : MonoBehaviour
                         }
                     }
 
-                    if (activeChunks.TryGetValue(coord, out ChunkController chunk))
+                    if (chunk != null && chunk.IsSetupDone)
                     {
-                        if (chunk.IsSetupDone)
+                        bool enablePhysics = false;
+                        foreach (var playerT in trackedPlayers)
                         {
-                            bool enablePhysics = false;
-                            foreach (var playerT in trackedPlayers)
+                            if (playerT != null && GetChebyshevDistance(coord, GetChunkCoord(playerT.position)) <= physicsDistance)
                             {
-                                if (playerT != null && GetChebyshevDistance(coord, GetChunkCoord(playerT.position)) <= physicsDistance)
-                                {
-                                    enablePhysics = true;
-                                    break;
-                                }
+                                enablePhysics = true;
+                                break;
                             }
-                            chunk.SetPhysicsState(enablePhysics);
                         }
+                        chunk.SetPhysicsState(enablePhysics);
                     }
                 }
             }
@@ -400,10 +424,7 @@ public class DynamicChunkManager : MonoBehaviour
 
     public ChunkController GetActiveChunk(Vector2Int coord)
     {
-        if (activeChunks.TryGetValue(coord, out ChunkController chunk))
-        {
-            return chunk;
-        }
+        if (activeChunks.TryGetValue(coord, out ChunkController chunk)) return chunk;
         return null;
     }
 
@@ -413,7 +434,7 @@ public class DynamicChunkManager : MonoBehaviour
         return GetActiveChunk(coord);
     }
 
-    public Vector2Int GetChunkCoord(Vector3 pos) => new Vector2Int(Mathf.FloorToInt(pos.x / chunkSize), Mathf.FloorToInt(pos.z / chunkSize));
+    public Vector2Int GetChunkCoord(Vector3 pos) => new Vector2Int(Mathf.FloorToInt(pos.x * _chunkSizeInverse), Mathf.FloorToInt(pos.z * _chunkSizeInverse));
     
     int GetChebyshevDistance(Vector2Int a, Vector2Int b) => Mathf.Max(Mathf.Abs(a.x - b.x), Mathf.Abs(a.y - b.y));
 }

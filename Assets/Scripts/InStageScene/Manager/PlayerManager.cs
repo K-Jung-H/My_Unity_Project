@@ -17,8 +17,7 @@ public class PlayerManager : MonoBehaviour
     private List<CarController> remotePlayerInstances = new List<CarController>();
 
     public CarController LocalPlayer => localPlayerInstance;
-    public IReadOnlyList<CarController> RemotePlayers => remotePlayerInstances;
-
+    public List<CarController> AllActivePlayers { get; private set; } = new List<CarController>();
 
     private void Awake()
     {
@@ -27,13 +26,11 @@ public class PlayerManager : MonoBehaviour
             Destroy(gameObject);
             return;
         }
-        
         Instance = this;
     }
 
     public void Initialize()
     {
-
         if (chunkManager != null)
         {
             Transform spawnPoint = chunkManager.GetMainSpawnPoint();
@@ -46,10 +43,7 @@ public class PlayerManager : MonoBehaviour
         int targetId = (carId == -1) ? GameData.CarId : carId;
         GameObject prefabToSpawn = null;
 
-        if (carDataTable != null)
-        {
-            prefabToSpawn = carDataTable.GetCarPrefab(targetId);
-        }
+        if (carDataTable != null) prefabToSpawn = carDataTable.GetCarPrefab(targetId);
 
         if (prefabToSpawn == null)
         {
@@ -59,8 +53,7 @@ public class PlayerManager : MonoBehaviour
 
         if (playerListContainer == null)
         {
-            GameObject container = new GameObject("Player_Container");
-            playerListContainer = container.transform;
+            playerListContainer = new GameObject("Player_Container").transform;
         }
 
         GameObject newCarObj = Instantiate(prefabToSpawn, spawnPoint.position, spawnPoint.rotation, playerListContainer);
@@ -71,6 +64,8 @@ public class PlayerManager : MonoBehaviour
             DynamicChunkManager.Instance.RegisterPlayer(newCarObj.transform);
         }
 
+        AllActivePlayers.Add(controller);
+
         if (isLocal)
         {
             newCarObj.name = $"Local_Player_{targetId}";
@@ -78,9 +73,7 @@ public class PlayerManager : MonoBehaviour
             SetupCamera(newCarObj.transform);
             
             if (PlayerUIManager.Instance != null)
-            {
                 PlayerUIManager.Instance.SetupPlayerUI(localPlayerInstance);
-            }
 
             OnLocalPlayerCreated?.Invoke(localPlayerInstance);
             localPlayerInstance.OnDeath += HandleLocalPlayerDeath;
@@ -109,4 +102,5 @@ public class PlayerManager : MonoBehaviour
             if (camScript != null) camScript.target = targetTransform;
         }
     }
+    
 }

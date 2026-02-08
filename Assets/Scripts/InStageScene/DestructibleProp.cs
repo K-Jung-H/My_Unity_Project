@@ -82,8 +82,12 @@ public class DestructibleProp : MonoBehaviour
 
         if (other.gameObject.layer == playerLayer)
         {
-            rb.linearVelocity = Vector3.zero;
-            rb.angularVelocity = Vector3.zero;
+            if (!rb.isKinematic)
+            {
+                rb.linearVelocity = Vector3.zero;
+                rb.angularVelocity = Vector3.zero;
+            }
+
             rb.isKinematic = true;
         }
     }
@@ -104,7 +108,7 @@ public class DestructibleProp : MonoBehaviour
         {
             return;
         }
-
+        
         if (collision.relativeVelocity.magnitude > hitThreshold)
         {
             bool isPlayerAction = collision.gameObject.layer == playerLayer;

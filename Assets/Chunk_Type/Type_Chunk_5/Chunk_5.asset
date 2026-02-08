@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f0b6cb93cb80d1744b9df9c510e6dad6, type: 3}
   m_Name: Chunk_5
   m_EditorClassIdentifier: Assembly-CSharp::ChunkData
-  chunkName: Snow - Icy Lake
+  chunkName: Snow - Icy Ground
   chunkPrefab: {fileID: 736245801789712160, guid: e124096e8395edc48978546822d2e699, type: 3}
   icon: {fileID: 21300000, guid: 3ec704732e22ab841a82763adea770a0, type: 3}
   isMandatory: 0

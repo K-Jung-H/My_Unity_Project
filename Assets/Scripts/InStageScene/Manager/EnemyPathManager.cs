@@ -8,56 +8,31 @@ public class EnemyPathManager : MonoBehaviour
 
     [Header("Optimization Settings")]
     [SerializeField] private int maxPathCalculationsPerFrame = 5; 
-    [SerializeField] private float playerSearchInterval = 0.5f; 
-    [SerializeField] private string playerTag = "Player";
+    
 
     private Queue<PathRequest> pathRequestQueue = new Queue<PathRequest>();
     
-    private List<Transform> players = new List<Transform>();
-    private float lastPlayerSearchTime;
+    private NavMeshPath _sharedPath;
 
     private struct PathRequest
     {
         public Vector3 startPos;
         public System.Action<Vector3> callback;
-
-        public PathRequest(Vector3 start, System.Action<Vector3> cb)
-        {
-            startPos = start;
-            callback = cb;
-        }
+        public PathRequest(Vector3 start, System.Action<Vector3> cb) { startPos = start; callback = cb; }
     }
 
     private void Awake()
     {
-        if (Instance != null && Instance != this)
-        {
-            Destroy(gameObject);
-            return;
-        }
+        if (Instance != null && Instance != this) { Destroy(gameObject); return; }
         Instance = this;
-        
         DontDestroyOnLoad(gameObject);
+        
+        _sharedPath = new NavMeshPath();
     }
 
     private void Update()
     {
-        RefreshPlayerList();
         ProcessPathRequests();
-    }
-
-    private void RefreshPlayerList()
-    {
-        if (Time.time - lastPlayerSearchTime > playerSearchInterval)
-        {
-            players.Clear();
-            GameObject[] playerObjs = GameObject.FindGameObjectsWithTag(playerTag);
-            foreach (var obj in playerObjs)
-            {
-                players.Add(obj.transform);
-            }
-            lastPlayerSearchTime = Time.time;
-        }
     }
 
     public void RequestNextWaypoint(Vector3 startPos, System.Action<Vector3> onNewWaypointFound)
@@ -67,7 +42,7 @@ public class EnemyPathManager : MonoBehaviour
 
     private void ProcessPathRequests()
     {
-        if (players.Count == 0) return;
+        if (PlayerManager.Instance == null || PlayerManager.Instance.AllActivePlayers.Count == 0) return;
 
         int processedCount = 0;
         while (pathRequestQueue.Count > 0 && processedCount < maxPathCalculationsPerFrame)
@@ -76,25 +51,19 @@ public class EnemyPathManager : MonoBehaviour
             processedCount++;
 
             Transform targetPlayer = GetNearestPlayer(request.startPos);
-            
             if (targetPlayer == null) continue;
 
-            NavMeshPath path = new NavMeshPath();
-            if (NavMesh.CalculatePath(request.startPos, targetPlayer.position, NavMesh.AllAreas, path))
-            {
+            _sharedPath.ClearCorners(); // 경로 재사용 전 초기화
 
-                if (path.corners.Length > 1)
-                {
-                    request.callback?.Invoke(path.corners[1]);
-                }
+            if (NavMesh.CalculatePath(request.startPos, targetPlayer.position, NavMesh.AllAreas, _sharedPath))
+            {
+                if (_sharedPath.corners.Length > 1)
+                    request.callback?.Invoke(_sharedPath.corners[1]);
                 else
-                {
                     request.callback?.Invoke(targetPlayer.position);
-                }
             }
             else
             {
-
                 request.callback?.Invoke(targetPlayer.position);
             }
         }
@@ -104,21 +73,19 @@ public class EnemyPathManager : MonoBehaviour
     {
         Transform bestTarget = null;
         float closestDistSqr = Mathf.Infinity;
+        var players = PlayerManager.Instance.AllActivePlayers;
 
-        foreach (Transform player in players)
+        for (int i = 0; i < players.Count; i++)
         {
-            if (player == null) continue;
-
-            Vector3 directionToTarget = player.position - fromPos;
-            float dSqrToTarget = directionToTarget.sqrMagnitude;
+            if (players[i] == null) continue;
             
-            if (dSqrToTarget < closestDistSqr)
+            float dSqr = (players[i].transform.position - fromPos).sqrMagnitude;
+            if (dSqr < closestDistSqr)
             {
-                closestDistSqr = dSqrToTarget;
-                bestTarget = player;
+                closestDistSqr = dSqr;
+                bestTarget = players[i].transform;
             }
         }
-
         return bestTarget;
     }
 }

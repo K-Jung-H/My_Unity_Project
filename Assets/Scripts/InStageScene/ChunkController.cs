@@ -18,7 +18,7 @@ public class ChunkController : MonoBehaviour
     public GameObject visualRoot;
     public GameObject propsRoot;
     
-    private Transform deadEnemyRoot; 
+    private Transform deadEnemyContainer; 
 
     public NavMeshLink[] myLinks;
 
@@ -58,7 +58,7 @@ public class ChunkController : MonoBehaviour
     {
         IsSetupDone = false;
         
-        CleanupDeadEnemies();
+        CleanupDeadEnemies(); 
 
         this.Coord = coord;
         this.name = $"Chunk_{coord.x}_{coord.y}";
@@ -133,18 +133,38 @@ public class ChunkController : MonoBehaviour
             propsRoot.SetActive(enablePhysics);
     }
 
+    public void RegisterDeadEnemy(Transform enemyTransform)
+    {
+        EnsureDeadEnemyContainer();
+        enemyTransform.SetParent(deadEnemyContainer);
+    }
+
+    private void EnsureDeadEnemyContainer()
+    {
+        if (deadEnemyContainer == null)
+        {
+            if (propsRoot == null)
+            {
+                propsRoot = new GameObject("Dynamic_Props_Root");
+                propsRoot.transform.SetParent(this.transform);
+                propsRoot.transform.localPosition = Vector3.zero;
+            }
+
+            GameObject containerObj = new GameObject("DeadEnemy_Container");
+            containerObj.transform.SetParent(propsRoot.transform);
+            containerObj.transform.localPosition = Vector3.zero;
+            deadEnemyContainer = containerObj.transform;
+        }
+    }
+
     private void CleanupDeadEnemies()
     {
-        if (deadEnemyRoot != null)
+        if (deadEnemyContainer != null)
         {
-            foreach (Transform child in deadEnemyRoot) Destroy(child.gameObject);
-        }
-        else
-        {
-            GameObject rootObj = new GameObject("DeadEnemy_Root");
-            rootObj.transform.SetParent(this.transform);
-            rootObj.transform.localPosition = Vector3.zero;
-            deadEnemyRoot = rootObj.transform;
+            foreach (Transform child in deadEnemyContainer)
+            {
+                Destroy(child.gameObject);
+            }
         }
     }
 
@@ -152,6 +172,8 @@ public class ChunkController : MonoBehaviour
     {
         var deadList = WorldObjectDataManager.Instance.GetDeadEnemies(coord);
         if (deadList == null) return;
+
+        EnsureDeadEnemyContainer();
 
         foreach (var data in deadList)
         {
@@ -162,7 +184,7 @@ public class ChunkController : MonoBehaviour
                 Vector3 spawnPos = transform.TransformPoint(data.localPosition);
                 Quaternion spawnRot = transform.rotation * data.localRotation;
 
-                GameObject obj = Instantiate(prefab, spawnPos, spawnRot, deadEnemyRoot);
+                GameObject obj = Instantiate(prefab, spawnPos, spawnRot, deadEnemyContainer);
                 
                 var controller = obj.GetComponent<EnemyCarController>();
                 if (controller != null)

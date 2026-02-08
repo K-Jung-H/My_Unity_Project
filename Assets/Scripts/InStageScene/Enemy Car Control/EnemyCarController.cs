@@ -104,17 +104,19 @@ public class EnemyCarController : MonoBehaviour
             ChunkController currentChunk = GetCurrentChunk(); 
             if (currentChunk != null)
             {
-                string cleanName = this.name.Replace("(Clone)", "");
+                if (WorldObjectDataManager.Instance != null)
+                {
+                    string cleanName = this.name.Replace("(Clone)", "");
+                    WorldObjectDataManager.Instance.RegisterDeadEnemy(
+                        currentChunk.Coord, 
+                        cleanName,
+                        transform.position, 
+                        transform.rotation, 
+                        currentChunk.transform
+                    );
+                }
 
-                WorldObjectDataManager.Instance.RegisterDeadEnemy(
-                    currentChunk.Coord, 
-                    cleanName,
-                    transform.position, 
-                    transform.rotation, 
-                    currentChunk.transform
-                );
-                
-                transform.SetParent(currentChunk.transform); 
+                currentChunk.RegisterDeadEnemy(transform); 
             }
         }
 
