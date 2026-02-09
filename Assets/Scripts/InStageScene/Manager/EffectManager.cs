@@ -16,6 +16,7 @@ public class EffectManager : MonoBehaviour
 
     public List<EffectData> effectList;
     private Dictionary<string, Queue<GameObject>> poolDictionary;
+    private Dictionary<string, EffectData> effectDataMap; 
     private Transform poolContainer;
 
     private void Awake()
@@ -38,6 +39,7 @@ public class EffectManager : MonoBehaviour
     private void InitializePool()
     {
         poolDictionary = new Dictionary<string, Queue<GameObject>>();
+        effectDataMap = new Dictionary<string, EffectData>();
 
         GameObject container = new GameObject("EffectPoolContainer");
         poolContainer = container.transform;
@@ -45,6 +47,11 @@ public class EffectManager : MonoBehaviour
 
         foreach (var data in effectList)
         {
+            if (!effectDataMap.ContainsKey(data.key))
+            {
+                effectDataMap.Add(data.key, data);
+            }
+
             Queue<GameObject> objectPool = new Queue<GameObject>();
 
             for (int i = 0; i < data.poolSize; i++)
@@ -59,10 +66,10 @@ public class EffectManager : MonoBehaviour
 
     public void PlayRandomEffect(Vector3 position)
     {
+        if (effectList.Count == 0) return;
         int randomIndex = Random.Range(0, effectList.Count);
         EffectData randomData = effectList[randomIndex];
         PlayEffect(randomData.key, position, Quaternion.identity);
-        Debug.Log("PlayRandomEffect: " + randomData.key);
     }
 
     public void PlayEffect(string key, Vector3 position, Quaternion rotation)
@@ -110,8 +117,11 @@ public class EffectManager : MonoBehaviour
         {
             if (obj != null) pool.Enqueue(obj);
 
-            EffectData data = effectList.Find(x => x.key == key);
-            return CreateNewObject(data);
+            if (effectDataMap.TryGetValue(key, out EffectData data))
+            {
+                return CreateNewObject(data);
+            }
+            return null;
         }
     }
 

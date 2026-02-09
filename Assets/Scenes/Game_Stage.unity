@@ -169,6 +169,7 @@ MonoBehaviour:
   activationDistance: 500
   deactivationDistance: 500
   enemyCullDistance: 500
+  minWorldHeight: -50
 --- !u!114 &16981858
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -182,8 +183,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyPathManager
   maxPathCalculationsPerFrame: 5
-  playerSearchInterval: 0.5
-  playerTag: Player
 --- !u!1 &38880378
 GameObject:
   m_ObjectHideFlags: 0
@@ -865,7 +864,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &117796851
 Transform:
   m_ObjectHideFlags: 0

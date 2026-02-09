@@ -20,7 +20,6 @@ public class EnemyCarController : MonoBehaviour
     } 
 
     [Header("Targeting")]
-    [SerializeField] private string playerTag = "Player";
     [SerializeField] private LayerMask viewBlockingLayers;
     [SerializeField] private float sightCheckInterval = 0.2f;
     [SerializeField] private float predictionTime = 1.0f;
@@ -63,7 +62,7 @@ public class EnemyCarController : MonoBehaviour
         myRb = GetComponent<Rigidbody>(); 
         Health = GetComponent<HealthSystem>();
         
-        deadLayer = LayerMask.NameToLayer("Prop"); 
+        deadLayer = LayerMask.NameToLayer("Prop");
 
         if (enemyProfile != null)
         {
@@ -90,8 +89,6 @@ public class EnemyCarController : MonoBehaviour
     {
         if (currentState == AIState.Death) return;
 
-        Debug.Log($"[Death Log] Enemy Died at World Pos: {transform.position}");
-
         ChangeState(AIState.Death);
 
         if (EnemySpawnManager.Instance != null)
@@ -104,19 +101,16 @@ public class EnemyCarController : MonoBehaviour
             ChunkController currentChunk = GetCurrentChunk(); 
             if (currentChunk != null)
             {
-                if (WorldObjectDataManager.Instance != null)
-                {
-                    string cleanName = this.name.Replace("(Clone)", "");
-                    WorldObjectDataManager.Instance.RegisterDeadEnemy(
-                        currentChunk.Coord, 
-                        cleanName,
-                        transform.position, 
-                        transform.rotation, 
-                        currentChunk.transform
-                    );
-                }
+                string cleanName = this.name.Replace("(Clone)", "");
+                WorldObjectDataManager.Instance.RegisterDeadEnemy(
+                    currentChunk.Coord, 
+                    cleanName,
+                    transform.position, 
+                    transform.rotation, 
+                    currentChunk.transform
+                );
 
-                currentChunk.RegisterDeadEnemy(transform); 
+                currentChunk.RegisterDeadEnemy(transform);
             }
         }
 
@@ -125,8 +119,6 @@ public class EnemyCarController : MonoBehaviour
 
     public void SetAsDeadState()
     {
-        Debug.Log($"[Restoration Log] Enemy Wreckage Placed at World Pos: {transform.position}");
-
         if (movement != null) movement.enabled = false;
         if (steeringSensor != null) steeringSensor.enabled = false;
         
@@ -134,17 +126,16 @@ public class EnemyCarController : MonoBehaviour
         if (agent != null) agent.enabled = false;
         
         currentState = AIState.Death;
-        if (Health != null) Health.InitializeHealth(0); 
+        if (Health != null) Health.InitializeHealth(0);
         
         ChangeMaterialToDead();
-        
         SetupDeadPhysics();
     }
-
+    
     private void SetupDeadPhysics()
     {
         gameObject.tag = "Untagged"; 
-        gameObject.layer = deadLayer; 
+        gameObject.layer = deadLayer;
     }
 
     private ChunkController GetCurrentChunk()
@@ -255,19 +246,33 @@ public class EnemyCarController : MonoBehaviour
         }
     }
 
-    private void UpdateChaseDirect()
+    private bool TryHandleCommonTransitions(bool isDirectChase)
     {
         if (CheckIfStuck()) 
         {
             ChangeState(AIState.Escaping);
-            return;
+            return true;
         }
 
-        if (!CheckLineOfSightWithInterval())
+        bool hasSight = CheckLineOfSightWithInterval();
+        
+        if (isDirectChase && !hasSight)
         {
             ChangeState(AIState.ChasePath);
-            return;
+            return true;
         }
+        else if (!isDirectChase && hasSight)
+        {
+            ChangeState(AIState.ChaseDirect);
+            return true;
+        }
+
+        return false;
+    }
+
+    private void UpdateChaseDirect()
+    {
+        if (TryHandleCommonTransitions(isDirectChase: true)) return;
 
         Vector3 predictedTarget = GetPredictedTargetPosition();
         DriveToTarget(predictedTarget);
@@ -275,17 +280,7 @@ public class EnemyCarController : MonoBehaviour
 
     private void UpdateChasePath()
     {
-        if (CheckIfStuck())
-        {
-            ChangeState(AIState.Escaping);
-            return;
-        }
-
-        if (CheckLineOfSightWithInterval())
-        {
-            ChangeState(AIState.ChaseDirect);
-            return;
-        }
+        if (TryHandleCommonTransitions(isDirectChase: false)) return;
 
         HandlePathFinding();
         DriveToTarget(currentNavTarget);
@@ -307,8 +302,24 @@ public class EnemyCarController : MonoBehaviour
 
     private void DriveToTarget(Vector3 targetPos)
     {
-        Vector3 moveDirection = steeringSensor.GetDirectionToMove(targetPos, targetPlayer);
-        movement.SetInputs(moveDirection.z, moveDirection.x);
+        Vector3 moveDirection = steeringSensor.GetDirectionToMove(targetPos, transform);
+        
+        float safetyFactor = steeringSensor.GetSafetyFactor(moveDirection, transform);
+        
+        float throttle = 0f;
+
+        if (safetyFactor < 0.2f)
+        {
+            throttle = -1f; 
+        }
+        else
+        {
+            throttle = safetyFactor; 
+        }
+
+        if (throttle > 0 && throttle < 0.3f) throttle = 0.3f;
+
+        movement.SetInputs(throttle, moveDirection.x);
     }
 
     private bool CheckIfStuck()
@@ -329,9 +340,9 @@ public class EnemyCarController : MonoBehaviour
         currentEscapeTimer = escapeDuration;
         bool hitRight = Physics.Raycast(transform.position, transform.right, 2.0f, obstacleMask);
         bool hitLeft = Physics.Raycast(transform.position, -transform.right, 2.0f, obstacleMask);
-
-        if (hitRight) escapeSteerDirection = 1f; 
-        else if (hitLeft) escapeSteerDirection = -1f; 
+        
+        if (hitRight) escapeSteerDirection = 1f;
+        else if (hitLeft) escapeSteerDirection = -1f;
         else escapeSteerDirection = (Random.value > 0.5f) ? 1f : -1f;
     }
 
@@ -339,7 +350,7 @@ public class EnemyCarController : MonoBehaviour
     {
         if (Time.time - lastSightCheckTime < sightCheckInterval) 
         {
-            return currentState == AIState.ChaseDirect; 
+            return currentState == AIState.ChaseDirect;
         }
         lastSightCheckTime = Time.time;
         return CheckLineOfSight();
@@ -398,11 +409,29 @@ public class EnemyCarController : MonoBehaviour
 
     private void FindClosestPlayer()
     {
-        GameObject playerObj = GameObject.FindGameObjectWithTag(playerTag);
-        if (playerObj != null)
+        if (PlayerManager.Instance == null) return;
+
+        var players = PlayerManager.Instance.AllActivePlayers;
+        Transform bestTarget = null;
+        float closestSqrDist = Mathf.Infinity;
+        Vector3 currentPos = transform.position;
+
+        foreach (var player in players)
         {
-            targetPlayer = playerObj.transform;
-            targetRb = playerObj.GetComponent<Rigidbody>();
+            if (player == null) continue;
+            
+            float dSqr = (player.transform.position - currentPos).sqrMagnitude;
+            if (dSqr < closestSqrDist)
+            {
+                closestSqrDist = dSqr;
+                bestTarget = player.transform;
+            }
+        }
+
+        if (bestTarget != null)
+        {
+            targetPlayer = bestTarget;
+            targetRb = bestTarget.GetComponent<Rigidbody>();
         }
     }
 }

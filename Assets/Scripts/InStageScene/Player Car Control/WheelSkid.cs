@@ -1,27 +1,37 @@
 using UnityEngine;
 
+[RequireComponent(typeof(WheelCollider))]
 public class WheelSkid : MonoBehaviour
 {
     [Header("Settings")]
     public TrailRenderer skidTrailPrefab;
-    public WheelCollider targetWheel;
-    public CarController carController;
-
+    
     [Header("Values")]
     public float groundOffset = 0.02f;
 
+    private WheelCollider targetWheel;
     private TrailRenderer currentTrail;
+    
+    private bool isSkiddingSignal = false; 
 
-    void LateUpdate()
+    private void Awake()
+    {
+        targetWheel = GetComponent<WheelCollider>();
+    }
+    
+    public void SetSkidActive(bool isActive)
+    {
+        isSkiddingSignal = isActive;
+    }
+
+    private void LateUpdate()
     {
         if (targetWheel == null || skidTrailPrefab == null) return;
 
         WheelHit hit;
         bool isGrounded = targetWheel.GetGroundHit(out hit);
-
-        bool shouldEmit = carController != null && carController.IsSkidding;
-
-        if (isGrounded && shouldEmit)
+        
+        if (isGrounded && isSkiddingSignal)
         {
             if (currentTrail == null)
             {
@@ -31,8 +41,11 @@ public class WheelSkid : MonoBehaviour
             if (currentTrail != null)
             {
                 currentTrail.transform.position = hit.point + (hit.normal * groundOffset);
-                if (hit.normal.sqrMagnitude < 0.001f) hit.normal = Vector3.up;
-                currentTrail.transform.rotation = Quaternion.LookRotation(-hit.normal, targetWheel.transform.forward);
+                
+                if (hit.normal.sqrMagnitude > 0.001f)
+                {
+                    currentTrail.transform.rotation = Quaternion.LookRotation(-hit.normal, targetWheel.transform.forward);
+                }
             }
         }
         else

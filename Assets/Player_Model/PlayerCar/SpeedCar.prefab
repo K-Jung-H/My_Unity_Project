@@ -248,6 +248,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1196253630361938118}
+  - {fileID: 336871810017068739}
   - {fileID: 8893191120700013390}
   - {fileID: 3808997779777732013}
   m_Father: {fileID: 3187979311880197742}
@@ -465,8 +466,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WheelSkid
   skidTrailPrefab: {fileID: 6662562089020853886, guid: 9c66d2b66f256e247924d2a72441a347, type: 3}
-  targetWheel: {fileID: 1778775754355671576}
-  carController: {fileID: 1395073120171073071}
   groundOffset: 0.2
 --- !u!1 &2650035278804187782
 GameObject:
@@ -553,8 +552,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WheelSkid
   skidTrailPrefab: {fileID: 6662562089020853886, guid: 9c66d2b66f256e247924d2a72441a347, type: 3}
-  targetWheel: {fileID: 4074739822371052442}
-  carController: {fileID: 1395073120171073071}
   groundOffset: 0.2
 --- !u!1 &3177221339830603991
 GameObject:
@@ -803,6 +800,7 @@ GameObject:
   - component: {fileID: 1395073120171073071}
   - component: {fileID: 5432310946891741356}
   - component: {fileID: 3050787499458372619}
+  - component: {fileID: 751156554467431043}
   m_Layer: 11
   m_Name: SpeedCar
   m_TagString: Player
@@ -854,9 +852,9 @@ Rigidbody:
   m_ImplicitTensor: 1
   m_UseGravity: 1
   m_IsKinematic: 0
-  m_Interpolate: 0
+  m_Interpolate: 1
   m_Constraints: 0
-  m_CollisionDetection: 0
+  m_CollisionDetection: 2
 --- !u!114 &826210211768349801
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -912,16 +910,12 @@ MonoBehaviour:
   frontRightMesh: {fileID: 7705070159618907409}
   rearLeftMesh: {fileID: 1033694966554935100}
   rearRightMesh: {fileID: 4225055675937752888}
-  SmokeParticles:
-  - {fileID: 3157263563404785414}
-  - {fileID: 7234587515772662245}
-  FuelChargingParticle: {fileID: 6083184037995283656}
   maxFuel: 80
   currentFuel: 80
   idleConsumptionRate: 0.05
   driveConsumptionBase: 0.2
   speedConsumptionFactor: 0.01
-  motorForce: 10000
+  motorForce: 11000
   brakeForce: 30000
   decelerationForce: 200
   maxSteerAngle: 50
@@ -930,7 +924,7 @@ MonoBehaviour:
   steerGravity: 5
   turnResponsiveness: 10
   steerHelper: 1
-  downForce: 5000
+  downForce: 2000
   wheelStiffness: 2
   maxAngularVelocity: 5
   speedMultiplier: 1.2
@@ -979,6 +973,30 @@ MonoBehaviour:
   heavyImpactThreshold: 5000
   explosionKey: Explosion
   environmentDamageFactor: 0.001
+--- !u!114 &751156554467431043
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4112145874257017431}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 15df498f48106b74d8772490e515ee62, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CarEffectController
+  exhaustParticles:
+  - {fileID: 3157263563404785414}
+  - {fileID: 7234587515772662245}
+  damageSmokeParticle: {fileID: 670781820042752013}
+  smokeStartHealthRatio: 0.5
+  maxSmokeEmission: 200
+  wheelSkids:
+  - {fileID: 123664798717891723}
+  - {fileID: 7759063365484056136}
+  - {fileID: 97750615590624523}
+  - {fileID: 3100293894792950996}
+  fuelChargingParticle: {fileID: 6083184037995283656}
 --- !u!1 &4485040266954453754
 GameObject:
   m_ObjectHideFlags: 0
@@ -1618,8 +1636,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WheelSkid
   skidTrailPrefab: {fileID: 6662562089020853886, guid: 9c66d2b66f256e247924d2a72441a347, type: 3}
-  targetWheel: {fileID: 1982353613224544953}
-  carController: {fileID: 1395073120171073071}
   groundOffset: 0.2
 --- !u!1 &8433277617868708927
 GameObject:
@@ -1706,9 +1722,74 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WheelSkid
   skidTrailPrefab: {fileID: 6662562089020853886, guid: 9c66d2b66f256e247924d2a72441a347, type: 3}
-  targetWheel: {fileID: 3431848221246820073}
-  carController: {fileID: 1395073120171073071}
   groundOffset: 0.2
+--- !u!1001 &1527286595120870533
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 1982426240204520729}
+    m_Modifications:
+    - target: {fileID: 1269676654289760838, guid: 3c58ce589c21a8b43be4cad2b882414f, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1269676654289760838, guid: 3c58ce589c21a8b43be4cad2b882414f, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1269676654289760838, guid: 3c58ce589c21a8b43be4cad2b882414f, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1269676654289760838, guid: 3c58ce589c21a8b43be4cad2b882414f, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1269676654289760838, guid: 3c58ce589c21a8b43be4cad2b882414f, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1269676654289760838, guid: 3c58ce589c21a8b43be4cad2b882414f, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1269676654289760838, guid: 3c58ce589c21a8b43be4cad2b882414f, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1269676654289760838, guid: 3c58ce589c21a8b43be4cad2b882414f, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1269676654289760838, guid: 3c58ce589c21a8b43be4cad2b882414f, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1269676654289760838, guid: 3c58ce589c21a8b43be4cad2b882414f, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8207409429673724086, guid: 3c58ce589c21a8b43be4cad2b882414f, type: 3}
+      propertyPath: m_Name
+      value: SmokeEffect
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 3c58ce589c21a8b43be4cad2b882414f, type: 3}
+--- !u!4 &336871810017068739 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 1269676654289760838, guid: 3c58ce589c21a8b43be4cad2b882414f, type: 3}
+  m_PrefabInstance: {fileID: 1527286595120870533}
+  m_PrefabAsset: {fileID: 0}
+--- !u!198 &670781820042752013 stripped
+ParticleSystem:
+  m_CorrespondingSourceObject: {fileID: 2052827319383688328, guid: 3c58ce589c21a8b43be4cad2b882414f, type: 3}
+  m_PrefabInstance: {fileID: 1527286595120870533}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &2095463951993323453
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1842,7 +1923,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7757469791899744555, guid: 90fcfbe0096b26d4199ed6063ae43555, type: 3}
       propertyPath: m_Name
-      value: SmokeEffect_0
+      value: ExhaustEffect_0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -1925,7 +2006,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7757469791899744555, guid: 90fcfbe0096b26d4199ed6063ae43555, type: 3}
       propertyPath: m_Name
-      value: SmokeEffect_1
+      value: ExhaustEffect_1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

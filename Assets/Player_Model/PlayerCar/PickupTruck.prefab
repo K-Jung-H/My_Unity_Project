@@ -193,6 +193,7 @@ GameObject:
   - component: {fileID: 52058930346944932}
   - component: {fileID: 5952027926394685051}
   - component: {fileID: 8656643078278614720}
+  - component: {fileID: 1407886980871926009}
   m_Layer: 11
   m_Name: PickupTruck
   m_TagString: Player
@@ -244,9 +245,9 @@ Rigidbody:
   m_ImplicitTensor: 1
   m_UseGravity: 1
   m_IsKinematic: 0
-  m_Interpolate: 0
+  m_Interpolate: 1
   m_Constraints: 0
-  m_CollisionDetection: 0
+  m_CollisionDetection: 2
 --- !u!114 &5641830183753012987
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -302,10 +303,6 @@ MonoBehaviour:
   frontRightMesh: {fileID: 2702690964127163129}
   rearLeftMesh: {fileID: 7739923464883473522}
   rearRightMesh: {fileID: 8502920679994088231}
-  SmokeParticles:
-  - {fileID: 5333999932108347739}
-  - {fileID: 7434529065294355336}
-  FuelChargingParticle: {fileID: 8269569330238480567}
   maxFuel: 100
   currentFuel: 100
   idleConsumptionRate: 0.05
@@ -320,7 +317,7 @@ MonoBehaviour:
   steerGravity: 5
   turnResponsiveness: 10
   steerHelper: 1
-  downForce: 3000
+  downForce: 4000
   wheelStiffness: 2
   maxAngularVelocity: 5
   speedMultiplier: 1.2
@@ -369,6 +366,30 @@ MonoBehaviour:
   heavyImpactThreshold: 5000
   explosionKey: Explosion
   environmentDamageFactor: 0.001
+--- !u!114 &1407886980871926009
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3371341466788449743}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 15df498f48106b74d8772490e515ee62, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CarEffectController
+  exhaustParticles:
+  - {fileID: 5333999932108347739}
+  - {fileID: 7434529065294355336}
+  damageSmokeParticle: {fileID: 6056711775932549764}
+  smokeStartHealthRatio: 0.5
+  maxSmokeEmission: 200
+  wheelSkids:
+  - {fileID: 6397287195237406954}
+  - {fileID: 8849754168124107136}
+  - {fileID: 7056132934117663789}
+  - {fileID: 8686247322504597835}
+  fuelChargingParticle: {fileID: 8269569330238480567}
 --- !u!1 &3857285764550323675
 GameObject:
   m_ObjectHideFlags: 0
@@ -1049,8 +1070,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WheelSkid
   skidTrailPrefab: {fileID: 6662562089020853886, guid: 9c66d2b66f256e247924d2a72441a347, type: 3}
-  targetWheel: {fileID: 96251161576399844}
-  carController: {fileID: 52058930346944932}
   groundOffset: 0.2
 --- !u!1 &6963603385164995153
 GameObject:
@@ -1137,8 +1156,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WheelSkid
   skidTrailPrefab: {fileID: 6662562089020853886, guid: 9c66d2b66f256e247924d2a72441a347, type: 3}
-  targetWheel: {fileID: 4156476989645419962}
-  carController: {fileID: 52058930346944932}
   groundOffset: 0.2
 --- !u!1 &7102321698968648779
 GameObject:
@@ -1351,8 +1368,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WheelSkid
   skidTrailPrefab: {fileID: 6662562089020853886, guid: 9c66d2b66f256e247924d2a72441a347, type: 3}
-  targetWheel: {fileID: 5012364440221818635}
-  carController: {fileID: 52058930346944932}
   groundOffset: 0.2
 --- !u!1 &7891896098295460492
 GameObject:
@@ -1564,6 +1579,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 3904995313599106233}
+  - {fileID: 6480139898433813578}
   - {fileID: 1926415711584605459}
   - {fileID: 4005648974212110272}
   m_Father: {fileID: 4763020208311974194}
@@ -1706,8 +1722,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WheelSkid
   skidTrailPrefab: {fileID: 6662562089020853886, guid: 9c66d2b66f256e247924d2a72441a347, type: 3}
-  targetWheel: {fileID: 7859544565341797146}
-  carController: {fileID: 52058930346944932}
   groundOffset: 0.2
 --- !u!1001 &4304371996028820418
 PrefabInstance:
@@ -1776,6 +1790,73 @@ ParticleSystem:
   m_CorrespondingSourceObject: {fileID: 5296051724018760565, guid: 1567199b91adb484d8c610a41fc893fb, type: 3}
   m_PrefabInstance: {fileID: 4304371996028820418}
   m_PrefabAsset: {fileID: 0}
+--- !u!1001 &5219910386630233612
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 5247153165401946904}
+    m_Modifications:
+    - target: {fileID: 1269676654289760838, guid: 3c58ce589c21a8b43be4cad2b882414f, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1269676654289760838, guid: 3c58ce589c21a8b43be4cad2b882414f, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1269676654289760838, guid: 3c58ce589c21a8b43be4cad2b882414f, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1269676654289760838, guid: 3c58ce589c21a8b43be4cad2b882414f, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1269676654289760838, guid: 3c58ce589c21a8b43be4cad2b882414f, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1269676654289760838, guid: 3c58ce589c21a8b43be4cad2b882414f, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1269676654289760838, guid: 3c58ce589c21a8b43be4cad2b882414f, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1269676654289760838, guid: 3c58ce589c21a8b43be4cad2b882414f, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1269676654289760838, guid: 3c58ce589c21a8b43be4cad2b882414f, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1269676654289760838, guid: 3c58ce589c21a8b43be4cad2b882414f, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8207409429673724086, guid: 3c58ce589c21a8b43be4cad2b882414f, type: 3}
+      propertyPath: m_Name
+      value: SmokeEffect
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 3c58ce589c21a8b43be4cad2b882414f, type: 3}
+--- !u!198 &6056711775932549764 stripped
+ParticleSystem:
+  m_CorrespondingSourceObject: {fileID: 2052827319383688328, guid: 3c58ce589c21a8b43be4cad2b882414f, type: 3}
+  m_PrefabInstance: {fileID: 5219910386630233612}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &6480139898433813578 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 1269676654289760838, guid: 3c58ce589c21a8b43be4cad2b882414f, type: 3}
+  m_PrefabInstance: {fileID: 5219910386630233612}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &5563199003373644987
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1842,7 +1923,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7757469791899744555, guid: 90fcfbe0096b26d4199ed6063ae43555, type: 3}
       propertyPath: m_Name
-      value: SmokeEffect_0
+      value: ExhaustEffect_0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -1925,7 +2006,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7757469791899744555, guid: 90fcfbe0096b26d4199ed6063ae43555, type: 3}
       propertyPath: m_Name
-      value: SmokeEffect_1
+      value: ExhaustEffect_1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

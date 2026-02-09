@@ -24,7 +24,23 @@ public class EnemySpawnManager : MonoBehaviour
     private float sqrDeactivationDist;
     private float sqrCullDist;
 
-    private List<GameObject> activeEnemies = new List<GameObject>();
+    private class EnemyHandle
+    {
+        public GameObject gameObject;
+        public Transform transform;
+        public NavMeshAgent agent;
+        public string typeName;
+
+        public EnemyHandle(GameObject go, string name)
+        {
+            gameObject = go;
+            transform = go.transform;
+            agent = go.GetComponent<NavMeshAgent>();
+            typeName = name;
+        }
+    }
+
+    private List<EnemyHandle> activeEnemies = new List<EnemyHandle>();
     private Dictionary<string, int> enemyTypeCounts = new Dictionary<string, int>();
 
     private List<ChunkController> _cachedActiveChunks = new List<ChunkController>();
@@ -93,32 +109,37 @@ public class EnemySpawnManager : MonoBehaviour
         
         for (int i = activeEnemies.Count - 1; i >= 0; i--)
         {
-            GameObject enemy = activeEnemies[i];
-            if (enemy == null) { activeEnemies.RemoveAt(i); continue; }
+            EnemyHandle handle = activeEnemies[i];
+            
+            if (handle.gameObject == null) 
+            { 
+                activeEnemies.RemoveAt(i); 
+                continue; 
+            }
 
-            Vector3 enemyPos = enemy.transform.position;
+            Vector3 enemyPos = handle.transform.position;
 
             if (enemyPos.y < minWorldHeight)
             {
-                RemoveEnemy(enemy, i); continue;
+                RemoveEnemy(handle, i); continue;
             }
 
             float minSqrDist = GetSqrDistanceToNearestPlayer(enemyPos, players);
 
             if (minSqrDist > sqrCullDist)
             {
-                RemoveEnemy(enemy, i); continue;
+                RemoveEnemy(handle, i); continue;
             }
 
-            if (enemy.TryGetComponent(out NavMeshAgent agent))
+            if (handle.agent != null)
             {
                 if (minSqrDist <= sqrActivationDist)
                 {
-                    if (!agent.enabled) agent.enabled = true;
+                    if (!handle.agent.enabled) handle.agent.enabled = true;
                 }
                 else if (minSqrDist > sqrDeactivationDist)
                 {
-                    if (agent.enabled) agent.enabled = false;
+                    if (handle.agent.enabled) handle.agent.enabled = false;
                 }
             }
         }
@@ -139,36 +160,40 @@ public class EnemySpawnManager : MonoBehaviour
 
     public void RetireEnemy(GameObject enemy)
     {
-        if (activeEnemies.Contains(enemy))
+        int index = activeEnemies.FindIndex(x => x.gameObject == enemy);
+        if (index != -1)
         {
-            string typeName = enemy.name;
-            if (enemyTypeCounts.ContainsKey(typeName))
-            {
-                enemyTypeCounts[typeName]--;
-                if (enemyTypeCounts[typeName] < 0) enemyTypeCounts[typeName] = 0;
-            }
-            activeEnemies.Remove(enemy);
+            RemoveEnemy(activeEnemies[index], index, false);
         }
     }
 
     public void UnregisterEnemy(GameObject enemy)
     {
-        if (activeEnemies.Contains(enemy))
+        int index = activeEnemies.FindIndex(x => x.gameObject == enemy);
+        if (index != -1)
         {
-            RemoveEnemy(enemy, activeEnemies.IndexOf(enemy));
+            RemoveEnemy(activeEnemies[index], index);
         }
-        else Destroy(enemy);
+        else 
+        {
+            Destroy(enemy);
+        }
     }
 
-    private void RemoveEnemy(GameObject enemy, int index)
+    private void RemoveEnemy(EnemyHandle handle, int index, bool destroyObject = true)
     {
-        string typeName = enemy.name;
+        string typeName = handle.typeName;
         if (enemyTypeCounts.ContainsKey(typeName))
         {
             enemyTypeCounts[typeName]--;
             if (enemyTypeCounts[typeName] < 0) enemyTypeCounts[typeName] = 0;
         }
-        Destroy(enemy);
+
+        if (destroyObject && handle.gameObject != null)
+        {
+            Destroy(handle.gameObject);
+        }
+        
         activeEnemies.RemoveAt(index);
     }
 
@@ -200,6 +225,7 @@ public class EnemySpawnManager : MonoBehaviour
             CreateEnemyAt(config, targetPoint, filter);
         }
     }
+
     private void CreateEnemyAt(EnemySpawnConfig config, Transform targetPoint, NavMeshQueryFilter filter)
     {
         GameObject enemy = Instantiate(config.prefab, targetPoint.position, targetPoint.rotation, globalEnemyRoot);
@@ -229,7 +255,9 @@ public class EnemySpawnManager : MonoBehaviour
 
     private void RegisterEnemy(GameObject enemy, string typeName)
     {
-        activeEnemies.Add(enemy);
+        EnemyHandle handle = new EnemyHandle(enemy, typeName);
+        activeEnemies.Add(handle);
+
         if (!enemyTypeCounts.ContainsKey(typeName)) enemyTypeCounts[typeName] = 0;
         enemyTypeCounts[typeName]++;
     }

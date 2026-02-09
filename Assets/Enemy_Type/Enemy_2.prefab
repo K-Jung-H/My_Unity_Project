@@ -64,7 +64,7 @@ Rigidbody:
   m_ImplicitTensor: 1
   m_UseGravity: 1
   m_IsKinematic: 0
-  m_Interpolate: 1
+  m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
 --- !u!65 &6980265799374706595
@@ -122,7 +122,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyCarAnimation
   enemyProfile: {fileID: 11400000, guid: fce383f58e230e84e98265b767da4f48, type: 2}
-  playerTag: Player
   viewBlockingLayers:
     serializedVersion: 2
     m_Bits: 128
@@ -206,7 +205,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyCollisionHandler
   heavyImpactThreshold: 5000
-  environmentDamageFactor: 0.002
+  environmentDamageFactor: 0.001
   explosionKey: Explosion
 --- !u!1001 &8802886269144201490
 PrefabInstance:

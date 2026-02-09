@@ -16,6 +16,7 @@ public enum GearState
 [RequireComponent(typeof(HealthSystem))]
 [RequireComponent(typeof(CarCollisionHandler))]
 [RequireComponent(typeof(Rigidbody))]
+[RequireComponent(typeof(CarEffectController))]
 public class CarController : MonoBehaviour
 {
     public event Action OnDeath;
@@ -25,6 +26,8 @@ public class CarController : MonoBehaviour
     [SerializeField] private CarCameraManager cameraManager;
     [SerializeField] private HealthSystem healthSystem;
     [SerializeField] private CarCollisionHandler collisionHandler;
+    
+    private CarEffectController effectController;
 
     [Header("Wheel Colliders")]
     public WheelCollider frontLeftCollider;
@@ -37,12 +40,6 @@ public class CarController : MonoBehaviour
     public Transform frontRightMesh;
     public Transform rearLeftMesh;
     public Transform rearRightMesh;
-
-    [Header("SmokeEffects")]
-    public ParticleSystem[] SmokeParticles;
-
-    [Header("FuelEffects")]
-    public ParticleSystem FuelChargingParticle;
 
     [Header("Fuel Settings")]
     public float maxFuel = 100f;
@@ -110,6 +107,7 @@ public class CarController : MonoBehaviour
 
     private Vector3 _cachedVelocity;
     private float _cachedSpeed;
+    private float cachedEffectiveAccel;
 
     public bool IsGrounded
     {
@@ -123,6 +121,7 @@ public class CarController : MonoBehaviour
     private void Awake()
     {
         carRigidbody = GetComponent<Rigidbody>();
+        effectController = GetComponent<CarEffectController>();
         
         if (inputManager == null) inputManager = GetComponent<CarInputManager>();
         if (cameraManager == null) cameraManager = GetComponent<CarCameraManager>();
@@ -135,9 +134,6 @@ public class CarController : MonoBehaviour
         carRigidbody.centerOfMass = centerOfMassOffset;
         defaultAngularDamping = carRigidbody.angularDamping;
         carRigidbody.maxAngularVelocity = 20f;
-
-        if(FuelChargingParticle != null)
-            FuelChargingParticle.Stop();
 
         if (healthSystem != null)
         {
@@ -152,13 +148,14 @@ public class CarController : MonoBehaviour
         ProcessSteeringSmoothing();
         CalculateDisplaySpeed();
         CalculateFuelConsumption();
-        UpdateExhaustParticles();
     }
 
     private void FixedUpdate()
     {
         _cachedVelocity = carRigidbody.linearVelocity;
         _cachedSpeed = _cachedVelocity.magnitude;
+
+        cachedEffectiveAccel = ValidateAccelInput(accelInput);
 
         UpdateDriveDirection();
         CheckDriftState();
@@ -228,14 +225,9 @@ public class CarController : MonoBehaviour
 
     public void SetFuelCharging(bool isCharging)
     {
-        if (FuelChargingParticle == null) return;
-        if (isCharging)
+        if (effectController != null)
         {
-            if (!FuelChargingParticle.isPlaying) FuelChargingParticle.Play();
-        }
-        else
-        {
-            if (FuelChargingParticle.isPlaying) FuelChargingParticle.Stop(true, ParticleSystemStopBehavior.StopEmitting);
+            effectController.SetFuelCharging(isCharging);
         }
     }
 
@@ -261,10 +253,9 @@ public class CarController : MonoBehaviour
             carRigidbody.angularVelocity = Vector3.zero;
         }
 
-        if (FuelChargingParticle != null) FuelChargingParticle.Stop();
-        if (SmokeParticles != null)
+        if (effectController != null)
         {
-            foreach(var ps in SmokeParticles) ps.Play();
+            effectController.SetFuelCharging(false); 
         }
         
         accelInput = 0f;
@@ -342,29 +333,16 @@ public class CarController : MonoBehaviour
         currentFuel = Mathf.Clamp(currentFuel, 0, maxFuel);
     }
 
-    private void UpdateExhaustParticles()
-    {
-        if (SmokeParticles == null || SmokeParticles.Length == 0) return;
-        bool isEngineActive = (currentGear != GearState.P) && (currentFuel > 0) && !isDead;
-
-        foreach (var ps in SmokeParticles)
-        {
-            var emission = ps.emission;
-            emission.enabled = isEngineActive;
-        }
-    }
-
     private void UpdateDriveDirection()
     {
         float velocityDot = Vector3.Dot(_cachedVelocity, transform.forward);
         float velocityMag = _cachedSpeed;
-        float effectiveAccel = ValidateAccelInput(accelInput);
-
+        
         if (velocityDot > 1.0f) driveDirection = 1f;
         else if (velocityDot < -1.0f) driveDirection = -1f;
         else
         {
-            if (effectiveAccel > 0.1f)
+            if (cachedEffectiveAccel > 0.1f)
             {
                 if (currentGear == GearState.R) driveDirection = -1f;
                 else driveDirection = 1f;
@@ -387,13 +365,12 @@ public class CarController : MonoBehaviour
         }
 
         float speed = _cachedSpeed;
-        float effectiveAccel = ValidateAccelInput(accelInput);
-
+        
         float currentSpeedThreshold = IsDrifting ? minDriftExitSpeed : minDriftSpeed;
         bool speedCondition = speed > currentSpeedThreshold;
         bool turnCondition = Mathf.Abs(currentSteerInput) > driftSteerThreshold;
         
-        bool isSmartBraking = (Vector3.Dot(_cachedVelocity, transform.forward) > 5.0f && currentGear == GearState.R && effectiveAccel > 0.1f);
+        bool isSmartBraking = (Vector3.Dot(_cachedVelocity, transform.forward) > 5.0f && currentGear == GearState.R && cachedEffectiveAccel > 0.1f);
         bool brakeCondition = (brakeInput > 0.1f) || isSmartBraking;
         bool autoDriftCondition = Mathf.Abs(currentSteerInput) > autoDriftThreshold;
 
@@ -407,7 +384,6 @@ public class CarController : MonoBehaviour
     {
         float currentMotorForce = 0f;
         float currentBrakeForce = 0f;
-        float effectiveAccel = ValidateAccelInput(accelInput);
         
         float forwardSpeed = Vector3.Dot(transform.forward, _cachedVelocity);
 
@@ -433,7 +409,7 @@ public class CarController : MonoBehaviour
             if (currentGear == GearState.D) gearDirection = 1f;
             else if (currentGear == GearState.R) gearDirection = -1f;
 
-            if (effectiveAccel > 0.1f)
+            if (cachedEffectiveAccel > 0.1f)
             {
                 if (forwardSpeed * gearDirection < -1.0f)
                 {
@@ -443,12 +419,12 @@ public class CarController : MonoBehaviour
                 }
                 else
                 {
-                    currentMotorForce = effectiveAccel * currentMaxMotorForce * gearDirection;
+                    currentMotorForce = cachedEffectiveAccel * currentMaxMotorForce * gearDirection;
                     if (brakeInput < 0.1f) currentBrakeForce = 0f;
                 }
             }
 
-            if (effectiveAccel < 0.1f && brakeInput < 0.1f)
+            if (cachedEffectiveAccel < 0.1f && brakeInput < 0.1f)
             {
                 currentBrakeForce = decelerationForce;
             }
@@ -485,11 +461,10 @@ public class CarController : MonoBehaviour
         if (!IsGrounded) return;
 
         float slopeDot = Vector3.Dot(transform.forward, Vector3.up);
-        float effectiveAccel = ValidateAccelInput(accelInput);
         
-        if (slopeDot > slopeThreshold && effectiveAccel > 0.1f && currentGear != GearState.R)
+        if (slopeDot > slopeThreshold && cachedEffectiveAccel > 0.1f && currentGear != GearState.R)
         {
-            Vector3 assistForce = transform.forward * slopeForce * slopeDot * effectiveAccel;
+            Vector3 assistForce = transform.forward * slopeForce * slopeDot * cachedEffectiveAccel;
             carRigidbody.AddForce(assistForce, ForceMode.Acceleration);
         }
     }
@@ -497,14 +472,24 @@ public class CarController : MonoBehaviour
     private void ApplyArcadePhysics()
     {
         float speed = _cachedSpeed;
-        float effectiveAccel = ValidateAccelInput(accelInput);
 
+        ApplyLowSpeedStop(speed, cachedEffectiveAccel);
+        ApplyTurnPhysics(speed, cachedEffectiveAccel);
+        ApplyDriftPhysics(speed);
+        ApplyDownForce(speed);
+    }
+
+    private void ApplyLowSpeedStop(float speed, float effectiveAccel)
+    {
         if (speed < 0.5f && (brakeInput > 0.1f || effectiveAccel < 0.1f))
         {
             carRigidbody.linearVelocity = Vector3.Lerp(carRigidbody.linearVelocity, Vector3.zero, Time.fixedDeltaTime * 10f);
             carRigidbody.angularVelocity = Vector3.Lerp(carRigidbody.angularVelocity, Vector3.zero, Time.fixedDeltaTime * 10f);
         }
+    }
 
+    private void ApplyTurnPhysics(float speed, float effectiveAccel)
+    {
         bool hasThrottleInput = effectiveAccel > 0.1f;
         bool isMoving = speed > 1.0f;
         bool canTurn = hasThrottleInput || isMoving;
@@ -537,7 +522,10 @@ public class CarController : MonoBehaviour
             currentAV.y = Mathf.Lerp(currentAV.y, 0f, Time.fixedDeltaTime * turnResponsiveness);
             carRigidbody.angularVelocity = currentAV;
         }
+    }
 
+    private void ApplyDriftPhysics(float speed)
+    {
         if (IsDrifting && speed > 2.0f)
         {
             Vector3 steerDirection = Quaternion.Euler(0, currentSteerInput * maxSteerAngle, 0) * transform.forward;
@@ -563,7 +551,10 @@ public class CarController : MonoBehaviour
 
             carRigidbody.linearVelocity *= dragMultiplier;
         }
+    }
 
+    private void ApplyDownForce(float speed)
+    {
         float uprightDot = Vector3.Dot(transform.up, Vector3.up);
         Vector3 downForceDir;
 

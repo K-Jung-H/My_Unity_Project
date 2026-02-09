@@ -85,8 +85,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WheelSkid
   skidTrailPrefab: {fileID: 6662562089020853886, guid: 9c66d2b66f256e247924d2a72441a347, type: 3}
-  targetWheel: {fileID: 5450738708042213639}
-  carController: {fileID: 981811355290933885}
   groundOffset: 0.2
 --- !u!1 &1567687423883983058
 GameObject:
@@ -353,8 +351,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WheelSkid
   skidTrailPrefab: {fileID: 6662562089020853886, guid: 9c66d2b66f256e247924d2a72441a347, type: 3}
-  targetWheel: {fileID: 3366072950747539869}
-  carController: {fileID: 981811355290933885}
   groundOffset: 0.2
 --- !u!1 &2819417945769492877
 GameObject:
@@ -371,6 +367,7 @@ GameObject:
   - component: {fileID: 981811355290933885}
   - component: {fileID: 7211610105696539527}
   - component: {fileID: -7777284925872232814}
+  - component: {fileID: 3215685172273480156}
   m_Layer: 11
   m_Name: SUV
   m_TagString: Player
@@ -422,9 +419,9 @@ Rigidbody:
   m_ImplicitTensor: 1
   m_UseGravity: 1
   m_IsKinematic: 0
-  m_Interpolate: 0
+  m_Interpolate: 1
   m_Constraints: 0
-  m_CollisionDetection: 0
+  m_CollisionDetection: 2
 --- !u!114 &6718985518662211157
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -480,16 +477,12 @@ MonoBehaviour:
   frontRightMesh: {fileID: 4296177461907786367}
   rearLeftMesh: {fileID: 2249785302544082207}
   rearRightMesh: {fileID: 1891870663025839842}
-  SmokeParticles:
-  - {fileID: 1989645107270786900}
-  - {fileID: 8255034849219317124}
-  FuelChargingParticle: {fileID: 3114863138849281671}
   maxFuel: 150
   currentFuel: 150
   idleConsumptionRate: 0.05
   driveConsumptionBase: 0.2
   speedConsumptionFactor: 0.01
-  motorForce: 5000
+  motorForce: 6000
   brakeForce: 30000
   decelerationForce: 200
   maxSteerAngle: 40
@@ -547,6 +540,30 @@ MonoBehaviour:
   heavyImpactThreshold: 5000
   explosionKey: Explosion
   environmentDamageFactor: 0.001
+--- !u!114 &3215685172273480156
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2819417945769492877}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 15df498f48106b74d8772490e515ee62, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CarEffectController
+  exhaustParticles:
+  - {fileID: 1989645107270786900}
+  - {fileID: 8255034849219317124}
+  damageSmokeParticle: {fileID: 3377952798138238599}
+  smokeStartHealthRatio: 0.5
+  maxSmokeEmission: 200
+  wheelSkids:
+  - {fileID: 4619634261517997045}
+  - {fileID: 4380471928251144068}
+  - {fileID: 8116341719066753125}
+  - {fileID: 6100104056692675837}
+  fuelChargingParticle: {fileID: 3114863138849281671}
 --- !u!1 &2849831463313333645
 GameObject:
   m_ObjectHideFlags: 0
@@ -1529,6 +1546,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 8054699427721804425}
+  - {fileID: 2522914704536907849}
   - {fileID: 5415173800973423388}
   - {fileID: 2465133906820448716}
   m_Father: {fileID: 2243613762282567566}
@@ -1618,8 +1636,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WheelSkid
   skidTrailPrefab: {fileID: 6662562089020853886, guid: 9c66d2b66f256e247924d2a72441a347, type: 3}
-  targetWheel: {fileID: 1053614684718258874}
-  carController: {fileID: 981811355290933885}
   groundOffset: 0.2
 --- !u!1 &7478168297008025017
 GameObject:
@@ -1706,8 +1722,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WheelSkid
   skidTrailPrefab: {fileID: 6662562089020853886, guid: 9c66d2b66f256e247924d2a72441a347, type: 3}
-  targetWheel: {fileID: 1239141237411052153}
-  carController: {fileID: 981811355290933885}
   groundOffset: 0.2
 --- !u!1001 &2066865287505521332
 PrefabInstance:
@@ -1775,7 +1789,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7757469791899744555, guid: 90fcfbe0096b26d4199ed6063ae43555, type: 3}
       propertyPath: m_Name
-      value: SmokeEffect_0
+      value: ExhaustEffect_0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -1791,6 +1805,73 @@ ParticleSystem:
 Transform:
   m_CorrespondingSourceObject: {fileID: 6307419812148541864, guid: 90fcfbe0096b26d4199ed6063ae43555, type: 3}
   m_PrefabInstance: {fileID: 2066865287505521332}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1001 &3647350266464043535
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 663239764867350826}
+    m_Modifications:
+    - target: {fileID: 1269676654289760838, guid: 3c58ce589c21a8b43be4cad2b882414f, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1269676654289760838, guid: 3c58ce589c21a8b43be4cad2b882414f, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1269676654289760838, guid: 3c58ce589c21a8b43be4cad2b882414f, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1269676654289760838, guid: 3c58ce589c21a8b43be4cad2b882414f, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1269676654289760838, guid: 3c58ce589c21a8b43be4cad2b882414f, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1269676654289760838, guid: 3c58ce589c21a8b43be4cad2b882414f, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1269676654289760838, guid: 3c58ce589c21a8b43be4cad2b882414f, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1269676654289760838, guid: 3c58ce589c21a8b43be4cad2b882414f, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1269676654289760838, guid: 3c58ce589c21a8b43be4cad2b882414f, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1269676654289760838, guid: 3c58ce589c21a8b43be4cad2b882414f, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8207409429673724086, guid: 3c58ce589c21a8b43be4cad2b882414f, type: 3}
+      propertyPath: m_Name
+      value: SmokeEffect
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 3c58ce589c21a8b43be4cad2b882414f, type: 3}
+--- !u!4 &2522914704536907849 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 1269676654289760838, guid: 3c58ce589c21a8b43be4cad2b882414f, type: 3}
+  m_PrefabInstance: {fileID: 3647350266464043535}
+  m_PrefabAsset: {fileID: 0}
+--- !u!198 &3377952798138238599 stripped
+ParticleSystem:
+  m_CorrespondingSourceObject: {fileID: 2052827319383688328, guid: 3c58ce589c21a8b43be4cad2b882414f, type: 3}
+  m_PrefabInstance: {fileID: 3647350266464043535}
   m_PrefabAsset: {fileID: 0}
 --- !u!1001 &7081186378002361842
 PrefabInstance:
@@ -1925,7 +2006,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7757469791899744555, guid: 90fcfbe0096b26d4199ed6063ae43555, type: 3}
       propertyPath: m_Name
-      value: SmokeEffect_1
+      value: ExhaustEffect_1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

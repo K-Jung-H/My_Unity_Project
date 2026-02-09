@@ -3,7 +3,7 @@ using UnityEngine;
 [RequireComponent(typeof(Rigidbody))]
 public class EnemyCarMovement : MonoBehaviour
 {
-    [Header("Current Stats (Read-Only Debug)")] 
+    [Header("Current Stats")] 
     [SerializeField] private float accelerationForce;
     [SerializeField] private float maxSpeed;
     [SerializeField] private float turnSpeed;
@@ -12,9 +12,9 @@ public class EnemyCarMovement : MonoBehaviour
     [SerializeField] private float stability;
 
     [Header("Physics Sensors")]
-    [SerializeField] private float downForce = 50f; 
+    [SerializeField] private float downForce = 50f;
     [SerializeField] private float groundCheckDist = 2.0f;
-    [SerializeField] private float groundCheckOffset = 1.0f; 
+    [SerializeField] private float groundCheckOffset = 1.0f;
     [SerializeField] private LayerMask groundLayer;
 
     private Rigidbody rb;
@@ -23,7 +23,7 @@ public class EnemyCarMovement : MonoBehaviour
     private bool isGrounded;
     private Vector3 groundNormal = Vector3.up;
     
-    private float currentGroundDist; 
+    private float currentGroundDist;
 
     private void Awake()
     {
@@ -44,7 +44,6 @@ public class EnemyCarMovement : MonoBehaviour
         rb.linearDamping = profile.LinearDamping;
         rb.angularDamping = profile.AngularDamping;
         rb.centerOfMass = new Vector3(0, profile.CenterOfMassY, 0);
-        rb.interpolation = RigidbodyInterpolation.Interpolate;
 
         this.accelerationForce = profile.AccelerationForce;
         this.maxSpeed = profile.MaxSpeed;
@@ -79,7 +78,7 @@ public class EnemyCarMovement : MonoBehaviour
         {
             isGrounded = true;
             groundNormal = hit.normal;
-            currentGroundDist = hit.distance - groundCheckOffset; 
+            currentGroundDist = hit.distance - groundCheckOffset;
         }
         else
         {
