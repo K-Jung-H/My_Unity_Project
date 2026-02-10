@@ -16,6 +16,7 @@ public class GameSceneBuilder : MonoBehaviour
     public PlayerUIManager playerUIManager;
 
     [Header("Gameplay Systems")]
+    public GameTimeManager gameTimeManager;
     public DynamicChunkManager dynamicChunkManager;
     public PlayerManager playerManager;
     public EnemySpawnManager enemySpawnManager;
@@ -53,6 +54,9 @@ public class GameSceneBuilder : MonoBehaviour
 
         if (DynamicChunkManager.Instance != null) DynamicChunkManager.Instance.Initialize();
         else if (dynamicChunkManager != null) dynamicChunkManager.Initialize();
+
+        if (GameTimeManager.Instance != null) GameTimeManager.Instance.Initialize();
+        else if(gameTimeManager != null) gameTimeManager.Initialize();
 
         if (ScoreManager.Instance != null) ScoreManager.Instance.Initialize();
         else if (scoreManager != null) scoreManager.Initialize();

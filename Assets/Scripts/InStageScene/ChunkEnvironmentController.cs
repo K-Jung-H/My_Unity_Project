@@ -26,7 +26,7 @@ public class ChunkEnvironmentController : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (IsPlayer(other))
+        if (IsPlayerTrigger(other))
         {
             if (environmentParticle != null && !environmentParticle.isPlaying)
             {
@@ -37,7 +37,7 @@ public class ChunkEnvironmentController : MonoBehaviour
 
     private void OnTriggerExit(Collider other)
     {
-        if (IsPlayer(other))
+        if (IsPlayerTrigger(other))
         {
             if (environmentParticle != null && environmentParticle.isPlaying)
             {
@@ -46,8 +46,10 @@ public class ChunkEnvironmentController : MonoBehaviour
         }
     }
 
-    private bool IsPlayer(Collider other)
+    private bool IsPlayerTrigger(Collider other)
     {
-        return (playerLayer.value & (1 << other.gameObject.layer)) != 0;
+        bool isCorrectLayer = (playerLayer.value & (1 << other.gameObject.layer)) != 0;
+        
+        return isCorrectLayer && other.isTrigger;
     }
 }
