@@ -59,7 +59,7 @@ MonoBehaviour:
     m_RotationOrder: 4
   enemyConfigs:
   - enemyName: AceTruck
-    prefab: {fileID: 562171976151151253, guid: d5e1649eaa672564d89d3794b14362ce, type: 3}
+    prefab: {fileID: 562171976151151253, guid: eaeeafb86bce3f74d912ab4cf5174fb4, type: 3}
     unlockThreshold: 0.3
     spawnWeightCurve:
       serializedVersion: 2

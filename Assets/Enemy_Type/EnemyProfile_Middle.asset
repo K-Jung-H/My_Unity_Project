@@ -10,19 +10,19 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6d696665140bbb0458f8c11a3768e908, type: 3}
-  m_Name: EnemyProfile_Heavy
+  m_Name: EnemyProfile_Middle
   m_EditorClassIdentifier: Assembly-CSharp::EnemyStatProfile
-  Mass: 5000
-  LinearDamping: 0.5
+  Mass: 2000
+  LinearDamping: 0.3
   AngularDamping: 5
-  CenterOfMassY: 0.1
-  AccelerationForce: 50000
-  MaxSpeed: 40
+  CenterOfMassY: 0
+  AccelerationForce: 16000
+  MaxSpeed: 50
   TurnSpeed: 100
-  BrakeForce: 40
-  SteeringGrip: 8
-  Stability: 10
+  BrakeForce: 25
+  SteeringGrip: 10
+  Stability: 5
   ContinuousDamage: 5
-  ImpactDamageFactor: 0.01
-  Health: 500
+  ImpactDamageFactor: 0.005
+  Health: 200
   DeadMaterial: {fileID: 2100000, guid: edeb6f80aa8b0bc44ba0ed8f6254a1b9, type: 2}

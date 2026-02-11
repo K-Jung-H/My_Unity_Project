@@ -45,5 +45,21 @@ public class InGame_CanvasManager : MonoBehaviour
     public void ShowPausePanel() => ShowPanel(UIPanelType.Pause);
     public void ShowOptionPanel() => ShowPanel(UIPanelType.Option);
     public void ShowResetPanel() => ShowPanel(UIPanelType.Reset);
-    public void ShowDeathPanel() => ShowPanel(UIPanelType.Death); 
+    public void ShowDeathPanel(int finalScore) 
+    {
+        ShowPanel(UIPanelType.Death);
+
+        if (deathUIPanel != null)
+        {
+            FinalScoreUI deathUI = deathUIPanel.GetComponent<FinalScoreUI>();
+            if (deathUI != null)
+            {
+                deathUI.SetScore(finalScore);
+            }
+            else
+            {
+                Debug.LogWarning("DeathUI 패널에 FinalScoreUI 스크립트가 없습니다.");
+            }
+        }
+    }
 }

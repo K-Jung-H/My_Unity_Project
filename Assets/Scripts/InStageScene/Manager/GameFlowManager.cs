@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.InputSystem;
 using System.Collections;
+using System.IO;
 
 public class GameFlowManager : MonoBehaviour
 {
@@ -16,7 +17,6 @@ public class GameFlowManager : MonoBehaviour
     private bool isPaused = false;
     private bool isGameOver = false;
     public bool IsGameRunning { get; private set; } = false;
-
 
     private void Awake()
     {
@@ -100,6 +100,44 @@ public class GameFlowManager : MonoBehaviour
         else if (InGame_CanvasManager.Instance != null) InGame_CanvasManager.Instance.ShowGamePanel();
     }
 
+    private void SaveGameResult()
+    {
+        GameResult newResult = new GameResult(); 
+        
+        GameHistory history = LoadGameHistory();
+        
+        history.results.Add(newResult);
+
+        string json = JsonUtility.ToJson(history, true);
+        File.WriteAllText(GameHistory.FilePath, json);
+
+        Debug.Log($"저장 경로: {Application.persistentDataPath}");
+        Debug.Log($"[GameFlowManager] Game Result Saved. High Score: {history.GetHighScore()}");
+    }
+
+    private GameHistory LoadGameHistory()
+    {
+        if (File.Exists(GameHistory.FilePath))
+        {
+            try
+            {
+                string json = File.ReadAllText(GameHistory.FilePath);
+                return JsonUtility.FromJson<GameHistory>(json) ?? new GameHistory();
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError($"[GameFlowManager] Failed to load history: {e.Message}");
+            }
+        }
+        return new GameHistory();
+    }
+
+    public int GetHighScore()
+    {
+        return LoadGameHistory().GetHighScore();
+    }
+
+
     private void HandleLocalPlayerDeath()
     {
         if (isGameOver) return;
@@ -107,8 +145,7 @@ public class GameFlowManager : MonoBehaviour
         isGameOver = true;
         IsGameRunning = false;
 
-        if (scoreManager != null) scoreManager.SaveGameResult();
-        else if (ScoreManager.Instance != null) ScoreManager.Instance.SaveGameResult();
+        SaveGameResult();
 
         StartCoroutine(ShowDeathSequence());
     }
@@ -117,8 +154,10 @@ public class GameFlowManager : MonoBehaviour
     {
         yield return new WaitForSeconds(1.0f);
 
-        if (canvasManager != null) canvasManager.ShowDeathPanel();
-        else if (InGame_CanvasManager.Instance != null) InGame_CanvasManager.Instance.ShowDeathPanel();
+        int currentScore = GameData.TotalScore; 
+
+        if (canvasManager != null) canvasManager.ShowDeathPanel(currentScore);
+        else if (InGame_CanvasManager.Instance != null) InGame_CanvasManager.Instance.ShowDeathPanel(currentScore);
     }
 
     public void OnClickLobby()

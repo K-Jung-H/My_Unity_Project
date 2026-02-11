@@ -67,18 +67,4 @@ public class ScoreManager : MonoBehaviour
         GameData.TotalScore = Mathf.Max(0, newScore);
         OnScoreChanged?.Invoke(GameData.TotalScore);
     }
-
-    public void SaveGameResult()
-    {
-        if (!isScoringActive) return;
-        isScoringActive = false;
-        
-        GameResult result = new GameResult();
-        string json = JsonUtility.ToJson(result, true);
-        string fileName = $"GameLog_{DateTime.Now:yyyyMMdd_HHmmss}.json";
-        string path = Path.Combine(Application.persistentDataPath, "GameLogs");
-
-        if (!Directory.Exists(path)) Directory.CreateDirectory(path);
-        File.WriteAllText(Path.Combine(path, fileName), json);
-    }
 }

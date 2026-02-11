@@ -18,7 +18,7 @@ GameObject:
   - component: {fileID: 813582270612933299}
   - component: {fileID: 67083137133109225}
   m_Layer: 10
-  m_Name: Enemy_3
+  m_Name: Enemy_3_NightMare
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -121,7 +121,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5c4892298a3f2b24e9057b7a96ddf171, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyCarAnimation
-  enemyProfile: {fileID: 11400000, guid: d9b23764fb2695649b1245a23f4afe91, type: 2}
+  enemyProfile: {fileID: 11400000, guid: 00fee69d1f65d424e9432c6074d3c764, type: 2}
   viewBlockingLayers:
     serializedVersion: 2
     m_Bits: 128
@@ -172,12 +172,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e45ac1e32d082bc47ba87f798c387835, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ContextSteering
-  rayCount: 8
-  rayRange: 20
-  brakeRayRangeMultiplier: 1.5
+  rayCount: 12
+  rayRange: 30
+  brakeRayRangeMultiplier: 1
   avoidanceMask:
     serializedVersion: 2
-    m_Bits: 1152
+    m_Bits: 128
   showGizmos: 1
   updateInterval: 3
 --- !u!114 &813582270612933299
